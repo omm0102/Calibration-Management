@@ -179,3 +179,7 @@ body:has(.calendar-workspace) #content{flex:1;min-height:0}
 .day-detail-list .detail-actions .detail-icon:hover{background:#edf2f8;color:#283b54}
 .day-detail-list .detail-actions .detail-icon.danger{color:#b44747}
 .day-detail-list .detail-actions .detail-icon.danger:hover{background:#fbeded;color:#a13131}
+
+.day-detail-list summary>span{flex:1;min-width:0;overflow-wrap:anywhere}
+.day-detail-list summary .detail-actions{display:flex;flex:none;margin-left:auto;padding:0;gap:4px}
+.day-detail-list summary{min-height:64px;padding-top:12px;padding-bottom:12px}
