@@ -132,3 +132,42 @@ body:has(.calendar-workspace) dialog[open]::backdrop{background:#20273550;backdr
 @media(prefers-reduced-motion:reduce){
  body:has(.calendar-workspace) *,body:has(.calendar-workspace) *::before,body:has(.calendar-workspace) *::after{transition:none!important;animation:none!important}
 }
+
+/* Fit five-week and full-month views into the viewport; long lists scroll internally. */
+body:has(.calendar-workspace){height:100dvh;overflow:hidden}
+body:has(.calendar-workspace) aside{overflow:auto}
+body:has(.calendar-workspace) main{height:100dvh;display:flex;flex-direction:column;padding-top:22px;padding-bottom:22px;overflow:hidden}
+body:has(.calendar-workspace) header{flex:none;margin-bottom:18px}
+body:has(.calendar-workspace) #content{flex:1;min-height:0}
+.calendar-workspace{height:100%;min-height:0;grid-template-rows:auto minmax(0,1fr)}
+.calendar-workspace .calendar{height:100%;min-height:0;align-self:stretch;grid-template-rows:35px repeat(var(--calendar-weeks,5),minmax(0,1fr))}
+.calendar-workspace .weekday{height:auto;min-height:0}
+.calendar-workspace .day{height:auto;min-height:0;padding:6px}
+.calendar-workspace .daynum{margin-bottom:5px}
+.calendar-workspace .right-rail{grid-template-rows:minmax(0,3fr) minmax(0,2fr)}
+@media(max-width:1100px){
+ .calendar-workspace{grid-template-rows:auto minmax(0,1fr) minmax(140px,.65fr)}
+ .calendar-workspace .right-rail{height:auto;min-height:0;margin-top:12px;grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr)}
+ .calendar-workspace .panel{padding:14px}
+ .calendar-workspace .right-rail .section-head{top:-14px}
+}
+@media(max-width:650px){
+ body:has(.calendar-workspace) aside{height:110px;flex:none;padding:10px 12px;overflow:hidden}
+ body:has(.calendar-workspace) aside nav{min-height:0;overflow-x:auto}
+ body:has(.calendar-workspace) aside .navgroup{flex:none}
+ body:has(.calendar-workspace) aside .navgroup button{padding:7px 9px}
+ body:has(.calendar-workspace) main{height:calc(100dvh - 110px);padding:10px 10px 12px}
+ body:has(.calendar-workspace) header{margin-bottom:10px}
+ body:has(.calendar-workspace) h1{font-size:23px;margin:0}
+ .calendar-workspace{grid-template-rows:auto minmax(0,1fr) minmax(110px,.6fr)}
+ .calendar-toolbar{gap:5px}
+ .calendar-toolbar>button{padding:6px 8px;font-size:14px}
+ .calendar-toolbar>input{min-width:0;width:145px;padding:6px;font-size:14px}
+ .calendar-toolbar>.spacer{display:none}
+ .calendar-toolbar>.primary{margin-left:auto}
+ .calendar-workspace .day{padding:4px 2px}
+ .calendar-workspace .event{padding:3px;font-size:12px}
+ .calendar-workspace .right-rail .panel{padding:10px}
+ .calendar-workspace .right-rail .section-head{top:-10px;padding-bottom:8px}
+ .calendar-workspace .section-head h2{font-size:17px}
+}
