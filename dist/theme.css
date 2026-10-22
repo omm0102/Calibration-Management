@@ -1,0 +1,76 @@
+/* Shared design tokens for the application, monthly report and XLSX export. */
+:root{
+ --color-canvas:#F1F4F8;--color-surface:#FFFFFF;--color-soft:#F7F9FC;--color-muted-surface:#EDF0F4;
+ --color-text:#283446;--color-muted:#6F7D90;--color-subtle:#8B97A8;
+ --color-primary:#283B54;--color-primary-hover:#354F70;--color-accent:#2E5894;--color-accent-soft:#EAF0F8;
+ --color-border:#DCE3EC;--color-divider:#E9EDF3;--color-focus:#6486B2;--color-frame:#303947;
+ --color-warning:#FFB300;--color-warning-soft:#FFF2D9;--color-warning-text:#895C16;--color-warning-border:#E2BB72;
+ --color-danger:#B44747;--color-danger-hover:#963B3B;--color-danger-soft:#FFF0F0;--color-danger-tint:#FBE4E4;
+ --color-manual:#222222;--color-complete:#FDF5E6;--color-complete-text:#62615E;--color-complete-border:#D1CDC5;
+ --color-success:#217346;--color-success-hover:#185C37;--color-success-soft:#EAF5EE;
+ --color-overlay:rgba(40,59,84,.32);--color-shadow:rgba(40,59,84,.08);
+ --font-ui:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft JhengHei',sans-serif;
+ --radius-card:12px;--radius-control:8px;--shadow-card:0 6px 22px rgba(40,59,84,.06);--shadow-dialog:0 20px 64px rgba(40,59,84,.2);
+ --ink:var(--color-text);--muted:var(--color-muted);--line:var(--color-border);--bg:var(--color-canvas);
+}
+body.app-shell{background:var(--color-canvas);color:var(--color-text);font:17px/1.55 var(--font-ui)}
+body.app-shell main{padding:24px 28px;background:transparent}
+body.app-shell main>header{margin-bottom:20px}
+body.app-shell h1{font-size:29px;font-weight:650;letter-spacing:.3px}
+body.app-shell h2{font-size:20px;font-weight:600}
+body.app-shell .eyebrow{color:var(--color-subtle);font-size:13px;letter-spacing:2.2px}
+body.app-shell aside{padding:24px 16px;background:var(--color-surface);border-right:1px solid var(--color-border)}
+body.app-shell .brand{color:var(--color-primary)}
+body.app-shell .navgroup button{border-radius:var(--radius-control)}
+body.app-shell .navgroup button.active{background:var(--color-accent-soft);color:var(--color-accent);box-shadow:inset 3px 0 var(--color-accent)}
+body.app-shell :is(button,input,select,textarea){font-family:var(--font-ui);border-radius:var(--radius-control)}
+body.app-shell :is(input,select,textarea){border-color:var(--color-border);background:var(--color-surface)}
+body.app-shell :is(input,textarea)::placeholder{color:var(--color-subtle)}
+body.app-shell :is(button,input,select,textarea):focus-visible{outline:2px solid var(--color-focus);outline-offset:3px}
+body.app-shell button.primary,body.app-shell .calendar-toolbar>button.primary,body.app-shell .todo-add{background:var(--color-primary);border-color:var(--color-primary);color:var(--color-surface)}
+body.app-shell button.primary:hover,body.app-shell .calendar-toolbar>button.primary:hover,body.app-shell .todo-add:hover{background:var(--color-primary-hover);border-color:var(--color-primary-hover)}
+body.app-shell button.danger{color:var(--color-danger)}
+body.app-shell button.danger:hover{color:var(--color-danger-hover);background:var(--color-danger-soft)}
+body.app-shell :is(.panel,.group,.tablewrap,.upload,iframe){border:1px solid var(--color-border);border-radius:var(--radius-card);background:var(--color-surface)}
+body.app-shell :is(.panel,.group,.tablewrap){box-shadow:var(--shadow-card)}
+body.app-shell th{background:var(--color-soft);color:var(--color-muted);font-size:15px;font-weight:500}
+body.app-shell :is(th,td){padding:12px 14px;border-bottom-color:var(--color-divider)}
+body.app-shell :is(th:first-child){background:var(--color-soft)}
+body.app-shell tr:hover td{background:var(--color-soft)}
+body.app-shell tr.finished td{background:var(--color-complete)}
+body.app-shell tr.inactive-equipment td{color:var(--color-danger);background:var(--color-danger-soft)}
+body.app-shell tr.inactive-equipment:hover td{background:var(--color-danger-tint)}
+body.app-shell .tabs{gap:24px;border-color:var(--color-border)}
+body.app-shell .tabs button.active{border-bottom-color:var(--color-primary);color:var(--color-primary)}
+body.app-shell .toolbar{gap:9px}
+body.app-shell .note{background:var(--color-accent-soft);border-left:3px solid var(--color-focus);border-radius:var(--radius-control);color:var(--color-muted);line-height:1.65}
+body.app-shell .upload{border-style:dashed;background:var(--color-soft)}
+body.app-shell :is(.muted,.subtle,.tablefoot,p,.field){color:var(--color-muted)}
+body.app-shell dialog{border:1px solid var(--color-border);border-radius:16px;box-shadow:var(--shadow-dialog);color:var(--color-text);background:var(--color-surface)}
+body.app-shell .modal-head{border-bottom:1px solid var(--color-divider);padding-bottom:16px}
+body.app-shell :is(button,input,select,textarea,.panel,.event,.todo){transition:background-color .2s ease,color .2s ease,border-color .2s ease,box-shadow .2s ease,transform .2s ease,opacity .2s ease}
+body.app-shell .registry-export{color:var(--color-success);border-color:var(--color-success)}
+body.app-shell .registry-restore{background:var(--color-warning-soft);color:var(--color-warning-text);border-color:var(--color-warning-border)}
+/* Monthly report controls share the shell; the fixed report canvas keeps its geometry. */
+body.report-shell{font-family:var(--font-ui);background:var(--color-canvas);color:var(--color-text)}
+.report-shell .app>.panel{border-color:var(--color-border);border-radius:var(--radius-card);box-shadow:var(--shadow-card)}
+.report-shell .controls{padding:20px;color:var(--color-text)}
+.report-shell .controls :is(h1,h2){color:var(--color-primary)}
+.report-shell .controls label{color:var(--color-muted)}
+.report-shell .controls :is(input,select,textarea,.summary-editor){border:1px solid var(--color-border);border-radius:var(--radius-control);background:var(--color-surface);color:var(--color-text)}
+.report-shell .controls button{font-family:var(--font-ui);border-radius:var(--radius-control);font-weight:500;transition:background-color .2s ease,color .2s ease,box-shadow .2s ease}
+.report-shell .controls button.primary{background:var(--color-primary);color:var(--color-surface)}
+.report-shell .controls button.primary:hover{background:var(--color-primary-hover)}
+.report-shell .controls button.secondary{background:var(--color-accent-soft);color:var(--color-primary)}
+.report-shell .controls button.danger{background:var(--color-danger-soft);color:var(--color-danger)}
+.report-shell .report,.report{font-family:'Microsoft JhengHei','Noto Sans TC','PingFang TC',Arial,sans-serif}
+@media(max-width:1100px){body.app-shell main{padding:22px 20px}}
+@media(max-width:650px){
+ body.app-shell main{padding:12px}
+ body.app-shell aside{padding:10px 12px}
+ body.app-shell h1{font-size:24px;margin-top:0}
+ body.app-shell main>header{margin-bottom:12px}
+ body.app-shell .tabs{gap:14px}
+}
+@media(prefers-reduced-motion:reduce){body.app-shell :is(button,input,select,textarea,.panel,.event,.todo),.report-shell .controls button{transition:none}}
+body.app-shell .tabs>button:not(.registry-export){background:transparent;border-radius:0}

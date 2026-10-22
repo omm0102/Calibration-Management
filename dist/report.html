@@ -6,31 +6,31 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>量測設備校驗管理月報</title>
 <style>
-:root{--navy:#002B5C;--navy2:#07366b;--soft:#d9e0e8;--ink:#111;--green:#436f31;--red:#7b0000;--gold:#c99900;}
+:root{--navy:var(--color-primary);--navy2:var(--color-primary);--soft:var(--color-border);--ink:var(--color-text);--green:var(--color-success);--red:var(--color-danger);--gold:var(--color-warning-text);}
 *{box-sizing:border-box}
-body{margin:0;font-family:"Microsoft JhengHei","Noto Sans TC","PingFang TC",Arial,sans-serif;background:#eef2f6;color:#111}
+body{margin:0;font-family:"Microsoft JhengHei","Noto Sans TC","PingFang TC",Arial,sans-serif;background:var(--color-canvas);color:var(--color-text)}
 .app{display:grid;grid-template-columns:390px minmax(0,1fr);height:100vh;gap:14px;padding:14px}
-.panel{background:#fff;border:1px solid #cbd5e1;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.08);overflow:auto}
+.panel{background:var(--color-surface);border:1px solid var(--color-border);border-radius:14px;box-shadow:0 6px 24px var(--color-shadow);overflow:auto}
 .controls{padding:18px}
 .controls h1{font-size:20px;margin:0 0 14px;color:var(--navy)}
-.group{border-top:1px solid #e5e7eb;padding-top:14px;margin-top:14px}
-.group h2{font-size:15px;margin:0 0 10px;color:#334155}
+.group{border-top:1px solid var(--color-border);padding-top:14px;margin-top:14px}
+.group h2{font-size:15px;margin:0 0 10px;color:var(--color-text)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-label{font-size:13px;color:#475569;display:block;margin-bottom:5px}
-input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:8px 9px;font:inherit;background:#fff}
+label{font-size:13px;color:var(--color-text);display:block;margin-bottom:5px}
+input,select,textarea{width:100%;border:1px solid var(--color-border);border-radius:8px;padding:8px 9px;font:inherit;background:var(--color-surface)}
 textarea{min-height:82px;resize:vertical}
-.rowcard{border:1px solid #dbe3ec;border-radius:10px;padding:10px;margin:8px 0;background:#f8fafc}
+.rowcard{border:1px solid var(--color-border);border-radius:10px;padding:10px;margin:8px 0;background:var(--color-soft)}
 .rowcard .actions{display:flex;justify-content:flex-end;margin-top:8px}
 button{border:0;border-radius:9px;padding:9px 13px;font-weight:700;cursor:pointer}
-.primary{background:var(--navy);color:#fff}
-.secondary{background:#e9eff6;color:var(--navy)}
-.danger{background:#fee2e2;color:#991b1b}
+.primary{background:var(--navy);color:var(--color-surface)}
+.secondary{background:var(--color-accent-soft);color:var(--navy)}
+.danger{background:var(--color-danger-soft);color:var(--color-danger-hover)}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.errorbox{display:none;margin-top:12px;border:1px solid #fecaca;background:#fff1f2;color:#991b1b;border-radius:9px;padding:10px;font-size:13px;line-height:1.6}
+.errorbox{display:none;margin-top:12px;border:1px solid var(--color-danger-tint);background:var(--color-danger-soft);color:var(--color-danger-hover);border-radius:9px;padding:10px;font-size:13px;line-height:1.6}
 .preview-panel{padding:12px;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .stage{width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .report-wrap{width:1600px;height:900px;transform-origin:center center;flex:none}
-.report{width:1600px;height:900px;background:#fff;position:relative;overflow:hidden;color:#111}
+.report{width:1600px;height:900px;background:var(--color-surface);position:relative;overflow:hidden;color:var(--color-text)}
 
 /* Exact PPT visual system */
 .top-title{position:absolute;left:535px;top:27px;width:530px;text-align:center;font-family:"Microsoft JhengHei",sans-serif;font-size:43px;line-height:1.05;font-weight:800;color:var(--navy);letter-spacing:1px;white-space:nowrap}
@@ -38,10 +38,10 @@ button{border:0;border-radius:9px;padding:9px 13px;font-weight:700;cursor:pointe
 .headline-left,.headline-right{position:absolute;top:48px;height:37px}
 .headline-left{left:0;width:553px} .headline-right{right:0;width:553px}
 .headline-left:before,.headline-right:before{content:"";position:absolute;left:0;right:0;top:0;height:18px;background:var(--navy)}
-.headline-left:after,.headline-right:after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:#8197b3}
+.headline-left:after,.headline-right:after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--color-accent)}
 
-.card{position:absolute;border:4px solid var(--navy);border-radius:30px;background:#fff;overflow:hidden}
-.card-title{position:absolute;left:-1px;right:-1px;top:-1px;height:54px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:29px;line-height:1;font-weight:500;border-radius:26px 26px 0 0}
+.card{position:absolute;border:4px solid var(--navy);border-radius:30px;background:var(--color-surface);overflow:hidden}
+.card-title{position:absolute;left:-1px;right:-1px;top:-1px;height:54px;background:var(--navy);color:var(--color-surface);display:flex;align-items:center;justify-content:center;font-size:29px;line-height:1;font-weight:500;border-radius:26px 26px 0 0}
 #overview{left:18px;top:143px;width:504px;height:315px}
 #result{left:546px;top:143px;width:504px;height:408px}
 #overdue{left:1074px;top:143px;width:504px;height:608px}
@@ -73,16 +73,16 @@ button{border:0;border-radius:9px;padding:9px 13px;font-weight:700;cursor:pointe
 .res-label{position:absolute;left:111px;top:105px;font-size:26px}
 .res-done{position:absolute;left:321px;top:88px;font-size:43px;font-weight:800}
 .res-unit{position:absolute;left:418px;top:108px;font-size:23px}
-.donut{position:absolute;left:22px;top:162px;width:205px;height:205px;border-radius:50%;background:conic-gradient(var(--navy) 0deg 349.2deg,#cbd6e5 349.2deg 360deg)}
-.donut:after{content:"";position:absolute;inset:48px;border-radius:50%;background:white}
-.donut-value{position:absolute;left:22px;top:236px;width:205px;text-align:center;font-size:27px;font-weight:700;color:#334155;z-index:2}
+.donut{position:absolute;left:22px;top:162px;width:205px;height:205px;border-radius:50%;background:conic-gradient(var(--navy) 0deg 349.2deg,var(--color-border) 349.2deg 360deg)}
+.donut:after{content:"";position:absolute;inset:48px;border-radius:50%;background:var(--color-surface)}
+.donut-value{position:absolute;left:22px;top:236px;width:205px;text-align:center;font-size:27px;font-weight:700;color:var(--color-text);z-index:2}
 .donut-caption{position:absolute;left:51px;top:355px;width:150px;text-align:center;font-size:29px;font-weight:700}
 .status-line{display:flex;align-items:center;position:absolute;height:58px;white-space:nowrap}
 .status-line .circle{width:48px;height:48px;border-radius:50%;border:4px solid currentColor;display:flex;align-items:center;justify-content:center;margin-right:12px}
 .status-line .circle img{width:32px;height:32px}
-.status-line .lbl{font-size:27px;margin-right:11px;color:#111}
-.status-line .num{font-size:42px;font-weight:800;color:#111}
-.status-line .u{font-size:23px;color:#111;margin-left:8px}
+.status-line .lbl{font-size:27px;margin-right:11px;color:var(--color-text)}
+.status-line .num{font-size:42px;font-weight:800;color:var(--color-text)}
+.status-line .u{font-size:23px;color:var(--color-text);margin-left:8px}
 .pass{left:244px;top:166px;color:var(--green)}
 .fail{left:244px;top:229px;color:var(--red)}
 .over-count-icon{position:absolute;left:244px;top:322px;width:58px;height:58px}
@@ -102,13 +102,13 @@ button{border:0;border-radius:9px;padding:9px 13px;font-weight:700;cursor:pointe
 
 /* Tables */
 .table-shell{position:absolute;left:17px;right:17px;top:70px;bottom:14px;overflow:hidden}
-table{width:100%;border-collapse:collapse;table-layout:fixed;background:#fff}
-th,td{border:1.8px solid #111;text-align:center;vertical-align:middle;padding:4px 5px;line-height:1.14;overflow-wrap:anywhere}
-th{background:#d6dde6;font-weight:700}
+table{width:100%;border-collapse:collapse;table-layout:fixed;background:var(--color-surface)}
+th,td{border:1.8px solid var(--color-text);text-align:center;vertical-align:middle;padding:4px 5px;line-height:1.14;overflow-wrap:anywhere}
+th{background:var(--color-border);font-weight:700}
 .overdue-table{font-size:15px}
 .overdue-table th{font-size:15px;height:53px}
 .overdue-table td{font-size:15px;min-height:47px}
-.overdue-empty,.ng-empty{height:100%;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:22px}
+.overdue-empty,.ng-empty{height:100%;display:flex;align-items:center;justify-content:center;color:var(--color-muted);font-size:22px}
 #ng .table-shell{top:66px;bottom:12px}
 .ng-table{font-size:15px}
 .ng-table th,.ng-table td{font-size:15px;padding:5px;height:auto}
@@ -125,7 +125,7 @@ th{background:#d6dde6;font-weight:700}
 .report.layout-left-ng #ng{left:546px;top:565px;width:504px;height:186px}
 
 /* Controls responsive */
-.small-note{font-size:12px;color:#64748b;margin-top:5px;line-height:1.4}
+.small-note{font-size:12px;color:var(--color-muted);margin-top:5px;line-height:1.4}
 @media(max-width:1100px){.app{grid-template-columns:1fr;height:auto}.preview-panel{min-height:650px}}
 
 
@@ -135,9 +135,9 @@ th{background:#d6dde6;font-weight:700}
      Chromium/Edge otherwise falls back to A4/Letter landscape (about 1.41:1),
      which preserves the snapshot but leaves large white bands and makes the report look undersized. */
   @page{size:13.333in 7.5in;margin:0}
-  html,body{margin:0!important;padding:0!important;background:#fff!important;width:13.333in!important;height:7.5in!important;overflow:hidden!important}
+  html,body{margin:0!important;padding:0!important;background:var(--color-surface)!important;width:13.333in!important;height:7.5in!important;overflow:hidden!important}
   body > .app{display:none!important}
-  #printHost{display:block!important;position:fixed!important;left:0!important;top:0!important;width:13.333in!important;height:7.5in!important;margin:0!important;padding:0!important;overflow:hidden!important;background:#fff!important}
+  #printHost{display:block!important;position:fixed!important;left:0!important;top:0!important;width:13.333in!important;height:7.5in!important;margin:0!important;padding:0!important;overflow:hidden!important;background:var(--color-surface)!important}
   #printHost img{display:block!important;width:13.333in!important;height:7.5in!important;max-width:none!important;max-height:none!important;object-fit:fill!important;object-position:0 0!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 }
 
@@ -154,16 +154,16 @@ th{background:#d6dde6;font-weight:700}
 
 /* result card: use flow layout instead of absolute coordinates */
 .result-body{position:absolute;left:24px;right:24px;top:70px;bottom:18px;display:flex;flex-direction:column;gap:10px}
-.result-topline{height:68px;display:grid;grid-template-columns:54px 1fr auto auto;align-items:center;column-gap:12px;padding:0 8px;border-bottom:1px solid #d9e0e8}
+.result-topline{height:68px;display:grid;grid-template-columns:54px 1fr auto auto;align-items:center;column-gap:12px;padding:0 8px;border-bottom:1px solid var(--color-border)}
 .result-main-icon{width:50px;height:50px}
 .result-top-label{font-size:25px;white-space:nowrap}
 .result-top-number{font-size:40px;font-weight:800;line-height:1}
 .result-top-unit{font-size:22px;margin-left:2px}
 .result-lower{flex:1;min-height:0;display:grid;grid-template-columns:43% 57%;align-items:center;gap:12px}
 .donut-zone{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px}
-.donut{position:relative;left:auto;top:auto;width:158px;height:158px;border-radius:50%;background:conic-gradient(var(--navy) 0deg 349.2deg,#cbd6e5 349.2deg 360deg)}
-.donut:after{content:"";position:absolute;inset:15px;border-radius:50%;background:#fff}
-.donut-value{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;width:auto;left:auto;top:auto;text-align:center;font-size:25px;font-weight:700;color:#334155;z-index:2}
+.donut{position:relative;left:auto;top:auto;width:158px;height:158px;border-radius:50%;background:conic-gradient(var(--navy) 0deg 349.2deg,var(--color-border) 349.2deg 360deg)}
+.donut:after{content:"";position:absolute;inset:15px;border-radius:50%;background:var(--color-surface)}
+.donut-value{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;width:auto;left:auto;top:auto;text-align:center;font-size:25px;font-weight:700;color:var(--color-text);z-index:2}
 .donut-caption{position:relative;left:auto;top:auto;width:auto;text-align:center;font-size:24px;font-weight:700;line-height:1}
 .result-stats{height:100%;display:flex;flex-direction:column;justify-content:center;gap:9px;padding-right:5px}
 .result-stat{display:grid;grid-template-columns:46px minmax(82px,1fr) auto 30px;align-items:center;column-gap:8px;min-height:48px;white-space:nowrap}
@@ -171,9 +171,9 @@ th{background:#d6dde6;font-weight:700}
 .result-stat-icon img{width:28px;height:28px;object-fit:contain}
 .result-stat-icon.plain{border:0;border-radius:0;width:42px;height:42px}
 .result-stat-icon.plain img{width:40px;height:40px}
-.result-stat-label{font-size:23px;color:#111}
-.result-stat-number{font-size:36px;font-weight:800;color:#111;line-height:1;text-align:right}
-.result-stat-unit{font-size:20px;color:#111}
+.result-stat-label{font-size:23px;color:var(--color-text)}
+.result-stat-number{font-size:36px;font-weight:800;color:var(--color-text);line-height:1;text-align:right}
+.result-stat-unit{font-size:20px;color:var(--color-text)}
 .pass-stat{color:var(--green)}
 .fail-stat{color:var(--red)}
 .overdue-stat{color:var(--navy)}
@@ -304,8 +304,8 @@ th,td{height:auto!important;min-height:0!important;padding:5px 5px;line-height:1
 .result-lower{grid-template-columns:45% 55%;gap:6px;align-items:stretch;min-height:0}
 .donut-zone{display:grid;grid-template-rows:1fr 34px;place-items:center;gap:3px;min-height:0;overflow:visible}
 .donut{position:relative!important;left:auto!important;top:auto!important;width:154px!important;height:154px!important;flex:none!important;border-radius:50%;align-self:center;justify-self:center}
-.donut::after{content:"";position:absolute;inset:13px;border-radius:50%;background:#fff;z-index:1}
-.donut-value{position:absolute!important;inset:0!important;transform:none!important;width:100%!important;height:100%!important;display:grid!important;place-items:center!important;text-align:center!important;font-size:25px!important;line-height:1!important;font-weight:700!important;color:#334155!important;z-index:3!important;white-space:nowrap!important;pointer-events:none}
+.donut::after{content:"";position:absolute;inset:13px;border-radius:50%;background:var(--color-surface);z-index:1}
+.donut-value{position:absolute!important;inset:0!important;transform:none!important;width:100%!important;height:100%!important;display:grid!important;place-items:center!important;text-align:center!important;font-size:25px!important;line-height:1!important;font-weight:700!important;color:var(--color-text)!important;z-index:3!important;white-space:nowrap!important;pointer-events:none}
 .donut-caption{position:static!important;width:auto!important;min-height:0!important;display:flex!important;align-items:center!important;justify-content:center!important;font-size:23px!important;line-height:1!important;font-weight:700!important;white-space:nowrap!important;overflow:visible!important}
 .result-stats{gap:8px;padding-right:0}
 .result-stat{grid-template-columns:44px minmax(88px,1fr) auto 28px;column-gap:7px;min-height:47px}
@@ -313,7 +313,7 @@ th,td{height:auto!important;min-height:0!important;padding:5px 5px;line-height:1
 /* Tables use the card area instead of leaving large dead zones. */
 .table-shell{left:16px;right:16px;top:67px;bottom:14px;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .table-shell table{width:100%;margin:auto 0}
-.overdue-empty,.ng-empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:600;color:#64748b}
+.overdue-empty,.ng-empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;font-size:24px;font-weight:600;color:var(--color-muted)}
 #ng .table-shell{top:67px;bottom:13px}
 
 /* Summary adapts upward/downward in font size so the box looks intentionally filled. */
@@ -1142,22 +1142,22 @@ th,td{height:auto!important;min-height:0!important;padding:5px 5px;line-height:1
 .app-actionbar{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important;align-items:stretch!important}
 .app-actionbar button{width:100%;min-height:40px}
 .app-actionbar.app-editing-mode #previewPdfBtn{grid-column:1 / -1}
-.app-edit-btn{background:#b42318!important;color:#fff!important}
-.app-edit-btn:hover{background:#8f1c14!important}
+.app-edit-btn{background:var(--color-danger)!important;color:var(--color-surface)!important}
+.app-edit-btn:hover{background:var(--color-danger-hover)!important}
 .app-summary-tools{display:flex;justify-content:flex-end;margin-top:8px}
 .app-summary-tools button{min-width:112px}
-.summary-editor{width:100%;min-height:112px;border:1px solid #cbd5e1;border-radius:8px;padding:9px 10px;font:inherit;line-height:1.65;background:#fff;outline:none;white-space:pre-wrap;word-break:break-word}
-.summary-editor:focus{border-color:#7e96b1;box-shadow:0 0 0 2px rgba(23,61,104,.08)}
-.summary-editor [data-dyn]{background:#eef3f8;border-radius:4px;padding:0 2px;color:#173d68;font-weight:700}
-.controls-panel.app-readonly .summary-editor{background:#eef2f6!important;color:#59697a!important;pointer-events:none}
-.controls-panel.app-readonly .summary-editor [data-dyn]{background:#e3e9ef;color:#59697a}
+.summary-editor{width:100%;min-height:112px;border:1px solid var(--color-border);border-radius:8px;padding:9px 10px;font:inherit;line-height:1.65;background:var(--color-surface);outline:none;white-space:pre-wrap;word-break:break-word}
+.summary-editor:focus{border-color:var(--color-focus);box-shadow:0 0 0 2px var(--color-shadow)}
+.summary-editor [data-dyn]{background:var(--color-accent-soft);border-radius:4px;padding:0 2px;color:var(--color-primary);font-weight:700}
+.controls-panel.app-readonly .summary-editor{background:var(--color-canvas)!important;color:var(--color-muted)!important;pointer-events:none}
+.controls-panel.app-readonly .summary-editor [data-dyn]{background:var(--color-muted-surface);color:var(--color-muted)}
 #summaryText{white-space:pre-wrap}
 .app-backup-block{margin-top:12px}
 .app-backup-block .grid2{gap:8px}
 .controls-panel .app-field-locked input:not(#monthInput),
 .controls-panel .app-field-locked textarea,
 .controls-panel .app-field-locked select{
-  background:#eef2f6!important;color:#59697a!important;cursor:not-allowed!important;
+  background:var(--color-canvas)!important;color:var(--color-muted)!important;cursor:not-allowed!important;
 }
 .controls-panel.app-readonly #overdueEditor .danger,
 .controls-panel.app-readonly #ngEditor .danger,
@@ -1169,31 +1169,32 @@ th,td{height:auto!important;min-height:0!important;padding:5px 5px;line-height:1
 .controls-panel.app-readonly #internalInput,
 .controls-panel.app-readonly #externalInput,
 .controls-panel.app-readonly #costInput,
-.controls-panel.app-readonly #summaryInput{background:#eef2f6!important;color:#59697a!important}
-.app-modal-layer{position:fixed;inset:0;z-index:100000;background:rgba(22,34,50,.42);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .18s ease}
+.controls-panel.app-readonly #summaryInput{background:var(--color-canvas)!important;color:var(--color-muted)!important}
+.app-modal-layer{position:fixed;inset:0;z-index:100000;background:var(--color-overlay);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s ease}
 .app-modal-layer.app-visible{opacity:1;pointer-events:auto}
-.app-modal-card{width:min(430px,calc(100vw - 40px));background:#fff;border:1px solid #9aabba;border-radius:14px;box-shadow:0 18px 55px rgba(20,37,57,.25);overflow:hidden;transform:translateY(8px) scale(.985);transition:transform .18s ease}
+.app-modal-card{width:min(430px,calc(100vw - 40px));background:var(--color-surface);border:1px solid var(--color-subtle);border-radius:14px;box-shadow:0 18px 55px var(--color-shadow);overflow:hidden;transform:translateY(8px) scale(.985);transition:transform .2s ease}
 .app-modal-layer.app-visible .app-modal-card{transform:translateY(0) scale(1)}
-.app-modal-head{padding:16px 20px;background:#e8edf1;color:#173d68;font-size:18px;font-weight:800;border-bottom:1px solid #c7d1da}
-.app-modal-body{padding:20px;color:#30465c;font-size:15px;line-height:1.6;white-space:pre-wrap}
+.app-modal-head{padding:16px 20px;background:var(--color-muted-surface);color:var(--color-primary);font-size:18px;font-weight:800;border-bottom:1px solid var(--color-border)}
+.app-modal-body{padding:20px;color:var(--color-primary);font-size:15px;line-height:1.6;white-space:pre-wrap}
 .app-modal-actions{padding:0 20px 18px;display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap}
 .app-modal-actions button{min-width:88px;border-radius:8px;padding:9px 14px;font-weight:700;cursor:pointer}
-.app-modal-btn-secondary{background:#fff;border:1px solid #9aabba;color:#36516d}
-.app-modal-btn-primary{background:#173d68;border:1px solid #173d68;color:#fff}
-.app-loading-layer{position:fixed;inset:0;z-index:99990;background:rgba(238,242,246,.78);backdrop-filter:blur(1.5px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .18s ease}
+.app-modal-btn-secondary{background:var(--color-surface);border:1px solid var(--color-subtle);color:var(--color-primary)}
+.app-modal-btn-primary{background:var(--color-primary);border:1px solid var(--color-primary);color:var(--color-surface)}
+.app-loading-layer{position:fixed;inset:0;z-index:99990;background:var(--color-overlay);backdrop-filter:blur(1.5px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s ease}
 .app-loading-layer.app-visible{opacity:1;pointer-events:auto}
-.app-loading-box{background:#fff;border:1px solid #c6d0da;border-radius:12px;padding:20px 28px;display:flex;align-items:center;gap:14px;box-shadow:0 12px 38px rgba(20,37,57,.14);color:#173d68;font-weight:800;transform:translateY(5px);transition:transform .2s ease}
+.app-loading-box{background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;padding:20px 28px;display:flex;align-items:center;gap:14px;box-shadow:0 12px 38px var(--color-shadow);color:var(--color-primary);font-weight:800;transform:translateY(5px);transition:transform .2s ease}
 .app-loading-layer.app-visible .app-loading-box{transform:translateY(0)}
-.app-loading-spinner{width:22px;height:22px;border:3px solid #d4dde5;border-top-color:#173d68;border-radius:50%;animation:app-spin .7s linear infinite}
+.app-loading-spinner{width:22px;height:22px;border:3px solid var(--color-border);border-top-color:var(--color-primary);border-radius:50%;animation:app-spin .7s linear infinite}
 @keyframes app-spin{to{transform:rotate(360deg)}}
-.app-toast{position:fixed;z-index:100010;left:50%;top:22px;transform:translate(-50%,-22px);background:#173d68;color:#fff;padding:10px 18px;border-radius:9px;box-shadow:0 8px 28px rgba(20,37,57,.23);opacity:0;pointer-events:none;transition:opacity .22s ease,transform .22s ease;font-weight:700}
+.app-toast{position:fixed;z-index:100010;left:50%;top:22px;transform:translate(-50%,-22px);background:var(--color-primary);color:var(--color-surface);padding:10px 18px;border-radius:9px;box-shadow:0 8px 28px var(--color-shadow);opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;font-weight:700}
 .app-toast.app-visible{opacity:1;transform:translate(-50%,0)}
 </style>
 <style>/* Larger editor text; report print layout stays fixed. */
 .controls{font-size:17px}.controls label{font-size:17px}.controls h2{font-size:19px}.controls h1{font-size:24px}.controls input,.controls select,.controls textarea,.controls button{font-size:17px}
 </style>
+<link rel="stylesheet" href="theme.css?v=20261022-24">
 </head>
-<body>
+<body class="report-shell">
 <div class="app">
 <section class="panel controls-panel">
 <div class="controls">
@@ -1507,7 +1508,7 @@ function update(){
  chooseLayout(); const total=getTotal(), rate=getRate();
  $('monthText').textContent=monthLabel(); $('totalText').textContent=total; $('internalText').textContent=n('internalInput'); $('externalText').textContent=n('externalInput'); fitOverviewNumbers();
  const done=getDone(), fail=state.ng.length, pass=Math.max(0,done-fail); $('doneText').textContent=done; $('passText').textContent=pass; $('failText').textContent=fail; $('overdueCountText').textContent=state.overdue.length;
- $('rateCenter').textContent=rate.toFixed(1)+'%'; const visual=Math.min(100,Math.max(0,rate)); $('donut').style.background=`conic-gradient(var(--navy) 0deg ${visual*3.6}deg,#cbd6e5 ${visual*3.6}deg 360deg)`;
+ $('rateCenter').textContent=rate.toFixed(1)+'%'; const visual=Math.min(100,Math.max(0,rate)); $('donut').style.background=`conic-gradient(var(--navy) 0deg ${visual*3.6}deg,var(--color-border) ${visual*3.6}deg 360deg)`;
  $('costText').textContent=fmt(n('costInput')); $('annualText').textContent=fmt(annualTotal());
  updateDynamicSummaryTokens(); $('summaryText').textContent=summaryPlainText();
  renderTables(); fitSummaryFont(); fitPreview();
