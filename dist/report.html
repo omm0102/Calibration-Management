@@ -1192,7 +1192,7 @@ th,td{height:auto!important;min-height:0!important;padding:5px 5px;line-height:1
 <style>/* Larger editor text; report print layout stays fixed. */
 .controls{font-size:17px}.controls label{font-size:17px}.controls h2{font-size:19px}.controls h1{font-size:24px}.controls input,.controls select,.controls textarea,.controls button{font-size:17px}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261022-29">
+<link rel="stylesheet" href="theme.css?v=20261022-32">
 </head>
 <body class="report-shell">
 <div class="app">
@@ -1297,13 +1297,13 @@ function renderEditors(){
  <div><label>設備名稱</label><input value="${esc(r.name)}" oninput="bindRow('overdue',${i},'name',this.value)"></div>
  <div><label>類別</label><select onchange="bindRow('overdue',${i},'type',this.value)">${['內校','外校','遊校'].map(x=>`<option ${x===r.type?'selected':''}>${x}</option>`).join('')}</select></div>
  <div><label>預計完成</label><input type="date" value="${esc(r.date)}" oninput="bindRow('overdue',${i},'date',this.value)"></div>
- </div><div style="margin-top:8px"><label>原因（必填）</label><input value="${esc(r.reason)}" oninput="bindRow('overdue',${i},'reason',this.value)" placeholder="請輸入詳細原因"></div><div class="actions"><button class="danger" onclick="removeRow('overdue',${i})">刪除</button></div></div>`).join('');
+ </div><div style="margin-top:8px"><label>原因（必填）</label><input value="${esc(r.reason)}" oninput="bindRow('overdue',${i},'reason',this.value)" placeholder="請輸入詳細原因"></div><div class="actions"><button class="report-delete-icon danger" type="button" aria-label="刪除逾校設備" title="刪除" onclick="removeRow('overdue',${i})"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button></div></div>`).join('');
  $('ngEditor').innerHTML=state.ng.map((r,i)=>`<div class="rowcard"><div class="grid2">
  <div><label>設備編號</label><input value="${esc(r.code)}" oninput="bindRow('ng',${i},'code',this.value)"></div>
  <div><label>設備名稱</label><input value="${esc(r.name)}" oninput="bindRow('ng',${i},'name',this.value)"></div>
  <div><label>原因</label><input value="${esc(r.reason)}" oninput="bindRow('ng',${i},'reason',this.value)"></div>
  <div><label>處置</label><select onchange="bindRow('ng',${i},'action',this.value);renderEditors();update()">${['停用','送修','複驗','報廢','限制使用','其他'].map(x=>`<option ${x===r.action?'selected':''}>${x}</option>`).join('')}</select></div>
- </div>${r.action==='其他'?`<div style="margin-top:8px"><label>其他處置</label><input value="${esc(r.other)}" oninput="bindRow('ng',${i},'other',this.value)"></div>`:''}<div class="actions"><button class="danger" onclick="removeRow('ng',${i})">刪除</button></div></div>`).join('');
+ </div>${r.action==='其他'?`<div style="margin-top:8px"><label>其他處置</label><input value="${esc(r.other)}" oninput="bindRow('ng',${i},'other',this.value)"></div>`:''}<div class="actions"><button class="report-delete-icon danger" type="button" aria-label="刪除不合格設備" title="刪除" onclick="removeRow('ng',${i})"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button></div></div>`).join('');
 }
 function getTotal(){return n('internalInput')+n('externalInput');}
 function getDone(){return Math.max(0,getTotal()-state.overdue.length);}
@@ -1820,7 +1820,27 @@ function animateNewReportItem(editorId){
 }
 addOverdue=function(d){appV41OldAddOverdue(d);animateNewReportItem('overdueEditor');if(appMode!=='readonly')appSaveDraftNow();};
 addNg=function(d){appV41OldAddNg(d);animateNewReportItem('ngEditor');if(appMode!=='readonly')appSaveDraftNow();};
-removeRow=function(type,i){appV41OldRemoveRow(type,i);if(appMode!=='readonly')appSaveDraftNow();};
+removeRow=function(type,i){
+ if(!state[type]?.[i])return;
+ const editor=$(type==='overdue'?'overdueEditor':'ngEditor');
+ const item=editor.querySelectorAll('.rowcard:not(.is-removing)')[i];
+ const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const ghost=item&&!reduced?item.cloneNode(true):null;
+ const height=item?.getBoundingClientRect().height,style=item?getComputedStyle(item):null;
+ const spacing=style?{paddingTop:style.paddingTop,paddingBottom:style.paddingBottom,marginTop:style.marginTop,marginBottom:style.marginBottom}:{};
+ const scroller=document.querySelector('.report-input-scroll'),scrollTop=scroller?.scrollTop;
+ appV41OldRemoveRow(type,i);
+ if(appMode!=='readonly')appSaveDraftNow();
+ if(!ghost)return;
+ ghost.classList.add('is-removing');ghost.setAttribute('aria-hidden','true');ghost.inert=true;ghost.style.overflow='hidden';
+ editor.insertBefore(ghost,editor.children[i]||null);
+ if(scroller)scroller.scrollTop=scrollTop;
+ const animation=ghost.animate([
+  {height:height+'px',minHeight:'0px',...spacing,opacity:1,transform:'translateY(0)'},
+  {height:'0px',minHeight:'0px',paddingTop:'0px',paddingBottom:'0px',marginTop:'0px',marginBottom:'0px',opacity:0,transform:'translateY(-6px)'}
+ ],{duration:200,easing:'ease',fill:'forwards'});
+ animation.onfinish=()=>ghost.remove();animation.oncancel=()=>ghost.remove();
+};
 bindRow=function(type,i,key,val){appV41OldBindRow(type,i,key,val);if(appMode!=='readonly')appSaveDraftNow();};
 
 function appInitV41(){
