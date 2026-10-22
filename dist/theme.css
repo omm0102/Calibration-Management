@@ -238,3 +238,6 @@ body.app-shell .navgroup button.registry-nav-button{gap:9px}
 
 .calendar-workspace .day{padding:12px;scroll-padding:12px}
 @media(max-width:650px){.calendar-workspace .day{padding:8px 6px;scroll-padding:8px 6px}}
+
+.calendar-workspace .day{scrollbar-width:none}
+.calendar-workspace .day::-webkit-scrollbar{display:none;width:0;height:0}
