@@ -36,7 +36,23 @@ function eventAt(e,d){
  if(e.done&&e.end&&e.done>e.end)return d===e.done;
  return !!e.start&&d>=e.start&&d<=e.end;
 }
-function eventsForDay(events,date){return events.filter(e=>eventAt(e,date)).sort((a,b)=>Number(!!a.done)-Number(!!b.done))}
+function eventsForDay(events,date){
+ const groups=new Map(),result=[];
+ for(const event of events.filter(e=>eventAt(e,date))){
+  // Group equipment schedules for display; keep their original completion records independent.
+  if(!event.auto||!event.rows){result.push(event);continue}
+  const key=JSON.stringify([event.type,event.name]);
+  if(!groups.has(key))groups.set(key,[]);
+  groups.get(key).push(event);
+ }
+ for(const members of groups.values()){
+  const representative=members.find(e=>!e.done)||members[0];
+  const rows=members.flatMap(e=>e.rows.map(r=>({...r,calendarDone:!!e.done})));
+  rows.sort((a,b)=>Number(a.calendarDone)-Number(b.calendarDone));
+  result.push({...representative,rows,done:members.every(e=>e.done)?representative.done:''});
+ }
+ return result.sort((a,b)=>Number(!!a.done)-Number(!!b.done));
+}
 function moveCalendarWeek(direction){calendarMonth='';offset+=direction;selectedWeek=true;render()}
 function resetCalendarToday(){offset=0;calendarMonth='';selectedWeek=false;render()}
 function toggleEvent(id){
@@ -97,7 +113,7 @@ function modal(title,body,onsave,label='儲存',showFooter=true){ $('modal').inn
 function closeModal(){$('dialog').close()}
 function showDay(date){
  const ev=date?eventsForDay(allEvents(),date):allEvents().filter(e=>!e.start&&(!e.done||e.actionDate===today()));
- modal(date?date.replaceAll('-','/'):'其他事項',`<div class="day-detail-list">${[['internal','內校'],['external','外校'],['manual','其他']].filter(([type])=>ev.some(e=>e.type===type)).map(([type,label])=>`<section class="day-detail-group"><h3>${label}</h3>${ev.filter(e=>e.type===type).map(e=>`<details class="event-detail"><summary tabindex="0" onclick="toggleDetail(event)" onkeydown="if(event.target===this&amp;&amp;['Enter',' '].includes(event.key))toggleDetail(event)"><span class="${e.done?'done':''}">${esc(e.name)}</span>${e.auto?'':`<div class="detail-actions"><button class="detail-icon" aria-label="編輯行程" title="編輯" onclick="event.preventDefault();event.stopPropagation();editManual('${e.id}','${date}')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 5 5M3 21l5-1 13-13a2.1 2.1 0 0 0-5-5L3 15z"/><path d="m3 15 5 5"/></svg></button><button class="detail-icon danger" aria-label="刪除行程" title="刪除" onclick="event.preventDefault();event.stopPropagation();deleteManual('${e.id}')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button></div>`}</summary><div class="equipment-list">${(e.rows||[]).map(r=>`<div>${esc(r.id)}</div>`).join('')}${e.note?`<div>${esc(e.note)}</div>`:''}</div></details>`).join('')}</section>`).join('')||'<p>當天沒有行程</p>'}</div>`,null,'',false);
+ modal(date?date.replaceAll('-','/'):'其他事項',`<div class="day-detail-list">${[['internal','內校'],['external','外校'],['manual','其他']].filter(([type])=>ev.some(e=>e.type===type)).map(([type,label])=>`<section class="day-detail-group"><h3>${label}</h3>${ev.filter(e=>e.type===type).map(e=>`<details class="event-detail"><summary tabindex="0" onclick="toggleDetail(event)" onkeydown="if(event.target===this&amp;&amp;['Enter',' '].includes(event.key))toggleDetail(event)"><span class="${e.done?'done':''}">${esc(e.name)}</span>${e.auto?'':`<div class="detail-actions"><button class="detail-icon" aria-label="編輯行程" title="編輯" onclick="event.preventDefault();event.stopPropagation();editManual('${e.id}','${date}')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 5 5M3 21l5-1 13-13a2.1 2.1 0 0 0-5-5L3 15z"/><path d="m3 15 5 5"/></svg></button><button class="detail-icon danger" aria-label="刪除行程" title="刪除" onclick="event.preventDefault();event.stopPropagation();deleteManual('${e.id}')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button></div>`}</summary><div class="equipment-list">${(e.rows||[]).map(r=>`<div class="${r.calendarDone?'done':''}">${esc(r.id)}</div>`).join('')}${e.note?`<div>${esc(e.note)}</div>`:''}</div></details>`).join('')}</section>`).join('')||'<p>當天沒有行程</p>'}</div>`,null,'',false);
 }
 const detailAnimations=new WeakMap();
 function toggleDetail(event){
