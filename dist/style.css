@@ -269,3 +269,8 @@ body:has(.registry-workspace) #content{flex:1;min-height:0}
  .registry-columns-dialog .modal-actions button{padding:7px 10px}
 }
 @media(prefers-reduced-motion:reduce){#registry-filter-menu:popover-open{animation:none}}
+
+.registry-workspace>.tabs{align-items:center;gap:25px}
+.registry-workspace .tabs .registry-export{margin-left:auto;flex:none;width:44px;height:40px;padding:5px;display:grid;place-items:center;border:1px solid #217346;border-radius:7px;background:#fff;color:#217346}
+.registry-workspace .tabs .registry-export:hover{background:#eaf5ee;border-color:#185c37;color:#185c37}
+.registry-workspace .tabs .registry-export:focus-visible{outline:2px solid #217346;outline-offset:3px}
