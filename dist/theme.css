@@ -236,4 +236,5 @@ body.app-shell .navgroup button.registry-nav-button{gap:9px}
 .backup-workspace .cards{height:92%;min-height:320px}
 @media(max-width:650px){.backup-workspace{padding:8px}.backup-workspace .cards{height:100%;min-height:0}}
 
-.calendar-workspace .day{padding-bottom:18px;scroll-padding-bottom:18px}
+.calendar-workspace .day{padding:12px;scroll-padding:12px}
+@media(max-width:650px){.calendar-workspace .day{padding:8px 6px;scroll-padding:8px 6px}}
