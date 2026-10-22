@@ -241,3 +241,12 @@ body.app-shell .navgroup button.registry-nav-button{gap:9px}
 
 .calendar-workspace .day{scrollbar-width:none}
 .calendar-workspace .day::-webkit-scrollbar{display:none;width:0;height:0}
+
+#nav{position:relative;isolation:isolate}
+#nav .sidebar-active-indicator{position:absolute;z-index:0;pointer-events:none;background:var(--color-accent-soft);border-radius:var(--radius-control);box-shadow:inset 3px 0 var(--color-accent)}
+body.app-shell #nav .navgroup button{position:relative;z-index:1;transition:background-color .2s ease,color .2s ease}
+body.app-shell #nav .navgroup button.active{background:transparent;box-shadow:none;color:var(--color-accent)}
+body.app-shell #nav .navgroup button:not(.active):hover{background:color-mix(in srgb,var(--color-accent-soft) 65%,transparent);color:var(--color-accent)}
+#nav .sidebar-icon{transition:transform .2s ease}
+#nav button:hover .sidebar-icon{transform:translateY(-1px)}
+@media(prefers-reduced-motion:reduce){body.app-shell #nav .navgroup button,#nav .sidebar-icon{transition:none}#nav button:hover .sidebar-icon{transform:none}}
