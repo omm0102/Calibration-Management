@@ -76,17 +76,46 @@
 }
 @media(min-width:1101px){.calendar-workspace .right-rail{grid-area:auto}}
 
-/* Calendar-page controls and containers share a firmer, restrained border. */
-body:has(.calendar-workspace){--line:#c5cbd4}
-body:has(.calendar-workspace) :is(button,input,select,textarea,.panel,dialog){border-width:2px}
-body:has(.calendar-workspace) :is(.navgroup button,button.link,.todo-name){border-width:0}
-body:has(.calendar-workspace) aside{border-right-width:2px}
-.calendar-workspace .calendar{border-width:2px}
-.calendar-workspace .weekday{border-right-width:2px}
-.calendar-workspace .day{border-top-width:2px;border-right-width:2px}
-.calendar-workspace .day:nth-child(7n),.calendar-workspace .weekday:nth-child(7){border-right-width:0}
-.calendar-workspace :is(.event,.todo){border-left-width:3px}
-.calendar-workspace :is(.section-head,.divider){border-width:2px}
+/* Calendar-only refresh: distinct white surfaces on a quiet gray canvas. */
+body:has(.calendar-workspace){--line:#e0e5ec;--ink:#283446;--muted:#7d8898;background:#f1f4f8}
+body:has(.calendar-workspace) aside{background:#fff;border-right:1px solid #e2e7ee;box-shadow:3px 0 20px #26385204}
+body:has(.calendar-workspace) main{background:transparent}
+body:has(.calendar-workspace) header{margin-bottom:24px}
+body:has(.calendar-workspace) .eyebrow{color:#8b97a8;letter-spacing:2.5px}
+body:has(.calendar-workspace) .brand{color:#283b54}
+body:has(.calendar-workspace) .navgroup button{border-radius:9px}
+body:has(.calendar-workspace) .navgroup button.active{background:#eaf0f8;color:#2e5894;box-shadow:inset 3px 0 #2e5894}
+body:has(.calendar-workspace) :is(button,input,select,textarea){border-width:1px;border-radius:8px}
+body:has(.calendar-workspace) :is(button,input,select,textarea):focus-visible{outline:2px solid #6486b2;outline-offset:3px}
+.calendar-toolbar>button,.calendar-toolbar>input{box-shadow:0 2px 4px #26385206}
+.calendar-toolbar>button:hover{background:#eaf0f7;border-color:#bac7d8;transform:translateY(-1px)}
+.calendar-toolbar>button.primary,.calendar-workspace .todo-add{background:#283b54;border-color:#283b54;box-shadow:0 3px 8px #283b541f}
+.calendar-toolbar>button.primary:hover,.calendar-workspace .todo-add:hover{background:#354f70;border-color:#354f70}
+.calendar-workspace .calendar{border:1px solid #dce3ec;border-radius:12px;background:#fff;box-shadow:0 8px 28px #2638520a,0 2px 5px #26385205}
+.calendar-workspace .weekday{height:39px;background:#f8fafc;color:#758299;border-right:1px solid #e1e6ed;font-weight:500}
+.calendar-workspace .weekday:first-child{border-top-left-radius:12px}
+.calendar-workspace .weekday:nth-child(7){border-top-right-radius:12px}
+.calendar-workspace .day{border-top:1px solid #e1e6ed;border-right:1px solid #e1e6ed}
+.calendar-workspace .day:nth-child(7n),.calendar-workspace .weekday:nth-child(7){border-right:0}
+.calendar-workspace .day:nth-last-child(7 of .day){border-bottom-left-radius:12px}
+.calendar-workspace .day:nth-last-child(1 of .day){border-bottom-right-radius:12px}
+.calendar-workspace .day.other-month{background:#edf0f4}
+.calendar-workspace .day:hover{background:#f7f9fc}
+.calendar-workspace .day.other-month:hover{background:#e7ecf2}
+.calendar-workspace .daynum{font-weight:500;color:#69778c}
+.calendar-workspace .day.today .daynum{color:#2e5894;font-weight:700}
+.calendar-workspace .calendar-focus-frame{border-color:#303947;border-radius:5px}
+.calendar-workspace .panel{border:1px solid #e1e6ed;border-radius:12px;box-shadow:0 6px 22px #26385208;background:#fff}
+.calendar-workspace .section-head{border-bottom:1px solid #edf0f4;padding-bottom:14px}
+.calendar-workspace .section-head h2{font-size:20px;letter-spacing:.4px}
+.calendar-workspace :is(.event,.todo){border-left-width:3px;border-radius:5px}
+.calendar-workspace .event{margin:5px 0;box-shadow:0 1px 3px #18283f0a}
+.calendar-workspace .event.done{box-shadow:none}
+.calendar-workspace .todo{padding:4px 10px;margin:8px 0}
+.calendar-workspace .divider{border-top:1px solid #edf0f4}
+body:has(.calendar-workspace) dialog{border:1px solid #dce3ec;border-radius:16px;box-shadow:0 22px 70px #17283e30}
+body:has(.calendar-workspace) .modal-head{border-bottom:1px solid #edf0f4;padding-bottom:16px}
+@media(max-width:650px){body:has(.calendar-workspace) aside{box-shadow:0 2px 12px #26385208}}
 /* Animate visual properties without animating scrolling or changing layout geometry. */
 body:has(.calendar-workspace) *,body:has(.calendar-workspace) *::before,body:has(.calendar-workspace) *::after{
  transition:background-color .2s ease,color .2s ease,border-color .2s ease,box-shadow .2s ease,transform .2s ease,opacity .2s ease,filter .2s ease;
