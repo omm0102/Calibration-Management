@@ -284,3 +284,7 @@ body.app-shell .vendor-bulk-controls input[type=checkbox]{width:22px;height:22px
 @media(max-width:900px){.vendor-bulk-controls{order:initial}.vendor-bulk-type{gap:0}.external-progress-workspace .vendor-progress-title>.vendor-percent{left:340px}}
 
 .import-issues{max-height:35vh;overflow:auto;padding-left:24px;color:var(--color-warning-text);line-height:1.8}
+
+.progress-date-controls{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.progress-date-controls .smallselect{width:60px;flex:0 0 60px}
+.progress-date-controls.tour-date-controls::before{content:"";width:60px;flex:0 0 60px}
