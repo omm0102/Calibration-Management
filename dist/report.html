@@ -1192,7 +1192,7 @@ th,td{height:auto!important;min-height:0!important;padding:5px 5px;line-height:1
 <style>/* Larger editor text; report print layout stays fixed. */
 .controls{font-size:17px}.controls label{font-size:17px}.controls h2{font-size:19px}.controls h1{font-size:24px}.controls input,.controls select,.controls textarea,.controls button{font-size:17px}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261022-24">
+<link rel="stylesheet" href="theme.css?v=20261022-27">
 </head>
 <body class="report-shell">
 <div class="app">
@@ -1220,14 +1220,6 @@ th,td{height:auto!important;min-height:0!important;padding:5px 5px;line-height:1
 <button class="primary app-edit-btn" id="editReportBtn" type="button" hidden>修改</button>
 <button class="secondary" id="cancelEditBtn" type="button" hidden>取消修改</button>
 <button class="secondary" id="previewPdfBtn" type="button" onclick="previewRealPdf()">預覽 PDF</button>
-</div>
-<div class="group app-backup-block">
-<h2>資料備份</h2>
-<div class="grid2 compact-row">
-<button class="secondary" id="exportJsonBtn" type="button">匯出 JSON</button>
-<button class="secondary" id="importJsonBtn" type="button">匯入 JSON</button>
-</div>
-<input id="importJsonFile" type="file" accept="application/json,.json" hidden>
 </div>
 </div>
 </section>
@@ -1542,7 +1534,7 @@ function fitSummaryFont(){
   el.style.fontSize=best+'px';
   el.style.lineHeight='1.38';
 }
-function fitPreview(){const stage=$('stage');const wrap=$('reportWrap');const pad=8;const s=Math.min((stage.clientWidth-pad*2)/1600,(stage.clientHeight-pad*2)/900);wrap.style.transform=`scale(${Math.max(.25,s)})`;wrap.style.transformOrigin='center center';}
+function fitPreview(){const stage=$('stage');const wrap=$('reportWrap');const pad=8;const s=Math.min((stage.clientWidth-pad*2)/1600,(stage.clientHeight-pad*2)/900);wrap.style.transform=`scale(${Math.max(document.body.classList.contains('report-embedded')?.1:.25,s)})`;wrap.style.transformOrigin='center center';}
 function saveCurrent(){const key='calibration:'+($('monthInput').value||localMonthISO()); localStorage.setItem(key,JSON.stringify({cost:n('costInput'),total:getTotal(),internal:n('internalInput'),external:n('externalInput'),done:getDone(),annual:n('annualInput'),overdue:state.overdue,ng:state.ng,summaryHtml:$('summaryInput').innerHTML,summary:summaryPlainText()}));}
 function getAllCssText(){
   let css='';
@@ -1868,9 +1860,6 @@ function appInitV41(){
   $('saveReportBtn').addEventListener('click',appSaveReport);
   $('editReportBtn').addEventListener('click',appBeginEdit);
   $('cancelEditBtn').addEventListener('click',appCancelEdit);
-  $('exportJsonBtn').addEventListener('click',appExportJson);
-  $('importJsonBtn').addEventListener('click',()=>$('importJsonFile').click());
-  $('importJsonFile').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];if(f)await appImportJsonFile(f);e.target.value='';});
   // Close modal only through explicit action buttons to avoid accidental loss.
   appLoadMonth(appCurrentMonth,{animate:false});
 }

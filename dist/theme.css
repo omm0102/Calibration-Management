@@ -74,3 +74,13 @@ body.report-shell{font-family:var(--font-ui);background:var(--color-canvas);colo
 }
 @media(prefers-reduced-motion:reduce){body.app-shell :is(button,input,select,textarea,.panel,.event,.todo),.report-shell .controls button{transition:none}}
 body.app-shell .tabs>button:not(.registry-export){background:transparent;border-radius:0}
+
+/* Embed the report as a seamless page section, with no boxed control panel. */
+body.app-shell iframe.report-workspace{display:block;width:100%;height:150px;border:0;border-radius:0;background:transparent;box-shadow:none}
+body.report-shell.report-embedded{margin:0;background:var(--color-canvas);overflow:hidden}
+body.report-embedded .app{height:auto;min-height:0;padding:0;gap:24px;grid-template-columns:320px minmax(0,1fr);align-items:start}
+body.report-embedded .app>.controls-panel{border:0;border-radius:0;background:transparent;box-shadow:none;overflow:visible}
+body.report-embedded .controls{padding:0}
+body.report-embedded .controls>h1{display:none}
+body.report-embedded .preview-panel{height:var(--report-preview-height,500px);min-height:0;padding:12px}
+@media(max-width:979px){body.report-embedded .app{grid-template-columns:minmax(0,1fr);gap:24px}}

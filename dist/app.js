@@ -284,10 +284,25 @@ function saveQuotes(){let q={};for(let input of document.querySelectorAll('[data
 function renderReport(){
  const previous=$('reportframe')?.contentWindow;
  if(previous&&typeof previous.appSaveDraftNow==='function')previous.appSaveDraftNow();
- $('content').innerHTML=`<iframe id="reportframe" title="量測設備校驗管理月報" src="report.html?v=20261022-26"></iframe>`;
+ $('content').innerHTML=`<iframe id="reportframe" class="report-workspace" title="量測設備校驗管理月報" src="report.html?v=20261022-27"></iframe>`;
  $('reportframe').onload=()=>{
   const w=$('reportframe').contentWindow;
   try{
+   const frame=$('reportframe');
+   w.document.body.classList.add('report-embedded');
+   const syncReportLayout=()=>{
+    if(!frame.isConnected)return;
+    const width=frame.getBoundingClientRect().width;
+    const previewWidth=width>=980?width-344:width;
+    w.document.documentElement.style.setProperty('--report-preview-height',Math.max(220,Math.round(previewWidth*9/16+32))+'px');
+    const height=Math.ceil(w.document.querySelector('.app').getBoundingClientRect().height)+2;
+    if(Math.abs(frame.getBoundingClientRect().height-height)>1)frame.style.height=height+'px';
+    if(typeof w.fitPreview==='function')w.fitPreview();
+   };
+   const observer=new w.ResizeObserver(syncReportLayout);observer.observe(w.document.querySelector('.app'));
+   window.addEventListener('resize',syncReportLayout);
+   w.addEventListener('pagehide',()=>{observer.disconnect();window.removeEventListener('resize',syncReportLayout)},{once:true});
+   syncReportLayout();
    w.reportDataSource=key=>{const equipment=db.rows.filter(r=>r.month===key);return{internal:equipment.filter(r=>r.type==='內校').length,external:equipment.filter(r=>r.type==='外校'||r.type==='遊校').length,cost:sumCost(key)}};
    w.reportRecordSource=key=>db.reports[key]?structuredClone(db.reports[key]):null;
    w.reportPersistRecord=(key,record)=>{db.reports[key]=structuredClone(record);persist()};
