@@ -183,3 +183,7 @@ body:has(.calendar-workspace) #content{flex:1;min-height:0}
 .day-detail-list summary>span{flex:1;min-width:0;overflow-wrap:anywhere}
 .day-detail-list summary .detail-actions{display:flex;flex:none;margin-left:auto;padding:0;gap:4px}
 .day-detail-list summary{min-height:64px;padding-top:12px;padding-bottom:12px}
+
+.day-detail-group+ .day-detail-group{margin-top:22px}
+.day-detail-group>h3{margin:0;padding:7px 10px;background:#f1f4f8;border-radius:6px;color:#66768b;font-size:15px;font-weight:600;letter-spacing:1px}
+.day-detail-group .event-detail:last-child{border-bottom:0}
