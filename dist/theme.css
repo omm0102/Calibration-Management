@@ -299,3 +299,5 @@ body.app-shell .progress-date-controls :is(.smallselect,button){height:36px;min-
 body.app-shell .progress-date-controls .smallselect{width:64px;flex-basis:64px}
 body.app-shell .progress-date-controls button{width:116px;flex-basis:116px}
 .progress-date-controls.tour-date-controls::before{width:64px;flex-basis:64px}
+
+.tour-date-heading{display:block;margin-left:69px}
