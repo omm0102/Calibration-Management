@@ -60,7 +60,7 @@ function fixedMonthlyEvents(){
  }
  return events;
 }
-function allEvents(){let map={};for(let r of db.rows){if(!r.date)continue;let type=r.type==='內校'?'internal':'external',name=type==='internal'?r.id.replace(/-[^-]+$/,''):r.type==='遊校'?'遊校_'+(r.vendor||'未指定廠商'):'外校'+r.mode+'_'+(r.vendor||'未指定廠商');let key=[r.month,r.date,name].join('|');if(!map[key])map[key]={id:key,name,start:r.date,end:r.date,type,rows:[],auto:true};map[key].rows.push(r)}return [...Object.values(map).map(e=>{let signature=e.rows.map(r=>r.key).sort().join(',');let s=db.events[e.id];if(s?.signature!==signature)s={};let sent=e.name.startsWith('外校寄出_')&&e.start<=today();return{...e,signature,done:s.done||(sent?e.start:''),actionDate:s.actionDate||'',note:''}}),...db.manual.map(e=>({...e,type:'manual',auto:false})),...fixedMonthlyEvents()]}
+function allEvents(){let map={};for(let r of db.rows){if(!r.date||(r.type==='內校'&&!matchesInternalProgressScope(r)))continue;let type=r.type==='內校'?'internal':'external',name=type==='internal'?r.id.replace(/-[^-]+$/,''):r.type==='遊校'?'遊校_'+(r.vendor||'未指定廠商'):'外校'+r.mode+'_'+(r.vendor||'未指定廠商');let key=[r.month,r.date,name].join('|');if(!map[key])map[key]={id:key,name,start:r.date,end:r.date,type,rows:[],auto:true};map[key].rows.push(r)}return [...Object.values(map).map(e=>{let signature=e.rows.map(r=>r.key).sort().join(',');let s=db.events[e.id];if(s?.signature!==signature)s={};let sent=e.name.startsWith('外校寄出_')&&e.start<=today();return{...e,signature,done:s.done||(sent?e.start:''),actionDate:s.actionDate||'',note:''}}),...db.manual.map(e=>({...e,type:'manual',auto:false})),...fixedMonthlyEvents()]}
 function eventClass(e){return(e.done&&e.done>e.end&&e.end||!e.done&&e.end&&e.end<today()?'late':e.type)+(e.done?' done':'')}
 function eventAt(e,d){
  // Completed overdue items leave every original date, including multi-day schedules.
@@ -277,14 +277,15 @@ function deleteEquipment(key){
 }
 function percent(list){return list.length?Math.round(list.reduce((a,r)=>a+r.p.filter(Boolean).length/stages(r).length,0)/list.length*100):0}
 function renderProgress(){return page==='external'?renderExternalProgress():renderInternalProgress()}
+function matchesInternalProgressScope(r){return r.type==='內校'&&registryMatches(r,null,'內校')&&equipmentMatchesQuery(r,internalRegistryQuery)}
 function renderInternalProgress(){
  let initialized=false;
- for(const r of rows())if(r.type==='內校'&&registryMatches(r,null,'內校')&&equipmentMatchesQuery(r,internalRegistryQuery)&&!r.internalDateInitialized){
+ for(const r of rows())if(matchesInternalProgressScope(r)&&!r.internalDateInitialized){
   if(!r.date&&r.due){r.date=r.due;r.p[0]=true}
   r.internalDateInitialized=true;initialized=true;
  }
  if(initialized)persist();
- const list=rows().filter(r=>r.type==='內校'&&registryMatches(r,null,'內校')&&equipmentMatchesQuery(r,internalRegistryQuery)&&equipmentMatchesQuery(r)).sort((a,b)=>Number(complete(a))-Number(complete(b))||String(a.date||a.due||'9999-12-31').localeCompare(String(b.date||b.due||'9999-12-31'))||a.id.localeCompare(b.id,'zh-Hant')),pct=percent(list);
+ const list=rows().filter(r=>matchesInternalProgressScope(r)&&equipmentMatchesQuery(r)).sort((a,b)=>Number(complete(a))-Number(complete(b))||String(a.date||a.due||'9999-12-31').localeCompare(String(b.date||b.due||'9999-12-31'))||a.id.localeCompare(b.id,'zh-Hant')),pct=percent(list);
  $('content').innerHTML=`<div class="internal-progress-workspace"><div class="toolbar">${registrySearch('內校進度')}<span class="spacer"></span><button onclick="tab='內校';go('registry')">查看清冊 →</button></div><section class="panel internal-total"><div class="rowtitle"><h2>校驗總進度</h2><span>${pct}% <span class="muted">已完成 ${list.filter(complete).length} / ${list.length} 台</span></span></div><div class="progress"><i class="${pct===100?'complete':''}" style="width:${pct}%"></i></div></section><div class="tablewrap"><table class="internal-equipment-table"><colgroup><col style="width:28%"><col style="width:18%"><col style="width:16%"><col style="width:18%"><col style="width:10%"><col style="width:10%"></colgroup><thead><tr><th>設備編號 / 名稱</th><th>資產編號</th><th>有效日期</th><th>預計校驗日</th><th>收件確認</th><th>已完成</th></tr></thead><tbody>${list.map(r=>`<tr class="${complete(r)?'finished':''}"><td>${esc(r.id)}<div class="subtle">${esc(r.name)}</div></td><td>${esc(r.asset)||'—'}</td><td>${esc(r.due)||'—'}</td><td><button onclick="schedule('${r.key}',0)">${esc(r.date)||'設定日期'}</button></td>${[1,2].map(i=>`<td><label class="step"><input type="checkbox" aria-label="${esc(r.id)} ${stages(r)[i]}" ${r.p[i]?'checked':''} ${!r.p[i-1]?'disabled':''} onchange="window.step('${r.key}',${i},this.checked)"></label></td>`).join('')}</tr>`).join('')||'<tr><td colspan="6" class="empty">沒有符合條件的設備</td></tr>'}</tbody></table></div></div>`;
 }
 const externalProgressOpen=new Set();
