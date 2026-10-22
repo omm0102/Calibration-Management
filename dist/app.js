@@ -59,7 +59,24 @@ function updateSidebarIndicator(previous){
  Object.assign(indicator.style,{left:(bounds.left-base.left+nav.scrollLeft)+'px',top:(bounds.top-base.top+nav.scrollTop)+'px',width:bounds.width+'px',height:bounds.height+'px'});
  if(previous&&!matchMedia('(prefers-reduced-motion: reduce)').matches){indicator.animate([{transform:`translate(${previous.left-bounds.left}px,${previous.top-bounds.top}px)`,width:previous.width+'px',height:previous.height+'px'},{transform:'translate(0,0)',width:bounds.width+'px',height:bounds.height+'px'}],{duration:200,easing:'ease-in-out'})}
 }
-function render(){const previousNavRect=$('nav').querySelector('button.active')?.getBoundingClientRect();document.body.dataset.page=page;closeRegistryFilter();let ms=months();if(page!=='report'&&!ms.includes(month))month=ms.includes(today().slice(0,7))?today().slice(0,7):ms.at(-1)||'';$('nav').innerHTML=nav.map(([g,items])=>`<div class="navgroup"><label>${g}</label>${items.map(([id,t,ic])=>`<button class="${page===id?'active':''} ${id==='registry'?'registry-nav-button':''}" onclick="go('${id}')">${sidebarIcon(id)}<span class="sidebar-label">${t}</span>${id==='registry'&&hasMissingExternalVendor()?'<span class="registry-warning-badge" role="img" aria-label="外校設備未填寫廠商" title="外校設備未填寫廠商">!!!</span>':''}</button>`).join('')}</div>`).join('');updateSidebarIndicator(previousNavRect);$('title').textContent=nav.flatMap(n=>n[1]).find(n=>n[0]===page)[1];$('monthbox').innerHTML=!['calendar','import','backup','registry','report','external','cost','internal'].includes(page)?`<select onchange="month=this.value;render()" ${ms.length?'':'disabled'}>${ms.map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select>`:'';({calendar:renderCalendar,registry:renderRegistry,external:renderProgress,internal:renderProgress,cost:renderCost,report:renderReport,import:renderImport,backup:renderBackup}[page])()}
+function capturePageScroll(){
+ const positions=[];
+ for(const element of document.body.querySelectorAll('*'))if(element.scrollTop||element.scrollLeft){
+  const path=[];let node=element;
+  while(node&&node!==document.body){path.unshift([...node.parentElement.children].indexOf(node));node=node.parentElement}
+  positions.push({path,top:element.scrollTop,left:element.scrollLeft});
+ }
+ return {x:window.scrollX,y:window.scrollY,positions};
+}
+function restorePageScroll(state){
+ for(const position of state.positions){let node=document.body;for(const index of position.path){node=node?.children[index];if(!node)break}if(node){node.scrollTop=position.top;node.scrollLeft=position.left}}
+ window.scrollTo({left:state.x,top:state.y,behavior:'instant'});
+}
+function render(){
+ const scroll=document.body.dataset.page===page?capturePageScroll():null;
+ renderPage();if(scroll)restorePageScroll(scroll);
+}
+function renderPage(){const previousNavRect=$('nav').querySelector('button.active')?.getBoundingClientRect();document.body.dataset.page=page;closeRegistryFilter();let ms=months();if(page!=='report'&&!ms.includes(month))month=ms.includes(today().slice(0,7))?today().slice(0,7):ms.at(-1)||'';$('nav').innerHTML=nav.map(([g,items])=>`<div class="navgroup"><label>${g}</label>${items.map(([id,t,ic])=>`<button class="${page===id?'active':''} ${id==='registry'?'registry-nav-button':''}" onclick="go('${id}')">${sidebarIcon(id)}<span class="sidebar-label">${t}</span>${id==='registry'&&hasMissingExternalVendor()?'<span class="registry-warning-badge" role="img" aria-label="外校設備未填寫廠商" title="外校設備未填寫廠商">!!!</span>':''}</button>`).join('')}</div>`).join('');updateSidebarIndicator(previousNavRect);$('title').textContent=nav.flatMap(n=>n[1]).find(n=>n[0]===page)[1];$('monthbox').innerHTML=!['calendar','import','backup','registry','report','external','cost','internal'].includes(page)?`<select onchange="month=this.value;render()" ${ms.length?'':'disabled'}>${ms.map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select>`:'';({calendar:renderCalendar,registry:renderRegistry,external:renderProgress,internal:renderProgress,cost:renderCost,report:renderReport,import:renderImport,backup:renderBackup}[page])()}
 // Fixed monthly tasks start in the month this feature is first enabled.
 function fixedMonthlyEvents(){
  if(!db.settings.fixedScheduleStart){db.settings.fixedScheduleStart=today().slice(0,7);persist()}

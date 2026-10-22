@@ -250,3 +250,5 @@ body.app-shell #nav .navgroup button:not(.active):hover{background:color-mix(in 
 #nav .sidebar-icon{transition:transform .2s ease}
 #nav button:hover .sidebar-icon{transform:translateY(-1px)}
 @media(prefers-reduced-motion:reduce){body.app-shell #nav .navgroup button,#nav .sidebar-icon{transition:none}#nav button:hover .sidebar-icon{transform:none}}
+
+body.app-shell .external-progress-workspace .progress-table{max-height:none;overflow-x:auto}
