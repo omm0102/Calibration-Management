@@ -37,7 +37,7 @@ migrateSampleData();
 function persist(){localStorage.setItem(KEY,JSON.stringify(db))}function save(){persist();render()}function toast(t){$('toast').textContent=t;$('toast').classList.add('visible');setTimeout(()=>$('toast').classList.remove('visible'),2500)}
 const rows=()=>db.rows.filter(r=>r.month===month);const months=()=>[...new Set(db.rows.map(r=>r.month))].sort();const complete=r=>!!r.p[r.type==='內校'?2:r.type==='外校'?4:3];const stages=r=>r.type==='內校'?['預計校驗日','收件確認','已完成']:r.type==='外校'?['已提供報價單','請購單','外送單','寄出／收取日期','已完成']:['已提供報價單','請購單','遊校日期','已完成'];
 function go(p){page=p;query='';status='all';render()}window.go=go;
-function render(){document.body.dataset.page=page;closeRegistryFilter();let ms=months();if(page!=='report'&&!ms.includes(month))month=ms.includes(today().slice(0,7))?today().slice(0,7):ms.at(-1)||'';$('nav').innerHTML=nav.map(([g,items])=>`<div class="navgroup"><label>${g}</label>${items.map(([id,t,ic])=>`<button class="${page===id?'active':''}" onclick="go('${id}')"><span class="ico">${ic}</span>${t}</button>`).join('')}</div>`).join('');$('title').textContent=nav.flatMap(n=>n[1]).find(n=>n[0]===page)[1];$('monthbox').innerHTML=!['calendar','import','backup','registry'].includes(page)?`<select onchange="month=this.value;render()" ${ms.length?'':'disabled'}>${ms.map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select>`:'';({calendar:renderCalendar,registry:renderRegistry,external:renderProgress,internal:renderProgress,cost:renderCost,report:renderReport,import:renderImport,backup:renderBackup}[page])()}
+function render(){document.body.dataset.page=page;closeRegistryFilter();let ms=months();if(page!=='report'&&!ms.includes(month))month=ms.includes(today().slice(0,7))?today().slice(0,7):ms.at(-1)||'';$('nav').innerHTML=nav.map(([g,items])=>`<div class="navgroup"><label>${g}</label>${items.map(([id,t,ic])=>`<button class="${page===id?'active':''}" onclick="go('${id}')"><span class="ico">${ic}</span>${t}</button>`).join('')}</div>`).join('');$('title').textContent=nav.flatMap(n=>n[1]).find(n=>n[0]===page)[1];$('monthbox').innerHTML=!['calendar','import','backup','registry','report'].includes(page)?`<select onchange="month=this.value;render()" ${ms.length?'':'disabled'}>${ms.map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select>`:'';({calendar:renderCalendar,registry:renderRegistry,external:renderProgress,internal:renderProgress,cost:renderCost,report:renderReport,import:renderImport,backup:renderBackup}[page])()}
 // Fixed monthly tasks start in the month this feature is first enabled.
 function fixedMonthlyEvents(){
  if(!db.settings.fixedScheduleStart){db.settings.fixedScheduleStart=today().slice(0,7);persist()}
@@ -306,11 +306,7 @@ function renderReport(){
    w.reportDataSource=key=>{const equipment=db.rows.filter(r=>r.month===key);return{internal:equipment.filter(r=>r.type==='內校').length,external:equipment.filter(r=>r.type==='外校'||r.type==='遊校').length,cost:sumCost(key)}};
    w.reportRecordSource=key=>db.reports[key]?structuredClone(db.reports[key]):null;
    w.reportPersistRecord=(key,record)=>{db.reports[key]=structuredClone(record);persist()};
-   w.reportMonthChanged=key=>{
-    month=key;
-    const available=[...new Set([...months(),key])].sort();
-    $('monthbox').innerHTML=`<select aria-label="月報月份" onchange="month=this.value;render()">${available.map(m=>`<option ${m===key?'selected':''}>${m}</option>`).join('')}</select>`;
-   };
+   w.reportMonthChanged=key=>{month=key;$('monthbox').innerHTML=''};
    w.appAnnualTotal=()=>{const key=w.document.getElementById('monthInput').value;return Object.keys(db.quotes).filter(m=>m.slice(0,4)===key.slice(0,4)&&m<=key).reduce((sum,m)=>sum+sumCost(m),0)};
    w.document.getElementById('monthInput').disabled=false;
    w.appLoadMonth(month,{animate:false});
