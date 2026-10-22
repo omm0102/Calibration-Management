@@ -159,3 +159,5 @@ body.app-shell .navgroup button.registry-nav-button{display:flex;align-items:cen
 .external-progress-workspace .progress-type-tour{--progress-row-color:color-mix(in srgb,#8BC34A 20%,var(--color-surface))}
 body.app-shell .external-progress-workspace .vendor-progress-body tbody tr td{background:var(--progress-row-color)}
 body.app-shell .external-progress-workspace .vendor-progress-body tbody tr:hover td{background:color-mix(in srgb,var(--progress-row-color) 90%,var(--color-primary))}
+
+.external-progress-workspace .vendor-progress-body{overflow:hidden}
