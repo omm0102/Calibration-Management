@@ -148,3 +148,6 @@ body.app-shell .external-equipment-table .step input[type=checkbox]{width:22px;h
 .external-progress-workspace .progress-type-title>span{float:right;color:var(--color-muted);font-size:15px}
 body.app-shell .external-equipment-table .progress-checkbox-cell{text-align:center}
 .external-equipment-table .progress-checkbox-cell .step{justify-content:center}
+
+body.app-shell .navgroup button .registry-warning-badge{float:right;margin-left:6px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:21px;height:21px;border-radius:50%;background:var(--color-danger);color:var(--color-surface);font-size:15px;font-weight:800;line-height:1}
+.registry-vendor-warning{color:var(--color-danger);font-size:15px;font-weight:600}
