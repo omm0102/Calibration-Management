@@ -228,5 +228,5 @@ body.app-shell[data-page="backup"] #content{flex:1;min-height:0}
 
 body.app-shell .navgroup button{display:flex;align-items:center;gap:9px}
 body.app-shell .navgroup button.registry-nav-button{gap:9px}
-.sidebar-icon{display:block;flex:0 0 21px;width:21px;height:21px}
+.sidebar-icon{display:block;flex:0 0 25px;width:25px;height:25px}
 .sidebar-label{min-width:0}
