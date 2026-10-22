@@ -1806,8 +1806,20 @@ async function appImportJsonFile(file){
 
 // Wrap row mutations so drafts follow every edit without changing V37 report behavior.
 const appV41OldAddOverdue=addOverdue, appV41OldAddNg=addNg, appV41OldRemoveRow=removeRow, appV41OldBindRow=bindRow;
-addOverdue=function(d){appV41OldAddOverdue(d);if(appMode!=='readonly')appSaveDraftNow();};
-addNg=function(d){appV41OldAddNg(d);if(appMode!=='readonly')appSaveDraftNow();};
+function animateNewReportItem(editorId){
+ const item=$(editorId).lastElementChild;
+ if(!item||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ const height=item.getBoundingClientRect().height,style=getComputedStyle(item);
+ const overflow=item.style.overflow;item.style.overflow='hidden';
+ const animation=item.animate([
+  {height:'0px',minHeight:'0px',paddingTop:'0px',paddingBottom:'0px',marginTop:'0px',marginBottom:'0px',opacity:0,transform:'translateY(-6px)'},
+  {height:height+'px',minHeight:'0px',paddingTop:style.paddingTop,paddingBottom:style.paddingBottom,marginTop:style.marginTop,marginBottom:style.marginBottom,opacity:1,transform:'translateY(0)'}
+ ],{duration:200,easing:'ease'});
+ animation.onfinish=()=>{item.style.overflow=overflow};
+ animation.oncancel=()=>{item.style.overflow=overflow};
+}
+addOverdue=function(d){appV41OldAddOverdue(d);animateNewReportItem('overdueEditor');if(appMode!=='readonly')appSaveDraftNow();};
+addNg=function(d){appV41OldAddNg(d);animateNewReportItem('ngEditor');if(appMode!=='readonly')appSaveDraftNow();};
 removeRow=function(type,i){appV41OldRemoveRow(type,i);if(appMode!=='readonly')appSaveDraftNow();};
 bindRow=function(type,i,key,val){appV41OldBindRow(type,i,key,val);if(appMode!=='readonly')appSaveDraftNow();};
 
