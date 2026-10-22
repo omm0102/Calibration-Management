@@ -252,3 +252,7 @@ body.app-shell #nav .navgroup button:not(.active):hover{background:color-mix(in 
 @media(prefers-reduced-motion:reduce){body.app-shell #nav .navgroup button,#nav .sidebar-icon{transition:none}#nav button:hover .sidebar-icon{transform:none}}
 
 body.app-shell .external-progress-workspace .progress-table{max-height:none;overflow-x:auto}
+
+.bulk-progress-controls{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:10px;min-height:44px}
+.external-equipment-table th:not(.progress-checkbox-cell) .bulk-progress-controls{justify-content:flex-start}
+body.app-shell .external-equipment-table .bulk-progress-controls input[type=checkbox]{width:22px;height:22px;margin:0;accent-color:var(--color-focus);cursor:pointer}

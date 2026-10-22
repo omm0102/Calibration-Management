@@ -330,8 +330,42 @@ function renderInternalProgress(){
  $('content').innerHTML=`<div class="internal-progress-workspace"><div class="toolbar">${registrySearch('內校進度')}<span class="spacer"></span><button onclick="tab='內校';go('registry')">查看清冊 →</button></div><section class="panel internal-total"><div class="rowtitle"><h2>校驗總進度</h2><span>${pct}%</span></div><div class="progress"><i class="${pct===100?'complete':''}" style="width:${pct}%"></i></div></section><div class="tablewrap"><table class="internal-equipment-table"><colgroup><col style="width:28%"><col style="width:18%"><col style="width:16%"><col style="width:18%"><col style="width:10%"><col style="width:10%"></colgroup><thead><tr><th>設備編號 / 名稱</th><th>資產編號</th><th>有效日期</th><th>預計校驗日</th><th>收件確認</th><th>已完成</th></tr></thead><tbody>${list.map(r=>`<tr class="${complete(r)?'finished':''}"><td>${esc(r.id)}<div class="subtle">${esc(r.name)}</div></td><td>${esc(r.asset)||'—'}</td><td>${esc(r.due)||'—'}</td><td><button onclick="schedule('${r.key}',0)">${esc(r.date)||'設定日期'}</button></td>${[1,2].map(i=>`<td><label class="step"><input type="checkbox" aria-label="${esc(r.id)} ${stages(r)[i]}" ${r.p[i]?'checked':''} ${!r.p[i-1]?'disabled':''} onchange="window.step('${r.key}',${i},this.checked)"></label></td>`).join('')}</tr>`).join('')||'<tr><td colspan="6" class="empty">沒有符合條件的設備</td></tr>'}</tbody></table></div></div>`;
 }
 const externalProgressOpen=new Set();
+function bulkProgressRows(control){const keys=new Set(JSON.parse(control.closest('table').dataset.equipmentKeys));return db.rows.filter(r=>keys.has(r.key))}
+function bulkProgressHeader(list,i){
+ const dateStage=i===stages(list[0]).length-2,name=stages(list[0])[i],disabled=i&&list.some(r=>!r.p[i-1]),sameDate=list.every(r=>r.date===list[0].date),sameMode=list.every(r=>r.mode===list[0].mode);
+ if(dateStage)return `<div class="bulk-progress-controls">${list[0].type==='外校'?`<select class="smallselect" aria-label="全部設備收件寄出方式" onchange="bulkProgressMode(this)">${sameMode?'':'<option value="" selected disabled>混合</option>'}${['收件','寄出'].map(mode=>`<option ${sameMode&&list[0].mode===mode?'selected':''}>${mode}</option>`).join('')}</select> `:''}<button ${disabled?'disabled':''} onclick="bulkProgressDate(this,${i},false)">${sameDate&&list[0].date?esc(list[0].date):'設定日期'}</button></div>`;
+ const count=list.filter(r=>r.p[i]).length;
+ return `<div class="bulk-progress-controls"><input type="checkbox" data-bulk-stage="${i}" data-partial="${count>0&&count<list.length}" aria-label="全選${esc(name)}" ${count===list.length?'checked':''} ${disabled?'disabled':''} onchange="bulkProgressStep(this,${i})"></div>`;
+}
+function bulkProgressStep(control,i){
+ const list=bulkProgressRows(control),checked=control.checked;if(!list.length)return;
+ if(checked&&i&&list.some(r=>!r.p[i-1]))return render();
+ if(checked&&i===stages(list[0]).length-1){bulkProgressDate(control,i,true);render();return}
+ for(const r of list){
+  r.p[i]=checked;
+  if(!checked){for(let j=i;j<stages(r).length;j++)r.p[j]=false;if(i<=stages(r).length-2)r.date='';r.completed=''}
+ }
+ save();
+}
+function bulkProgressDate(control,i,completion){
+ const list=bulkProgressRows(control);if(!list.length)return;
+ const keys=list.map(r=>r.key),same=list.every(r=>(completion?r.completed:r.date)===(completion?list[0].completed:list[0].date));
+ modal(completion?'校驗完成':'設定日期',`<p>${esc(list[0].vendor)} · ${list[0].type} · ${list.length} 台設備</p><label class="field">${completion?'完成日期':list[0].type==='遊校'?'遊校日期':(list[0].mode||'收件')+'日期'}<input type="date" id="bulkProgressDate" ${completion?`max="${today()}"`:''} value="${same?(completion?list[0].completed:list[0].date)||today():today()}"></label>`,()=>{
+  const date=$('bulkProgressDate').value;if(completion&&(!date||date>today()))return toast('完成日期不可為空白或未來');
+  for(const r of db.rows.filter(r=>keys.includes(r.key))){
+   if(completion){r.p[i]=true;r.completed=date}
+   else if(r.date!==date){r.date=date;r.p[i]=!!date;r.p[stages(r).length-1]=false;r.completed='';if(!date)for(let j=i;j<stages(r).length;j++)r.p[j]=false}
+  }
+  closeModal();save();
+ });
+}
+function bulkProgressMode(control){
+ const mode=control.value;if(!['收件','寄出'].includes(mode))return;
+ for(const r of bulkProgressRows(control))if(r.mode!==mode){r.mode=mode;r.date='';r.p[3]=r.p[4]=false;r.completed=''}
+ save();
+}
 function externalProgressTable(list){
- return `<div class="tablewrap progress-table"><table class="external-equipment-table"><colgroup><col class="progress-col-equipment"><col class="progress-col-asset">${stages(list[0]).map((s,i)=>`${list[0].type==='遊校'&&i===2?'<col class="progress-col-step">':''}<col class="${i===stages(list[0]).length-2?'progress-col-date':'progress-col-step'}">`).join('')}</colgroup><thead><tr><th>設備編號 / 名稱</th><th>資產編號</th>${stages(list[0]).map((s,i)=>`${list[0].type==='遊校'&&i===2?'<th aria-label="不適用外送單"></th>':''}<th class="${i===stages(list[0]).length-2?'':'progress-checkbox-cell'}">${s}</th>`).join('')}</tr></thead><tbody>${list.map(r=>`<tr class="${complete(r)?'finished':''}"><td>${esc(r.id)}<div class="subtle">${esc(r.name)}</div></td><td class="muted">${esc(r.asset)}</td>${stages(r).map((s,i)=>{
+ return `<div class="tablewrap progress-table"><table class="external-equipment-table" data-equipment-keys="${esc(JSON.stringify(list.map(r=>r.key)))}"><colgroup><col class="progress-col-equipment"><col class="progress-col-asset">${stages(list[0]).map((s,i)=>`${list[0].type==='遊校'&&i===2?'<col class="progress-col-step">':''}<col class="${i===stages(list[0]).length-2?'progress-col-date':'progress-col-step'}">`).join('')}</colgroup><thead><tr><th>設備編號 / 名稱</th><th>資產編號</th>${stages(list[0]).map((s,i)=>`${list[0].type==='遊校'&&i===2?'<th aria-label="不適用外送單"></th>':''}<th class="${i===stages(list[0]).length-2?'':'progress-checkbox-cell'}">${s}${bulkProgressHeader(list,i)}</th>`).join('')}</tr></thead><tbody>${list.map(r=>`<tr class="${complete(r)?'finished':''}"><td>${esc(r.id)}<div class="subtle">${esc(r.name)}</div></td><td class="muted">${esc(r.asset)}</td>${stages(r).map((s,i)=>{
   const dateStage=i===stages(r).length-2;
   return `${r.type==='遊校'&&i===2?'<td></td>':''}<td class="${dateStage?'':'progress-checkbox-cell'}">${dateStage?`${r.type==='外校'?`<select class="smallselect" aria-label="${esc(r.id)}收件寄出方式" onchange="changeMode('${r.key}',this.value)"><option ${r.mode==='收件'?'selected':''}>收件</option><option ${r.mode==='寄出'?'selected':''}>寄出</option></select> `:''}<button ${i&&!r.p[i-1]?'disabled':''} onclick="schedule('${r.key}',${i})">${r.date||'設定日期'}</button>`:`<label class="step"><input aria-label="${esc(r.id)} ${esc(s)}" type="checkbox" ${r.p[i]?'checked':''} ${i&&!r.p[i-1]?'disabled':''} onchange="window.step('${r.key}',${i},this.checked)"></label>`}</td>`;
  }).join('')}</tr>`).join('')}</tbody></table></div>`;
@@ -357,6 +391,7 @@ function renderExternalProgress(){
   const items=equipment.filter(r=>r.type===type);if(!items.length)return '';
   return `<section class="group progress-type-${type==='外校'?'external':'tour'}">${externalProgressTable(items)}</section>`;
  }).join('')}</div></details>`).join('')||'<div class="empty">沒有符合條件的設備</div>'}</div>`;
+ document.querySelectorAll('[data-bulk-stage]').forEach(input=>input.indeterminate=input.dataset.partial==='true');
 }
 function changeMode(key,mode){let r=db.rows.find(x=>x.key===key);if(r.date&&!confirm('切換寄出／收件將清除原日期與完成紀錄，確定？'))return render();r.mode=mode;r.date='';r.p[3]=r.p[4]=false;r.completed='';save()}
 function step(key,i,checked){let r=db.rows.find(x=>x.key===key);if(checked&&i&&!r.p[i-1])return;if(!checked){for(let j=i;j<stages(r).length;j++)r.p[j]=false;let di=r.type==='內校'?0:stages(r).length-2;if(i<=di)r.date='';r.completed='';save();return}if(i===stages(r).length-1){modal('校驗完成',`<p>${esc(r.id)} · ${esc(r.name)}</p><label class="field">完成日期<input type="date" id="finish" value="${today()}" max="${today()}"></label>`,()=>{let d=$('finish').value;if(!d||d>today())return toast('完成日期不可為未來');r.p[i]=true;r.completed=d;closeModal();save()});render()}else{r.p[i]=true;save()}}
