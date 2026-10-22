@@ -198,3 +198,10 @@ body.app-shell .internal-equipment-table input[type=checkbox]{width:22px;height:
 .acceptance-standard h3{font-size:17px;margin:20px 0 10px}
 .acceptance-standard>div{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8}
 @media(max-width:650px){.acceptance-equipment{grid-template-columns:1fr;gap:12px}}
+
+.import-workspace{width:100%;min-width:0}
+.import-workspace .upload{margin-top:0;min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px}
+.import-upload-icon{font-size:38px;color:var(--color-muted)}
+.import-workspace td:first-child{white-space:normal;overflow-wrap:anywhere}
+.import-workspace :is(th,td):last-child{text-align:right;width:65px}
+.import-workspace .registry-delete{display:inline-flex;align-items:center;justify-content:center;color:var(--color-danger);padding:8px;border:0;background:transparent}

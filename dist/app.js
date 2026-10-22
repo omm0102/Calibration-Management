@@ -368,9 +368,46 @@ function renderReport(){
   }catch(error){toast('月報載入失敗：'+error.message)}
  };
 }
-function renderImport(){$('content').innerHTML=`<div class="wide"><div class="note">依有效日期歸入對應月份。匯入前先檢查資料；同月份覆蓋會保留仍存在設備的進度。</div><div class="upload"><div style="font-size:32px;color:var(--color-muted)">↥</div><b>匯入每月設備清冊</b><p>支援 .xlsx；保留原始設備資訊欄位</p><button class="primary" onclick="document.getElementById('excelFile').click()">選擇 Excel 檔案</button><input id="excelFile" type="file" accept=".xlsx" hidden onchange="importExcel(this.files[0]);this.value=''"/><p class="subtle">本 DEMO 遇到空白／錯誤有效日期、重複編號會停止匯入並提示。</p></div><h2>匯入紀錄</h2><div class="tablewrap"><table><thead><tr><th>來源檔案</th><th>月份</th><th>設備數</th><th>匯入時間</th></tr></thead><tbody>${db.imports.map(i=>`<tr><td>${esc(i.file)}</td><td>${i.months.join('、')}</td><td>${i.count}</td><td>${esc(i.at)}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">尚未匯入檔案，目前為示範資料</td></tr>'}</tbody></table></div></div>`}
+function ensureImportLinks(){
+ const legacy=new Set(db.imports.filter(i=>!i.id));
+ for(const entry of db.imports){entry.id??=uid();entry.rowKeys??=[];entry.vendors??={}}
+ for(const row of db.rows){
+  if(!row.sourceImport){const entry=db.imports.find(i=>legacy.has(i)&&i.months.includes(row.month));if(entry)row.sourceImport=entry.id}
+  const entry=db.imports.find(i=>i.id===row.sourceImport);if(!entry)continue;
+  if(!entry.rowKeys.includes(row.key))entry.rowKeys.push(row.key);
+  if(row.type!=='內校'){entry.vendors[row.month]??=[];const vendor=row.vendor||'未指定廠商';if(!entry.vendors[row.month].includes(vendor))entry.vendors[row.month].push(vendor)}
+ }
+}
+function deleteImport(id){
+ const entry=db.imports.find(i=>i.id===id);if(!entry)return;
+ if(!confirm(`你確定要刪除"${entry.file}"，所有相關資料將會消失`))return;
+ if(!confirm('你真的確定要刪除???'))return;
+ const removed=new Set(entry.rowKeys||[]),affected=new Set(entry.months);
+ // A later import may retain a device key; its current data belongs to that later file.
+ for(const row of db.rows)if(row.sourceImport!==id)removed.delete(row.key);
+ db.rows=db.rows.filter(r=>r.sourceImport!==id);
+ for(const [key,state]of Object.entries(db.events))if(state.signature?.split(',').some(k=>removed.has(k)))delete db.events[key];
+ db.manual=db.manual.filter(e=>e.sourceImport!==id);
+ for(const m of affected){
+  for(const vendor of entry.vendors?.[m]||[])if(!db.rows.some(r=>r.month===m&&r.type!=='內校'&&(r.vendor||'未指定廠商')===vendor))delete (db.quotes[m]||{})[vendor];
+  if(!db.rows.some(r=>r.month===m))delete db.quotes[m];
+  delete db.reports[m];localStorage.removeItem('calibration:'+m);
+ }
+ for(const key of ['calibrationV41.history','calibrationV41.drafts']){
+  const raw=localStorage.getItem(key);if(!raw)continue;
+  try{const store=JSON.parse(raw);for(const m of affected)delete store[m];localStorage.setItem(key,JSON.stringify(store))}catch{localStorage.removeItem(key)}
+ }
+ // Remove the old migration snapshot, which could otherwise retain deleted equipment.
+ localStorage.removeItem(KEY+'-before-real-sample-v1');
+ db.imports=db.imports.filter(i=>i.id!==id);
+ registryFilters={};internalRegistryQuery='';query='';save();toast('檔案及相關資料已刪除');
+}
+function renderImport(){
+ ensureImportLinks();persist();
+ $('content').innerHTML=`<div class="import-workspace"><div class="upload"><div class="import-upload-icon" aria-hidden="true">↥</div><button class="primary" onclick="document.getElementById('excelFile').click()">選擇 Excel 檔案</button><input id="excelFile" type="file" accept=".xlsx" hidden onchange="importExcel(this.files[0]);this.value=''"/></div><h2>匯入紀錄</h2><div class="tablewrap"><table><thead><tr><th>來源檔案</th><th>月份</th><th>設備數</th><th>匯入時間</th><th></th></tr></thead><tbody>${db.imports.map(i=>`<tr><td>${esc(i.file)}</td><td>${i.months.map(esc).join('、')}</td><td>${i.count}</td><td>${esc(i.at)}</td><td><button class="registry-delete" aria-label="刪除 ${esc(i.file)}" title="刪除" onclick="deleteImport('${i.id}')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button></td></tr>`).join('')||'<tr><td colspan="5" class="muted">尚無匯入紀錄</td></tr>'}</tbody></table></div></div>`;
+}
 function parseDate(v){v=String(v||'').trim();if(/^\d+(\.\d+)?$/.test(v)&&+v>10000)return new Date(Date.UTC(1899,11,30)+Math.floor(+v)*86400000).toISOString().slice(0,10);let m=v.match(/^(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})/);if(!m)return '';let d=m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');return new Date(d+'T12:00:00').getDate()===+m[3]?d:''}
-async function importExcel(file){if(!file)return;try{toast('正在檢查清冊…');let model=await Organizer.parse(await file.arrayBuffer()),incoming=[],seen=new Set();for(let raw of model.all){let x=Object.fromEntries(Object.entries(raw).map(([k,v])=>[k,v.value]));let due=parseDate(x['有效日期']),id=String(x['量測/監控設備編號']||'').trim(),type=x['校驗方式'];if(!due||!id||!['內校','外校','遊校'].includes(type))throw Error('設備 '+id+' 的有效日期、編號或校驗方式不完整');let m=due.slice(0,7),k=m+'|'+id;if(seen.has(k))throw Error(m+' 設備編號重複：'+id);seen.add(k);incoming.push({key:uid(),month:m,id,name:x['名稱']||'',asset:x['資產編號']||'',unit:x['保管單位']||'',owner:x['保管人']||'',vendor:x['實驗室/廠商']||x['實驗室／廠商']||x['實驗室']||'',type,due,instrumentStatus:String(x['儀器狀態']??'').trim(),p:[],date:'',completed:'',mode:'收件',extra:x})}let ms=[...new Set(incoming.map(r=>r.month))];if(!confirm(`檢查完成：${incoming.length} 筆，月份 ${ms.join('、')}。${ms.some(m=>months().includes(m))?'此月份已有資料，是否覆蓋？':'確定匯入？'}`))return;let next=structuredClone(db);for(let r of incoming){let old=db.rows.find(x=>x.month===r.month&&x.id===r.id);if(old&&old.type===r.type&&(!old.vendor||old.vendor===r.vendor))Object.assign(r,{key:old.key,p:old.p,date:old.date,completed:old.completed,mode:old.mode,internalDateInitialized:old.internalDateInitialized});else if(old&&hasEquipmentActivity(old)&&(old.type!==r.type||old.vendor!==r.vendor)&&!confirm(r.id+' 校驗方式或廠商異動，清除原進度？取消會停止整份匯入。'))return;for(let k of ['asset','unit','owner']){let prior=next.rows.find(x=>x.id===r.id);if(prior&&prior[k]!==r[k]){if(!confirm(`${r.id} ${cols.find(c=>c[0]===k)[1]}有差異\n現有：${prior[k]||'空白'}\n匯入：${r[k]||'空白'}\n確定採用匯入值？取消保留現有值。`))r[k]=prior[k];next.rows.filter(x=>x.id===r.id).forEach(x=>x[k]=r[k]);incoming.filter(x=>x.id===r.id).forEach(x=>x[k]=r[k])}}}next.rows=next.rows.filter(r=>!ms.includes(r.month)).concat(incoming);next.settings.importColumns=[...new Set([...(next.settings.importColumns||[]),...(model.sourceHeaders||model.headers)])];next.imports.unshift({file:file.name,months:ms,count:incoming.length,at:new Date().toLocaleString('zh-TW')});db=next;month=ms.at(-1);save();toast('匯入完成；既有報價與月報內容已保留，請確認受影響明細')}catch(e){toast(e.message)}}
+async function importExcel(file){if(!file)return;try{toast('正在檢查清冊…');let model=await Organizer.parse(await file.arrayBuffer()),incoming=[],seen=new Set();for(let raw of model.all){let x=Object.fromEntries(Object.entries(raw).map(([k,v])=>[k,v.value]));let due=parseDate(x['有效日期']),id=String(x['量測/監控設備編號']||'').trim(),type=x['校驗方式'];if(!due||!id||!['內校','外校','遊校'].includes(type))throw Error('設備 '+id+' 的有效日期、編號或校驗方式不完整');let m=due.slice(0,7),k=m+'|'+id;if(seen.has(k))throw Error(m+' 設備編號重複：'+id);seen.add(k);incoming.push({key:uid(),month:m,id,name:x['名稱']||'',asset:x['資產編號']||'',unit:x['保管單位']||'',owner:x['保管人']||'',vendor:x['實驗室/廠商']||x['實驗室／廠商']||x['實驗室']||'',type,due,instrumentStatus:String(x['儀器狀態']??'').trim(),p:[],date:'',completed:'',mode:'收件',extra:x})}let ms=[...new Set(incoming.map(r=>r.month))];if(!confirm(`檢查完成：${incoming.length} 筆，月份 ${ms.join('、')}。${ms.some(m=>months().includes(m))?'此月份已有資料，是否覆蓋？':'確定匯入？'}`))return;ensureImportLinks();let importId=uid(),next=structuredClone(db);for(let r of incoming){let old=db.rows.find(x=>x.month===r.month&&x.id===r.id);if(old&&old.type===r.type&&(!old.vendor||old.vendor===r.vendor))Object.assign(r,{key:old.key,p:old.p,date:old.date,completed:old.completed,mode:old.mode,internalDateInitialized:old.internalDateInitialized});else if(old&&hasEquipmentActivity(old)&&(old.type!==r.type||old.vendor!==r.vendor)&&!confirm(r.id+' 校驗方式或廠商異動，清除原進度？取消會停止整份匯入。'))return;for(let k of ['asset','unit','owner']){let prior=next.rows.find(x=>x.id===r.id);if(prior&&prior[k]!==r[k]){if(!confirm(`${r.id} ${cols.find(c=>c[0]===k)[1]}有差異\n現有：${prior[k]||'空白'}\n匯入：${r[k]||'空白'}\n確定採用匯入值？取消保留現有值。`))r[k]=prior[k];next.rows.filter(x=>x.id===r.id).forEach(x=>x[k]=r[k]);incoming.filter(x=>x.id===r.id).forEach(x=>x[k]=r[k])}}}for(const r of incoming)r.sourceImport=importId;next.rows=next.rows.filter(r=>!ms.includes(r.month)).concat(incoming);next.settings.importColumns=[...new Set([...(next.settings.importColumns||[]),...(model.sourceHeaders||model.headers)])];next.imports.unshift({id:importId,file:file.name,months:ms,count:incoming.length,at:new Date().toLocaleString('zh-TW')});db=next;ensureImportLinks();month=ms.at(-1);save();toast('匯入完成；既有報價與月報內容已保留，請確認受影響明細')}catch(e){toast(e.message)}}
 function download(data,name,type='application/json'){let url=URL.createObjectURL(data instanceof Blob?data:new Blob([data],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 async function exportExcel(){
  try{
