@@ -268,3 +268,17 @@ body.app-shell .external-equipment-table .bulk-progress-controls input[type=chec
 body.app-shell .vendor-bulk-controls input[type=checkbox]{width:22px;height:22px;margin:0;accent-color:var(--color-focus);cursor:pointer}
 .external-progress-workspace .vendor-progress-title>.vendor-percent{float:none;flex-shrink:0;font-weight:400}
 @media(max-width:900px){.external-progress-workspace .vendor-progress-title{flex-wrap:wrap}.vendor-bulk-controls{order:3;flex-basis:100%;gap:10px}.vendor-bulk-type{flex-wrap:wrap;gap:14px}}
+
+/* Bulk actions share the exact seven column widths of the equipment tables. */
+.external-progress-workspace .vendor-progress-title{display:block;position:relative;margin-inline:1px;overflow-x:auto;scrollbar-width:none}
+.external-progress-workspace .vendor-progress-title::-webkit-scrollbar{display:none}
+.external-progress-workspace .vendor-progress-title::before{position:absolute;left:0;top:12px}
+.external-progress-workspace .vendor-progress-title>.vendor-name{position:absolute;left:24px;top:10px;margin:0}
+.external-progress-workspace .vendor-progress-title>.vendor-percent{position:absolute;left:31%;top:14px;font-size:14px}
+.vendor-bulk-controls{display:block;min-width:1100px;width:100%}
+.vendor-bulk-type{display:grid;grid-template-columns:24% 15% 10% 10% 10% 21% 10%;gap:0;align-items:center;min-height:48px}
+.vendor-bulk-cell{padding:0 14px;min-width:0}
+.vendor-bulk-cell .bulk-progress-controls{justify-content:center;gap:5px}
+.vendor-bulk-cell.bulk-date-cell .bulk-progress-controls{justify-content:flex-start}
+.bulk-type-label{grid-column:2;text-align:center;font-size:14px}
+@media(max-width:900px){.vendor-bulk-controls{order:initial}.vendor-bulk-type{gap:0}.external-progress-workspace .vendor-progress-title>.vendor-percent{left:340px}}
