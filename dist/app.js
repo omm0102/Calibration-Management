@@ -275,7 +275,7 @@ function deleteEquipment(key){
  if(!confirm('確定刪除設備「'+equipment.id+' · '+equipment.name+'」及其進度與排程？'))return;
  db.rows=db.rows.filter(r=>r.key!==key);save();
 }
-function percent(list){return list.length?Math.round(list.reduce((a,r)=>a+r.p.filter(Boolean).length/stages(r).length,0)/list.length*100):0}
+function percent(list){return list.length?Math.round(list.filter(complete).length/list.length*100):0}
 function renderProgress(){return page==='external'?renderExternalProgress():renderInternalProgress()}
 function matchesInternalProgressScope(r){return r.type==='內校'&&registryMatches(r,null,'內校')&&equipmentMatchesQuery(r,internalRegistryQuery)}
 function renderInternalProgress(){
