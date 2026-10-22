@@ -9,7 +9,27 @@ function persist(){localStorage.setItem(KEY,JSON.stringify(db))}function save(){
 const rows=()=>db.rows.filter(r=>r.month===month);const months=()=>[...new Set(db.rows.map(r=>r.month))].sort();const complete=r=>!!r.p[r.type==='內校'?2:r.type==='外校'?4:3];const stages=r=>r.type==='內校'?['預計校驗日','收件確認','已完成']:r.type==='外校'?['已提供報價單','請購單','外送單','寄出／收取日期','已完成']:['已提供報價單','請購單','遊校日期','已完成'];
 function go(p){page=p;query='';status='all';selected.clear();render()}window.go=go;
 function render(){let ms=months();if(!ms.includes(month))month=ms.includes(today().slice(0,7))?today().slice(0,7):ms.at(-1)||'';$('nav').innerHTML=nav.map(([g,items])=>`<div class="navgroup"><label>${g}</label>${items.map(([id,t,ic])=>`<button class="${page===id?'active':''}" onclick="go('${id}')"><span class="ico">${ic}</span>${t}</button>`).join('')}</div>`).join('');$('title').textContent=nav.flatMap(n=>n[1]).find(n=>n[0]===page)[1];$('monthbox').innerHTML=!['calendar','import','backup'].includes(page)?`<select onchange="month=this.value;selected.clear();render()" ${ms.length?'':'disabled'}>${ms.map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select>`:'';({calendar:renderCalendar,registry:renderRegistry,external:renderProgress,internal:renderProgress,cost:renderCost,report:renderReport,import:renderImport,backup:renderBackup}[page])()}
-function allEvents(){let map={};for(let r of db.rows){if(!r.date)continue;let type=r.type==='內校'?'internal':'external',name=type==='internal'?r.id.replace(/-[^-]+$/,''):r.type==='遊校'?'遊校_'+(r.vendor||'未指定廠商'):'外校'+r.mode+'_'+(r.vendor||'未指定廠商');let key=[r.month,r.date,name].join('|');if(!map[key])map[key]={id:key,name,start:r.date,end:r.date,type,rows:[],auto:true};map[key].rows.push(r)}return [...Object.values(map).map(e=>{let signature=e.rows.map(r=>r.key).sort().join(',');let s=db.events[e.id];if(s?.signature!==signature)s={};let sent=e.name.startsWith('外校寄出_')&&e.start<=today();return{...e,signature,done:s.done||(sent?e.start:''),actionDate:s.actionDate||'',note:''}}),...db.manual.map(e=>({...e,type:'manual',auto:false}))]}
+// Fixed monthly tasks start in the month this feature is first enabled.
+function fixedMonthlyEvents(){
+ if(!db.settings.fixedScheduleStart){db.settings.fixedScheduleStart=today().slice(0,7);persist()}
+ const start=db.settings.fixedScheduleStart;
+ const base=new Date(today()+'T12:00:00');
+ const visibleEnd=calendarMonth?calendarMonth:add(today(),-base.getDay()-7+Math.floor((offset+1)/5)*35+34).slice(0,7);
+ const end=[today().slice(0,7),visibleEnd].sort().at(-1);
+ const events=[];
+ for(let m=start;m<=end;){
+  const [year,month]=m.split('-').map(Number);
+  const first=new Date(year,month-1,1,12),last=new Date(year,month,0,12);
+  const rules=[['monthly-report','校驗管理月報',iso(new Date(year,month-1,1+(1-first.getDay()+7)%7,12))],['monthly-progress','確認本月校驗進度',iso(new Date(year,month-1,last.getDate()-(last.getDay()-5+7)%7,12))]];
+  for(const [rule,name,date]of rules){
+   const id='fixed|'+m+'|'+rule,signature='fixed-v1',state=db.events[id];
+   events.push({id,name,start:date,end:date,type:'manual',auto:true,signature,done:state?.signature===signature?state.done||'':'',actionDate:state?.signature===signature?state.actionDate||'':'',note:'每月固定行程'});
+  }
+  m=iso(new Date(year,month,1,12)).slice(0,7);
+ }
+ return events;
+}
+function allEvents(){let map={};for(let r of db.rows){if(!r.date)continue;let type=r.type==='內校'?'internal':'external',name=type==='internal'?r.id.replace(/-[^-]+$/,''):r.type==='遊校'?'遊校_'+(r.vendor||'未指定廠商'):'外校'+r.mode+'_'+(r.vendor||'未指定廠商');let key=[r.month,r.date,name].join('|');if(!map[key])map[key]={id:key,name,start:r.date,end:r.date,type,rows:[],auto:true};map[key].rows.push(r)}return [...Object.values(map).map(e=>{let signature=e.rows.map(r=>r.key).sort().join(',');let s=db.events[e.id];if(s?.signature!==signature)s={};let sent=e.name.startsWith('外校寄出_')&&e.start<=today();return{...e,signature,done:s.done||(sent?e.start:''),actionDate:s.actionDate||'',note:''}}),...db.manual.map(e=>({...e,type:'manual',auto:false})),...fixedMonthlyEvents()]}
 function eventClass(e){return(e.done&&e.done>e.end&&e.end||!e.done&&e.end&&e.end<today()?'late':e.type)+(e.done?' done':'')}
 function eventAt(e,d){
  // Completed overdue items leave every original date, including multi-day schedules.
