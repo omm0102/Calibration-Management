@@ -63,11 +63,12 @@
 .calendar-workspace .day{background:#fff;border-top-color:#b6bec9;border-right-color:#b6bec9}
 .calendar-workspace .day.other-month{background:#f0f1f3}
 .calendar-workspace .day.other-month .daynum{color:#9299a3}
-/* A diffused white light sits behind the date and events, without a heavy frame. */
+/* Raised cells cast their light and shadow outside the tile, behind its surface. */
+.calendar-workspace .calendar{overflow:visible}
+.calendar-workspace .day{transform:translateY(0);z-index:0}
 .calendar-workspace .day.today,
-.calendar-workspace .day.selected-week{outline:none;isolation:isolate;background-color:#eef0f3;box-shadow:inset 0 0 18px 5px #ffffff,0 0 9px #ffffffb3}
-.calendar-workspace .day.today::before,
-.calendar-workspace .day.selected-week::before{content:'';position:absolute;inset:8px;z-index:-1;pointer-events:none;border-radius:12px;background:#fff;filter:blur(12px);opacity:.95}
+.calendar-workspace .day.selected-week{outline:none;z-index:3;transform:translateY(-3px);border-radius:7px;background:#fff;box-shadow:0 0 12px 5px #ffffff,0 10px 22px 2px #46536a55,0 3px 7px #46536a38}
+.calendar-workspace .day.other-month.selected-week{background:#f0f1f3}
 .calendar-workspace .todo-add{display:grid;place-items:center;line-height:1}
 .calendar-workspace .todo-add span{display:block;line-height:1;font-family:Arial,sans-serif}
 /* Keep sidebar content from stretching the toolbar's grid row. */
@@ -76,3 +77,24 @@
  .calendar-workspace .right-rail{position:absolute;top:0;right:0;bottom:0;width:calc((100% - 22px)/4);height:auto}
 }
 @media(min-width:1101px){.calendar-workspace .right-rail{grid-area:auto}}
+
+/* Calendar-page controls and containers share a firmer, restrained border. */
+body:has(.calendar-workspace){--line:#c5cbd4}
+body:has(.calendar-workspace) :is(button,input,select,textarea,.panel,dialog){border-width:2px}
+body:has(.calendar-workspace) :is(.navgroup button,button.link,.todo-name){border-width:0}
+body:has(.calendar-workspace) aside{border-right-width:2px}
+.calendar-workspace .calendar{border-width:2px}
+.calendar-workspace .weekday{border-right-width:2px}
+.calendar-workspace .day{border-top-width:2px;border-right-width:2px}
+.calendar-workspace .day:nth-child(7n),.calendar-workspace .weekday:nth-child(7){border-right-width:0}
+.calendar-workspace :is(.event,.todo){border-left-width:3px}
+.calendar-workspace :is(.section-head,.divider){border-width:2px}
+/* Animate visual properties without animating scrolling or changing layout geometry. */
+body:has(.calendar-workspace) *,body:has(.calendar-workspace) *::before,body:has(.calendar-workspace) *::after{
+ transition:background-color .2s ease,color .2s ease,border-color .2s ease,box-shadow .2s ease,transform .2s ease,opacity .2s ease,filter .2s ease;
+}
+@keyframes calendar-lift{from{transform:translateY(0);box-shadow:0 0 0 transparent}to{transform:translateY(-3px);box-shadow:0 0 12px 5px #ffffff,0 10px 22px 2px #46536a55,0 3px 7px #46536a38}}
+.calendar-workspace .day.today,.calendar-workspace .day.selected-week{animation:calendar-lift .2s ease both}
+@media(prefers-reduced-motion:reduce){
+ body:has(.calendar-workspace) *,body:has(.calendar-workspace) *::before,body:has(.calendar-workspace) *::after{transition:none!important;animation:none!important}
+}
