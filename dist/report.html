@@ -1505,6 +1505,11 @@ function fitOverviewNumbers(){
 }
 
 function update(){
+ if(typeof window.reportDataSource==='function'){
+  const source=window.reportDataSource($('monthInput').value||localMonthISO());
+  for(const [id,key]of [['internalInput','internal'],['externalInput','external'],['costInput','cost']]){$(id).value=source[key];$(id).disabled=true}
+ }
+
  chooseLayout(); const total=getTotal(), rate=getRate();
  $('monthText').textContent=monthLabel(); $('totalText').textContent=total; $('internalText').textContent=n('internalInput'); $('externalText').textContent=n('externalInput'); fitOverviewNumbers();
  const done=getDone(), fail=state.ng.length, pass=Math.max(0,done-fail); $('doneText').textContent=done; $('passText').textContent=pass; $('failText').textContent=fail; $('overdueCountText').textContent=state.overdue.length;
@@ -1705,11 +1710,13 @@ function appSetUIFromRecord(rec){
   update();
 }
 function appDefaultRecord(){return {internal:0,external:0,cost:0,overdue:[],ng:[],summaryHtml:'',summary:''};}
-function appSaveDraftNow(){
+function appSaveDraftNow(targetMonth){
   if(appSuspendDraft||appMode==='readonly')return;
-  const key=appMonthKey(); if(!key)return;
+  const key=targetMonth||appMonthKey(); if(!key)return;
   appDraftCache[key]=appRecordFromUI();
+  if(typeof window.reportDataSource==='function')Object.assign(appDraftCache[key],window.reportDataSource(key));
   appWriteStore(APP_V41_KEYS.drafts,appDraftCache);
+  if(typeof window.reportPersistRecord==='function')window.reportPersistRecord(key,appDraftCache[key]);
 }
 function appDeleteDraft(key){delete appDraftCache[key];appWriteStore(APP_V41_KEYS.drafts,appDraftCache);}
 function appAnnualTotal(){
@@ -1728,7 +1735,7 @@ function appSetReadonly(flag){
   const panel=document.querySelector('.controls-panel');
   panel.classList.toggle('app-readonly',flag);
   const selector='#internalInput,#externalInput,#costInput,#overdueEditor input,#overdueEditor select,#ngEditor input,#ngEditor select';
-  panel.querySelectorAll(selector).forEach(el=>el.disabled=flag);
+  panel.querySelectorAll(selector).forEach(el=>el.disabled=flag||(typeof window.reportDataSource==='function'&&['internalInput','externalInput','costInput'].includes(el.id)));
   $('summaryInput').setAttribute('contenteditable',flag?'false':'true');
   panel.querySelectorAll('.group > button.secondary[onclick^="add"],#overdueEditor .danger,#ngEditor .danger').forEach(el=>el.disabled=flag);
 }
@@ -1767,21 +1774,25 @@ function appNotice(title,message){return appModal({title,message,buttons:[{label
 
 async function appLoadMonth(key,{animate=true}={}){
   if(!key)return;
+  const request=(appLoadMonth.request||0)+1;appLoadMonth.request=request;
   // Preserve current editable draft before leaving the month.
-  if(appCurrentMonth && appCurrentMonth!==key && appMode!=='readonly') appSaveDraftNow();
-  appCurrentMonth=key;
+  if(appCurrentMonth && appCurrentMonth!==key && appMode!=='readonly') appSaveDraftNow(appCurrentMonth);
   appRefreshCaches();
   const hist=appHistoryCache[key];
   const draft=appDraftCache[key];
   if(hist && animate){appShowLoading(true);await appDelay(260);}
+  if(request!==appLoadMonth.request)return;
+  appCurrentMonth=key;
   appSuspendDraft=true;
   $('monthInput').value=key;
   if(hist){appSetUIFromRecord(hist);appApplyMode('readonly');}
   else if(draft){appSetUIFromRecord(draft);appApplyMode('new');}
-  else{appSetUIFromRecord(appDefaultRecord());appApplyMode('new');}
+  else{appSetUIFromRecord((typeof window.reportRecordSource==='function'&&window.reportRecordSource(key))||appDefaultRecord());appApplyMode('new');}
   appSuspendDraft=false;
   update();
-  if(hist && animate){await appDelay(160);appShowLoading(false);}
+  if(typeof window.reportMonthChanged==='function')window.reportMonthChanged(key);
+  if(hist && animate)await appDelay(160);
+  if(request===appLoadMonth.request)appShowLoading(false);
 }
 
 async function appSaveReport(){
@@ -1796,6 +1807,7 @@ async function appSaveReport(){
     await appNotice('月份已儲存',`${key.replace('-', '/')} 已有歷史資料，請先按「修改」後再變更。`);return;
   }
   appHistoryCache[key]=record; appWriteStore(APP_V41_KEYS.history,appHistoryCache); appDeleteDraft(key);
+  if(typeof window.reportPersistRecord==='function')window.reportPersistRecord(key,record);
   appSetUIFromRecord(record); appApplyMode('readonly'); appToast('月報已儲存'); update();
 }
 async function appBeginEdit(){
