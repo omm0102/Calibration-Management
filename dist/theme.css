@@ -113,3 +113,16 @@ body.report-shell .preview-panel{height:100%;min-height:0}
 body.report-shell .controls .report-delete-icon{display:grid;place-items:center;flex:none;width:40px;height:40px;padding:8px;border:0;border-radius:var(--radius-control);background:transparent;color:var(--color-danger)}
 body.report-shell .controls .report-delete-icon:hover{background:var(--color-danger-soft);color:var(--color-danger-hover)}
 body.report-shell .controls .report-delete-icon:focus-visible{outline:2px solid var(--color-danger);outline-offset:2px}
+
+.external-progress-workspace .external-total{margin-bottom:20px}
+.external-progress-workspace .external-total h2{margin-bottom:12px}
+.external-progress-workspace .vendor-progress{margin-bottom:20px;padding:18px}
+.external-progress-workspace .vendor-progress>h2{margin:0 0 14px;font-size:19px}
+.external-progress-workspace .vendor-progress>.group{margin-bottom:14px;box-shadow:none}
+.external-progress-workspace .vendor-progress>.group:last-child{margin-bottom:0}
+body.app-shell .external-progress-workspace .progress-table{border:0;border-radius:0;box-shadow:none}
+body.app-shell .progress-type-external>summary{background:var(--color-warning-soft);color:var(--color-warning-text);border-left:3px solid var(--color-warning)}
+body.app-shell .progress-type-tour>summary{background:var(--color-accent-soft);color:var(--color-accent);border-left:3px solid var(--color-accent)}
+body.app-shell .progress-type-external th{background:var(--color-warning-soft);color:var(--color-warning-text)}
+body.app-shell .progress-type-tour th{background:var(--color-accent-soft);color:var(--color-accent)}
+@media(max-width:650px){.external-progress-workspace .vendor-progress{padding:12px}}
