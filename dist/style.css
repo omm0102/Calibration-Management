@@ -5,7 +5,7 @@
 .day-detail-list .event-detail{padding:0;border-bottom:1px solid var(--line)}
 .day-detail-list summary{padding:17px 4px;list-style:none;display:flex;align-items:center;gap:12px;font-weight:500}
 .day-detail-list summary::-webkit-details-marker{display:none}
-.day-detail-list summary::before{content:'›';font-size:22px;color:#858b95;line-height:1;transition:transform .15s}
+.day-detail-list summary::before{content:'›';font-size:22px;color:#858b95;line-height:1;transition:transform .2s}
 .day-detail-list details[open] summary::before{transform:rotate(90deg)}
 .day-detail-list .equipment-list{padding:0 30px 12px;line-height:1.8}
 .detail-actions{display:flex;gap:8px;padding:0 30px 17px}
@@ -171,3 +171,5 @@ body:has(.calendar-workspace) #content{flex:1;min-height:0}
  .calendar-workspace .right-rail .section-head{top:-10px;padding-bottom:8px}
  .calendar-workspace .section-head h2{font-size:17px}
 }
+
+.day-detail-list details.is-closing summary::before{transform:rotate(0deg)}

@@ -97,7 +97,23 @@ function modal(title,body,onsave,label='儲存',showFooter=true){ $('modal').inn
 function closeModal(){$('dialog').close()}
 function showDay(date){
  const ev=date?eventsForDay(allEvents(),date):allEvents().filter(e=>!e.start&&(!e.done||e.actionDate===today()));
- modal(date?date.replaceAll('-','/'):'其他事項',`<div class="day-detail-list">${ev.map(e=>`<details class="event-detail"><summary><span class="${e.done?'done':''}">${esc(e.name)}</span></summary><div class="equipment-list">${(e.rows||[]).map(r=>`<div>${esc(r.id)}</div>`).join('')}${e.note?`<div>${esc(e.note)}</div>`:''}</div>${e.auto?'':`<div class="detail-actions"><button onclick="editManual('${e.id}','${date}')">編輯</button><button class="danger" onclick="deleteManual('${e.id}')">刪除</button></div>`}</details>`).join('')||'<p>當天沒有行程</p>'}</div>`,null,'',false);
+ modal(date?date.replaceAll('-','/'):'其他事項',`<div class="day-detail-list">${ev.map(e=>`<details class="event-detail"><summary onclick="toggleDetail(event)"><span class="${e.done?'done':''}">${esc(e.name)}</span></summary><div class="equipment-list">${(e.rows||[]).map(r=>`<div>${esc(r.id)}</div>`).join('')}${e.note?`<div>${esc(e.note)}</div>`:''}</div>${e.auto?'':`<div class="detail-actions"><button onclick="editManual('${e.id}','${date}')">編輯</button><button class="danger" onclick="deleteManual('${e.id}')">刪除</button></div>`}</details>`).join('')||'<p>當天沒有行程</p>'}</div>`,null,'',false);
+}
+const detailAnimations=new WeakMap();
+function toggleDetail(event){
+ event.preventDefault();
+ const details=event.currentTarget.parentElement,previous=detailAnimations.get(details);
+ const opening=previous?!previous.opening:!details.open;
+ const start=details.getBoundingClientRect().height;
+ if(previous){previous.animation.onfinish=null;previous.animation.cancel()}
+ details.classList.toggle('is-closing',!opening);
+ if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){details.open=opening;details.classList.remove('is-closing');detailAnimations.delete(details);return}
+ details.open=true;
+ const end=opening?details.getBoundingClientRect().height:event.currentTarget.getBoundingClientRect().height+parseFloat(getComputedStyle(details).borderBottomWidth||0);
+ details.style.overflow='hidden';
+ const animation=details.animate([{height:start+'px'},{height:end+'px'}],{duration:200,easing:'ease'});
+ detailAnimations.set(details,{animation,opening});
+ animation.onfinish=()=>{details.open=opening;details.style.overflow='';details.classList.remove('is-closing');detailAnimations.delete(details)};
 }
 function deleteManual(id){if(confirm('確定刪除整筆行程？')){db.manual=db.manual.filter(e=>e.id!==id);closeModal();save()}}
 function editManual(id,date){
