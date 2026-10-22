@@ -279,12 +279,17 @@ function changeMode(key,mode){let r=db.rows.find(x=>x.key===key);if(r.date&&!con
 function step(key,i,checked){let r=db.rows.find(x=>x.key===key);if(checked&&i&&!r.p[i-1])return;if(!checked){if(!confirm('取消此階段並清除後續進度？'))return render();for(let j=i;j<stages(r).length;j++)r.p[j]=false;let di=r.type==='內校'?0:stages(r).length-2;if(i<=di)r.date='';r.completed='';save();return}if(i===stages(r).length-1){modal('校驗完成',`<p>${esc(r.id)} · ${esc(r.name)}</p><label class="field">完成日期<input type="date" id="finish" value="${today()}" max="${today()}"></label>`,()=>{let d=$('finish').value;if(!d||d>today())return toast('完成日期不可為未來');r.p[i]=true;r.completed=d;closeModal();save()});render()}else{r.p[i]=true;save()}}
 function schedule(key,i){let r=db.rows.find(x=>x.key===key);modal('安排校驗日期',`<p>${esc(r.id)} · ${esc(r.name)}</p><label class="field">${r.type==='內校'?'預計校驗日':r.type==='遊校'?'遊校日期':r.mode+'日期'}<input type="date" id="schedule" value="${r.date||r.due||today()}"></label><p class="muted">清空日期將移除對應行程與後續完成狀態。</p>`,()=>{let d=$('schedule').value;if(d&&r.type==='內校'){if(r.due&&r.due>=today()&&d>r.due)return toast('不得晚於有效日期');if(r.due&&r.due<today()&&d<today())return toast('已過期設備請安排今天或之後');if(!r.due&&d.slice(0,7)!==r.month)return toast('有效日期空白時請選所屬月份')}if(!d&&!confirm('清除日期及後續進度？'))return;if(r.date!==d){r.date=d;r.p[i]=!!d;r.p[stages(r).length-1]=false;r.completed='';if(!d)for(let j=i;j<stages(r).length;j++)r.p[j]=false}closeModal();save()})}
 function vendors(){return[...new Set(rows().filter(r=>r.type!=='內校').map(r=>r.vendor||'未指定廠商'))]};function sumCost(m){return Object.values(db.quotes[m]||{}).reduce((s,v)=>s+(v===''?0:Number(v)||0),0)}
+function annualExternalCost(key){
+ const year=key.slice(0,4),opening=year==='2026'&&key>='2026-10'?446100:0;
+ const first=opening?'2026-10':year+'-01';
+ return opening+Object.keys(db.quotes).filter(m=>m>=first&&m<=key&&m.slice(0,4)===year).reduce((total,m)=>total+sumCost(m),0);
+}
 function renderCost(){let v=vendors(),q=db.quotes[month]||{},all=[...new Set([...v,...Object.keys(q)])];$('content').innerHTML=`<div class="wide"><div class="stats"><div class="stat"><label>本月外校費用 · 未稅</label><strong>NT$ ${sumCost(month).toLocaleString()}</strong></div><div class="stat"><label>尚未填寫</label><strong>${v.filter(x=>q[x]===undefined||q[x]==='').length}<small class="muted"> 家廠商</small></strong></div></div><div class="tablewrap"><table><thead><tr><th>實驗室／廠商</th><th>當月設備</th><th>報價金額（未稅 NT$）</th></tr></thead><tbody>${all.map((x,i)=>`<tr><td>${esc(x)}${!v.includes(x)?'<div class="subtle">清冊已無此廠商，報價仍保留</div>':''}</td><td>${rows().filter(r=>r.vendor===x).length}</td><td><input class="money" type="number" min="0" step="1" data-vendor="${esc(x)}" value="${q[x]??''}" placeholder="尚未填寫"></td></tr>`).join('')}</tbody></table></div><div class="toolbar" style="margin-top:20px"><span class="muted">空白表示未填；0 表示已確認零元。</span><span class="spacer"></span><button class="primary" onclick="saveQuotes()">儲存報價</button></div></div>`}
 function saveQuotes(){let q={};for(let input of document.querySelectorAll('[data-vendor]')){if(input.value!==''&&(!Number.isInteger(+input.value)||+input.value<0))return toast('金額需為非負整數');q[input.dataset.vendor]=input.value===''?'':+input.value}db.quotes[month]=q;save();toast('報價已儲存，月報費用同步更新')}
 function renderReport(){
  const previous=$('reportframe')?.contentWindow;
  if(previous&&typeof previous.appSaveDraftNow==='function')previous.appSaveDraftNow();
- $('content').innerHTML=`<iframe id="reportframe" class="report-workspace" title="量測設備校驗管理月報" src="report.html?v=20261022-29"></iframe>`;
+ $('content').innerHTML=`<iframe id="reportframe" class="report-workspace" title="量測設備校驗管理月報" src="report.html?v=20261022-30"></iframe>`;
  $('reportframe').onload=()=>{
   const w=$('reportframe').contentWindow;
   try{
@@ -297,7 +302,7 @@ function renderReport(){
    w.reportRecordSource=key=>db.reports[key]?structuredClone(db.reports[key]):null;
    w.reportPersistRecord=(key,record)=>{db.reports[key]=structuredClone(record);persist()};
    w.reportMonthChanged=key=>{month=key;$('monthbox').innerHTML=''};
-   w.appAnnualTotal=()=>{const key=w.document.getElementById('monthInput').value;return Object.keys(db.quotes).filter(m=>m.slice(0,4)===key.slice(0,4)&&m<=key).reduce((sum,m)=>sum+sumCost(m),0)};
+   w.appAnnualTotal=()=>annualExternalCost(w.document.getElementById('monthInput').value);
    w.document.getElementById('monthInput').disabled=false;
    w.appLoadMonth(month,{animate:false});
   }catch(error){toast('月報載入失敗：'+error.message)}

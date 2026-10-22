@@ -1690,7 +1690,7 @@ function appAnnualTotal(){
   let total=(y===2026 && m>=10)?Number(APP_OPENING_EXTERNAL_COST[2026]||0):0;
   for(const [k,rec] of Object.entries({...appHistoryCache,...appDraftCache})){
     const [hy,hm]=k.split('-').map(Number);
-    if(hy===y && hm<m) total+=Number(rec?.cost||0);
+    if(hy===y && hm<m && (y!==2026||m<10||hm>=10)) total+=Number(rec?.cost||0);
   }
   total+=n('costInput');
   return Math.max(0,total);
