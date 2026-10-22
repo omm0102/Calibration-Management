@@ -184,3 +184,11 @@ body.app-shell .external-progress-workspace .vendor-progress-body tbody tr:hover
 .cost-workspace :is(th,td):first-child{width:65%}
 .cost-workspace :is(th,td):last-child{width:35%;text-align:right}
 @media(max-width:650px){.cost-summary{gap:16px;padding:16px 0 76px}.cost-workspace :is(th,td):first-child{width:55%}.cost-workspace :is(th,td):last-child{width:45%}}
+
+.internal-progress-workspace .internal-total{margin-bottom:22px}
+.internal-progress-workspace .internal-total h2{margin:0 0 12px}
+.internal-equipment-table{table-layout:fixed;min-width:900px}
+body.app-shell .internal-equipment-table :is(th,td):not(:first-child){text-align:center;vertical-align:middle}
+.internal-equipment-table td:first-child{white-space:normal;overflow-wrap:anywhere}
+.internal-equipment-table .step{justify-content:center}
+body.app-shell .internal-equipment-table input[type=checkbox]{width:22px;height:22px;margin:0;flex-shrink:0;cursor:pointer}
