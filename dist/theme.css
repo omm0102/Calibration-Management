@@ -210,3 +210,10 @@ body.app-shell .internal-equipment-table input[type=checkbox]{width:22px;height:
 .import-delete-message{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8;margin:0}
 body.app-shell .import-delete-confirm{background:var(--color-danger);border-color:var(--color-danger);color:var(--color-surface)}
 body.app-shell .import-delete-confirm:hover{background:var(--color-danger-hover)}
+
+.backup-workspace{width:100%;min-width:0}
+.backup-workspace .cards{align-items:stretch}
+.backup-workspace .panel{min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;gap:18px;text-align:center}
+.backup-workspace .panel h2,.backup-workspace .panel p{margin:0}
+.backup-workspace .panel>button{margin-top:auto}
+.backup-transfer-icon{display:flex;align-items:center;justify-content:center;color:var(--color-primary)}
