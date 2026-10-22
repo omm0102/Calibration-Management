@@ -217,3 +217,5 @@ body:has(.registry-workspace) #content{flex:1;min-height:0}
  .registry-workspace .toolbar>button,.registry-workspace .toolbar>select{padding:6px 8px;font-size:14px}
  .registry-search{flex-basis:100%;min-width:0}
 }
+
+.registry-search-submit{display:grid;place-items:center;flex:none;width:44px;height:44px;padding:9px}
