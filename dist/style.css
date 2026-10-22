@@ -227,3 +227,45 @@ body:has(.registry-workspace) #content{flex:1;min-height:0}
 .registry-workspace td{max-width:440px}
 .registry-workspace td:not(:first-child){white-space:normal;min-width:130px;overflow-wrap:anywhere}
 .registry-workspace td:last-child{min-width:108px}
+
+.registry-lookup{display:flex;align-items:center;gap:10px;flex:0 1 660px;min-width:0}
+.registry-lookup .registry-month{flex:none;min-width:120px}
+.registry-lookup .registry-search{flex:1;min-width:180px}
+.registry-column-head{display:flex;align-items:center;gap:7px}
+.registry-column-sort{border:0;background:none;padding:0;text-align:left;color:inherit;font:inherit;display:flex;align-items:center;gap:4px}
+.registry-column-sort:hover{background:transparent;color:#2e5894}
+.registry-column-sort span{font-size:12px;color:#9ca8b8}
+.registry-filter-trigger{display:grid;place-items:center;width:25px;height:26px;padding:3px;border:1px solid #dce2eb;border-radius:4px;background:white;color:#7d8b9f;flex:none}
+.registry-filter-trigger:hover,.registry-filter-trigger.is-filtered{background:#e8effa;border-color:#8ca8ce;color:#2e5894}
+.registry-empty{text-align:center;padding:35px;color:#8894a6}
+.registry-columns-dialog #modal{max-height:calc(88dvh - 56px);display:flex;flex-direction:column;min-height:0}
+.registry-columns-dialog .modal-head,.registry-columns-dialog .modal-actions{flex:none}
+.registry-columns-dialog .registry-column-options{flex:1;min-height:0;overflow:auto}
+.registry-columns-dialog .modal-actions{margin-top:18px;align-items:center}
+.registry-columns-dialog .registry-restore{margin-right:auto;background:#fff2d9;border:1px solid #e2bb72;color:#895c16}
+.registry-columns-dialog .registry-restore:hover{background:#ffe5b3;border-color:#cd9a45}
+#registry-filter-menu{position:fixed;inset:auto;margin:0;width:286px;max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);padding:14px;border:1px solid #dce3ed;border-radius:10px;box-shadow:0 12px 40px #24364c26;background:#fff;color:#283446;font-size:15px;flex-direction:column;gap:10px;overflow:hidden}
+#registry-filter-menu:popover-open{display:flex;animation:filter-menu-enter .2s ease}
+#registry-filter-menu .filter-menu-title{font-weight:600}
+#registry-filter-menu .filter-sort{display:flex;gap:6px}
+#registry-filter-menu .filter-sort button{font-size:13px;padding:6px 8px;flex:1}
+#registry-filter-menu .filter-clear{border:0;text-align:left;padding:4px 0;font-size:14px;color:#627c9e}
+#registry-filter-menu>input{width:100%;font-size:14px}
+#registry-filter-menu .filter-option{display:flex;gap:8px;align-items:flex-start;padding:6px 3px;font-size:14px;cursor:pointer;overflow-wrap:anywhere}
+#registry-filter-menu .filter-option[hidden]{display:none}
+#registry-filter-menu .filter-option input{flex:none;margin-top:4px}
+#registry-filter-menu .filter-all{border-bottom:1px solid #edf0f5;padding-bottom:9px}
+#registry-filter-menu .filter-options{max-height:230px;min-height:0;overflow:auto;flex:1}
+#registry-filter-menu .filter-actions{display:flex;justify-content:flex-end;gap:7px;padding-top:9px;border-top:1px solid #edf0f5}
+#registry-filter-menu .filter-actions button{font-size:14px;padding:6px 14px}
+#registry-filter-menu .filter-no-results{font-size:14px;color:#8c97a6;text-align:center;padding:10px}
+@keyframes filter-menu-enter{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:650px){
+ .registry-lookup{flex-basis:100%;gap:7px}
+ .registry-lookup .registry-month{min-width:110px;font-size:14px}
+ .registry-lookup .registry-search{min-width:0}
+ .registry-lookup .registry-search .search{min-width:0}
+ .registry-columns-dialog .modal-actions{gap:6px}
+ .registry-columns-dialog .modal-actions button{padding:7px 10px}
+}
+@media(prefers-reduced-motion:reduce){#registry-filter-menu:popover-open{animation:none}}

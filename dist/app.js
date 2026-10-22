@@ -37,7 +37,7 @@ migrateSampleData();
 function persist(){localStorage.setItem(KEY,JSON.stringify(db))}function save(){persist();render()}function toast(t){$('toast').textContent=t;$('toast').classList.add('visible');setTimeout(()=>$('toast').classList.remove('visible'),2500)}
 const rows=()=>db.rows.filter(r=>r.month===month);const months=()=>[...new Set(db.rows.map(r=>r.month))].sort();const complete=r=>!!r.p[r.type==='內校'?2:r.type==='外校'?4:3];const stages=r=>r.type==='內校'?['預計校驗日','收件確認','已完成']:r.type==='外校'?['已提供報價單','請購單','外送單','寄出／收取日期','已完成']:['已提供報價單','請購單','遊校日期','已完成'];
 function go(p){page=p;query='';status='all';render()}window.go=go;
-function render(){let ms=months();if(!ms.includes(month))month=ms.includes(today().slice(0,7))?today().slice(0,7):ms.at(-1)||'';$('nav').innerHTML=nav.map(([g,items])=>`<div class="navgroup"><label>${g}</label>${items.map(([id,t,ic])=>`<button class="${page===id?'active':''}" onclick="go('${id}')"><span class="ico">${ic}</span>${t}</button>`).join('')}</div>`).join('');$('title').textContent=nav.flatMap(n=>n[1]).find(n=>n[0]===page)[1];$('monthbox').innerHTML=!['calendar','import','backup'].includes(page)?`<select onchange="month=this.value;render()" ${ms.length?'':'disabled'}>${ms.map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select>`:'';({calendar:renderCalendar,registry:renderRegistry,external:renderProgress,internal:renderProgress,cost:renderCost,report:renderReport,import:renderImport,backup:renderBackup}[page])()}
+function render(){closeRegistryFilter();let ms=months();if(!ms.includes(month))month=ms.includes(today().slice(0,7))?today().slice(0,7):ms.at(-1)||'';$('nav').innerHTML=nav.map(([g,items])=>`<div class="navgroup"><label>${g}</label>${items.map(([id,t,ic])=>`<button class="${page===id?'active':''}" onclick="go('${id}')"><span class="ico">${ic}</span>${t}</button>`).join('')}</div>`).join('');$('title').textContent=nav.flatMap(n=>n[1]).find(n=>n[0]===page)[1];$('monthbox').innerHTML=!['calendar','import','backup','registry'].includes(page)?`<select onchange="month=this.value;render()" ${ms.length?'':'disabled'}>${ms.map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select>`:'';({calendar:renderCalendar,registry:renderRegistry,external:renderProgress,internal:renderProgress,cost:renderCost,report:renderReport,import:renderImport,backup:renderBackup}[page])()}
 // Fixed monthly tasks start in the month this feature is first enabled.
 function fixedMonthlyEvents(){
  if(!db.settings.fixedScheduleStart){db.settings.fixedScheduleStart=today().slice(0,7);persist()}
@@ -138,7 +138,7 @@ function renderCalendar(){
   calendarFrameObserver=new ResizeObserver(place);calendarFrameObserver.observe(calendar);
  }
 }
-function modal(title,body,onsave,label='儲存',showFooter=true){ $('modal').innerHTML=`<div class="modal-head"><h2>${esc(title)}</h2><button class="link" onclick="closeModal()">✕</button></div>${body}${showFooter?`<div class="modal-actions"><button onclick="closeModal()">關閉</button>${onsave?`<button id="modalSave" class="primary">${label}</button>`:''}</div>`:''}`;if(onsave)$('modalSave').onclick=onsave;if(!$('dialog').open){$('dialog').showModal();if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)$('dialog').animate([{opacity:0,transform:'translateY(12px) scale(.97)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:200,easing:'ease'})}}
+function modal(title,body,onsave,label='儲存',showFooter=true){ $('dialog').classList.remove('registry-columns-dialog');$('modal').innerHTML=`<div class="modal-head"><h2>${esc(title)}</h2><button class="link" onclick="closeModal()">✕</button></div>${body}${showFooter?`<div class="modal-actions"><button onclick="closeModal()">關閉</button>${onsave?`<button id="modalSave" class="primary">${label}</button>`:''}</div>`:''}`;if(onsave)$('modalSave').onclick=onsave;if(!$('dialog').open){$('dialog').showModal();if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)$('dialog').animate([{opacity:0,transform:'translateY(12px) scale(.97)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:200,easing:'ease'})}}
 function closeModal(){$('dialog').close()}
 function showDay(date){
  const ev=date?eventsForDay(allEvents(),date):allEvents().filter(e=>!e.start&&(!e.done||e.actionDate===today()));
@@ -184,7 +184,7 @@ function extraColumnLabel(key){return String.fromCodePoint(...key.slice(6).split
 const REGISTRY_PREFERRED_COLUMNS=[
  ['id','設備編號'],['name','設備名稱'],['asset','資產編號'],
  ...['廠牌','型號','序號'].map(h=>[extraColumnKey(h),h]),
- ['type','校驗方式'],[extraColumnKey('允收標準'),'允收標準'],['vendor','實驗室及廠商'],['due','有效日期'],
+ ['type','校驗方式'],[extraColumnKey('允收標準'),'允收標準'],['vendor','實驗室及廠商'],['unit','保管單位'],['owner','保管人'],['due','有效日期'],
  [extraColumnKey('校驗週期'),'校驗週期'],['instrumentStatus','儀器狀態'],
  ...['使用量測範圍','使用最小公差','儀器精度'].map(h=>[extraColumnKey(h),h])
 ];
@@ -197,26 +197,76 @@ function registryColumns(){
  for(const [key,label]of [...cols,...[...headers].filter(h=>!aliases.has(h)).map(h=>[extraColumnKey(h),h])])if(!ordered.has(key))ordered.set(key,label);
  return [...ordered];
 }
-function columnVisible(key){
- const profile=db.settings.registryColumnsV2?.[tab];
- if(profile)return profile.includes(key);
- const defaults=tab==='內校'?['id','name','asset','due',extraColumnKey('校驗週期'),'instrumentStatus']:REGISTRY_PREFERRED_COLUMNS.slice(0,12).map(c=>c[0]);
- return defaults.includes(key);
-}
+function registryDefaultKeys(){return tab==='內校'?['id','name','asset','unit','owner','due',extraColumnKey('校驗週期'),'instrumentStatus']:REGISTRY_PREFERRED_COLUMNS.slice(0,14).map(c=>c[0])}
+function columnVisible(key){return (db.settings.registryColumnsV3?.[tab]||registryDefaultKeys()).includes(key)}
 function equipmentValue(r,key){return key.startsWith('extra:')?r.extra?.[extraColumnLabel(key)]??'':key==='instrumentStatus'?instrumentStatus(r):r[key]}
 function inactiveEquipment(r){return ['停用','報廢'].includes(instrumentStatus(r))}
-function registrySearch(){return `<form class="registry-search" onsubmit="event.preventDefault();query=this.elements.search.value.trim();render()"><input class="search" name="search" aria-label="搜尋清冊" placeholder="搜尋" value="${esc(query)}"><button type="submit" class="registry-search-submit" aria-label="搜尋" title="搜尋"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/></svg></button></form><select aria-label="校驗完成狀態" onchange="status=this.value;render()"><option value="all">全部狀態</option><option value="open" ${status==='open'?'selected':''}>未完成</option><option value="done" ${status==='done'?'selected':''}>已完成</option></select>`}
-function filtered(type){return rows().filter(r=>(type==='內校'?r.type==='內校':r.type!=='內校')&&(!query||[...Object.values(r),...Object.values(r.extra||{}),instrumentStatus(r)].some(v=>typeof v==='string'&&v.toLowerCase().includes(query.toLowerCase())))&&(status==='all'||(status==='done'?complete(r):!complete(r)))).sort((a,b)=>(page==='registry'?Number(inactiveEquipment(a))-Number(inactiveEquipment(b)):0)||String(equipmentValue(a,sortKey)||'\uffff').localeCompare(String(equipmentValue(b,sortKey)||'\uffff'),'zh-Hant')*sortDir)}
+function registrySearch(){return `<div class="registry-lookup"><select class="registry-month" aria-label="清冊年月" onchange="month=this.value;render()">${months().map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select><form class="registry-search" onsubmit="event.preventDefault();query=this.elements.search.value.trim();render()"><input class="search" name="search" aria-label="搜尋清冊" placeholder="搜尋" value="${esc(query)}"><button type="submit" class="registry-search-submit" aria-label="搜尋" title="搜尋"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/></svg></button></form></div>`}
+const REGISTRY_FILTER_FIELDS=new Set(['name','vendor','unit','owner']);
+let registryFilters={},registryFilterMenu;
+function registryMatches(r,exceptKey){return Object.entries(registryFilters[tab]||{}).every(([key,values])=>key===exceptKey||values.includes(String(equipmentValue(r,key)??'')))}
+function closeRegistryFilter(){
+ if(!registryFilterMenu)return;
+ const {element}=registryFilterMenu;registryFilterMenu=null;
+ if(element.matches(':popover-open'))element.hidePopover();element.remove();
+}
+function openRegistryFilter(event,key){
+ event.stopPropagation();closeRegistryFilter();
+ const label=registryColumns().find(c=>c[0]===key)?.[1];
+ const values=[...new Set(rows().filter(r=>tab==='內校'?r.type==='內校':r.type!=='內校').map(r=>String(equipmentValue(r,key)??'')))].sort((a,b)=>a.localeCompare(b,'zh-Hant'));
+ const selected=new Set(registryFilters[tab]?.[key]??values),element=document.createElement('div');
+ element.id='registry-filter-menu';element.setAttribute('popover','auto');element.setAttribute('role','dialog');element.setAttribute('aria-label',label+'篩選');
+ element.innerHTML=`<div class="filter-menu-title">${esc(label)}</div><div class="filter-sort"><button type="button" onclick="sortRegistryFilter(1)">A → Z 升冪</button><button type="button" onclick="sortRegistryFilter(-1)">Z → A 降冪</button></div><button type="button" class="filter-clear" onclick="clearRegistryFilter()">清除這個欄位的篩選</button><input aria-label="搜尋篩選選項" placeholder="搜尋" oninput="searchRegistryFilter(this.value)"><label class="filter-option filter-all"><input type="checkbox" id="registry-filter-all" onchange="selectRegistryFilterAll(this.checked)">全選</label><div class="filter-options">${values.map((value,i)=>`<label class="filter-option" data-option="${i}"><input type="checkbox" data-value-index="${i}" ${selected.has(value)?'checked':''} onchange="selectRegistryFilterValue(${i},this.checked)"><span>${esc(value||'(空白)')}</span></label>`).join('')}</div><div class="filter-no-results" hidden>沒有符合的選項</div><div class="filter-actions"><button type="button" onclick="closeRegistryFilter()">取消</button><button type="button" class="primary" onclick="applyRegistryFilter()">確定</button></div>`;
+ registryFilterMenu={key,values,selected,element};
+ element.addEventListener('toggle',e=>{if(e.newState==='closed'&&registryFilterMenu?.element===element){registryFilterMenu=null;element.remove()}});
+ document.body.append(element);element.showPopover();
+ const rect=event.currentTarget.getBoundingClientRect(),bounds=element.getBoundingClientRect();
+ element.style.left=Math.max(8,Math.min(rect.right-bounds.width,innerWidth-bounds.width-8))+'px';
+ element.style.top=Math.max(8,Math.min(rect.bottom+6,innerHeight-bounds.height-8))+'px';
+ updateRegistryFilterAll();element.querySelector('input[placeholder]').focus({preventScroll:true});
+}
+function updateRegistryFilterAll(){
+ if(!registryFilterMenu)return;
+ const visible=[...registryFilterMenu.element.querySelectorAll('[data-option]')].filter(el=>!el.hidden);
+ const checked=visible.filter(el=>el.querySelector('input').checked).length,all=$('registry-filter-all');
+ all.checked=visible.length>0&&checked===visible.length;all.indeterminate=checked>0&&checked<visible.length;all.disabled=!visible.length;
+ registryFilterMenu.element.querySelector('.filter-no-results').hidden=visible.length>0;
+}
+function searchRegistryFilter(text){
+ if(!registryFilterMenu)return;
+ registryFilterMenu.element.querySelectorAll('[data-option]').forEach(el=>{el.hidden=!el.textContent.toLocaleLowerCase().includes(text.toLocaleLowerCase())});updateRegistryFilterAll();
+}
+function selectRegistryFilterValue(index,checked){const state=registryFilterMenu;if(!state)return;if(checked)state.selected.add(state.values[index]);else state.selected.delete(state.values[index]);updateRegistryFilterAll()}
+function selectRegistryFilterAll(checked){
+ const state=registryFilterMenu;if(!state)return;
+ state.element.querySelectorAll('[data-option]').forEach(el=>{if(!el.hidden){const input=el.querySelector('input');input.checked=checked;const value=state.values[Number(input.dataset.valueIndex)];if(checked)state.selected.add(value);else state.selected.delete(value)}});updateRegistryFilterAll();
+}
+function applyRegistryFilter(){
+ const state=registryFilterMenu;if(!state)return;
+ registryFilters[tab]??={};
+ if(state.selected.size===state.values.length)delete registryFilters[tab][state.key];else registryFilters[tab][state.key]=[...state.selected];
+ closeRegistryFilter();render();
+}
+function clearRegistryFilter(){const key=registryFilterMenu?.key;if(!key)return;delete (registryFilters[tab]||{})[key];closeRegistryFilter();render()}
+function sortRegistryFilter(direction){const key=registryFilterMenu?.key;if(!key)return;sortKey=key;sortDir=direction;closeRegistryFilter();render()}
+function filtered(type){return rows().filter(r=>(type==='內校'?r.type==='內校':r.type!=='內校')&&(!query||[...Object.values(r),...Object.values(r.extra||{}),instrumentStatus(r)].some(v=>typeof v==='string'&&v.toLowerCase().includes(query.toLowerCase())))&&(page==='registry'?registryMatches(r):(status==='all'||(status==='done'?complete(r):!complete(r))))).sort((a,b)=>(page==='registry'?Number(inactiveEquipment(a))-Number(inactiveEquipment(b)):0)||String(equipmentValue(a,sortKey)||'\uffff').localeCompare(String(equipmentValue(b,sortKey)||'\uffff'),'zh-Hant')*sortDir)}
 function searchBar(){return `<input class="search" placeholder="搜尋設備編號、名稱、保管人…" value="${esc(query)}" onchange="query=this.value;render()"><select onchange="status=this.value;render()"><option value="all">全部狀態</option><option value="open" ${status==='open'?'selected':''}>未完成</option><option value="done" ${status==='done'?'selected':''}>已完成</option></select>`}
 function visibleCols(){return registryColumns().filter(([k])=>columnVisible(k))}
-function renderRegistry(){let list=filtered(tab),vc=visibleCols();$('content').innerHTML=`<div class="registry-workspace"><div class="tabs">${['內校','外校／遊校'].map(t=>`<button class="${tab===t?'active':''}" onclick="tab='${t}';render()">${t}_${rows().filter(r=>t==='內校'?r.type==='內校':r.type!=='內校').length}</button>`).join('')}</div><div class="toolbar">${registrySearch()}<span class="spacer"></span><button onclick="columnsDialog()">欄位設定</button><button onclick="exportExcel()">匯出 Excel</button><button class="primary" onclick="editEquipment()">＋ 新增設備</button></div><div class="toolbar"><span class="muted">顯示 ${list.length} 筆</span><span class="spacer"></span><button class="link" onclick="query='';status='all';render()">清除篩選</button></div><div class="tablewrap"><table><thead><tr>${vc.map(([k,t])=>`<th onclick="sortDir=sortKey==='${k}'?-sortDir:1;sortKey='${k}';render()">${esc(t)} ↕</th>`).join('')}<th></th></tr></thead><tbody>${list.map(r=>`<tr class="${inactiveEquipment(r)?'inactive-equipment':''}">${vc.map(([k])=>`<td>${esc(equipmentValue(r,k))||'—'}</td>`).join('')}<td><div class="registry-actions"><button class="registry-edit" aria-label="編輯設備 ${esc(r.id)}" title="編輯" onclick="editEquipment('${r.key}')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 5 5M3 21l5-1 13-13a2.1 2.1 0 0 0-5-5L3 15z"/><path d="m3 15 5 5"/></svg></button><button class="registry-delete" aria-label="刪除設備 ${esc(r.id)}" title="刪除" onclick="deleteEquipment('${r.key}')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button></div></td></tr>`).join('')}</tbody></table></div></div>`}
-function columnsDialog(){modal('欄位顯示 · '+tab,registryColumns().map(([k,t])=>`<label class="checkrow">${esc(t)}<input type="checkbox" data-col="${k}" ${columnVisible(k)?'checked':''}></label>`).join(''),()=>{
- const inputs=[...document.querySelectorAll('[data-col]')];
- if(!inputs.some(x=>x.checked))return toast('請至少保留一個顯示欄位');
- db.settings.registryColumnsV2??={};
- db.settings.registryColumnsV2[tab]=inputs.filter(x=>x.checked).map(x=>x.dataset.col);
- closeModal();save();
-})}
+function renderRegistry(){let list=filtered(tab),vc=visibleCols();$('content').innerHTML=`<div class="registry-workspace"><div class="tabs">${['內校','外校／遊校'].map(t=>`<button class="${tab===t?'active':''}" onclick="tab='${t}';render()">${t}_${rows().filter(r=>t==='內校'?r.type==='內校':r.type!=='內校').length}</button>`).join('')}</div><div class="toolbar">${registrySearch()}<span class="spacer"></span><button onclick="columnsDialog()">欄位設定</button><button onclick="exportExcel()">匯出 Excel</button><button class="primary" onclick="editEquipment()">＋ 新增設備</button></div><div class="toolbar"><span class="muted">顯示 ${list.length} 筆</span></div><div class="tablewrap"><table><thead><tr>${vc.map(([k,t])=>`<th><div class="registry-column-head"><button type="button" class="registry-column-sort" onclick="sortDir=sortKey==='${k}'?-sortDir:1;sortKey='${k}';render()">${esc(t)} <span aria-hidden="true">${sortKey===k?(sortDir===1?'↑':'↓'):'↕'}</span></button>${REGISTRY_FILTER_FIELDS.has(k)?`<button type="button" class="registry-filter-trigger ${registryFilters[tab]?.[k]?'is-filtered':''}" aria-label="篩選${esc(t)}" aria-haspopup="dialog" onclick="openRegistryFilter(event,'${k}')"><svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h14l-5.5 6v5l-3-1.5V10z"/></svg></button>`:''}</div></th>`).join('')}<th></th></tr></thead><tbody>${list.map(r=>`<tr class="${inactiveEquipment(r)?'inactive-equipment':''}">${vc.map(([k])=>`<td>${esc(equipmentValue(r,k))||'—'}</td>`).join('')}<td><div class="registry-actions"><button class="registry-edit" aria-label="編輯設備 ${esc(r.id)}" title="編輯" onclick="editEquipment('${r.key}')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 5 5M3 21l5-1 13-13a2.1 2.1 0 0 0-5-5L3 15z"/><path d="m3 15 5 5"/></svg></button><button class="registry-delete" aria-label="刪除設備 ${esc(r.id)}" title="刪除" onclick="deleteEquipment('${r.key}')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button></div></td></tr>`).join('')||`<tr><td colspan="${vc.length+1}" class="registry-empty">沒有符合條件的設備</td></tr>`}</tbody></table></div></div>`}
+function columnsDialog(){
+ let restoreDefaults=false;
+ modal('欄位顯示 · '+tab,`<div class="registry-column-options">${registryColumns().map(([k,t])=>`<label class="checkrow">${esc(t)}<input type="checkbox" data-col="${k}" ${columnVisible(k)?'checked':''}></label>`).join('')}</div>`,()=>{
+  const inputs=[...document.querySelectorAll('[data-col]')];
+  if(!inputs.some(x=>x.checked))return toast('請至少保留一個顯示欄位');
+  db.settings.registryColumnsV3??={};db.settings.registryColumnsV3[tab]=inputs.filter(x=>x.checked).map(x=>x.dataset.col);
+  if(restoreDefaults){query='';status='all';registryFilters[tab]={};sortKey='id';sortDir=1}
+  closeModal();save();
+ });
+ $('dialog').classList.add('registry-columns-dialog');
+ const reset=document.createElement('button');reset.type='button';reset.className='registry-restore';reset.textContent='恢復預設';
+ reset.onclick=()=>{const defaults=registryDefaultKeys();document.querySelectorAll('[data-col]').forEach(el=>el.checked=defaults.includes(el.dataset.col));restoreDefaults=true;toast('已恢復預設，按儲存套用')};
+ document.querySelector('.modal-actions').prepend(reset);
+}
 function hasEquipmentActivity(r){return (r.p||[]).some(Boolean)||!!r.date||!!r.completed||Object.values(db.events).some(state=>state.done&&state.signature?.split(',').includes(r.key))}
 function editEquipment(key){let r=db.rows.find(r=>r.key===key)||{id:'',name:'',asset:'',unit:'',owner:'',type:tab==='內校'?'內校':'外校',vendor:'',due:''};modal(key?'編輯設備':'新增設備',`<div class="formgrid">${cols.map(([k,t])=>`<label class="field">${t}${k==='type'?`<select id="f_type">${['內校','外校','遊校'].map(x=>`<option ${r.type===x?'selected':''}>${x}</option>`).join('')}</select>`:`<input id="f_${k}" value="${esc(equipmentValue(r,k))}" ${key&&['id','name','due'].includes(k)?'disabled':''} type="${k==='due'?'date':'text'}">`}</label>`).join('')}</div>`,()=>{let next=Object.fromEntries(cols.map(([k])=>[k,$('f_'+k).value.trim()]));if(!next.id||!next.name)return toast('設備編號與名稱必填');if(rows().some(x=>x.id===next.id&&x.key!==key))return toast('同月份設備編號重複');let reset=key&&(r.type!==next.type||(r.vendor||'')!==next.vendor);if(reset&&hasEquipmentActivity(r)&&!confirm('校驗方式或廠商改變，將清除該設備進度與排程。繼續？'))return;for(let k of ['asset','unit','owner'])db.rows.filter(x=>x.id===next.id).forEach(x=>x[k]=next[k]);if(!key){r.key=uid();r.month=month;r.p=[];r.date='';r.mode='收件';r.extra={};db.rows.push(r)}if(reset){r.p=[];r.date='';r.completed=''}Object.assign(r,next);closeModal();save()})}
 function deleteEquipment(key){
