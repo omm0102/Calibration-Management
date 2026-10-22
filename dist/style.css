@@ -219,3 +219,11 @@ body:has(.registry-workspace) #content{flex:1;min-height:0}
 }
 
 .registry-search-submit{display:grid;place-items:center;flex:none;width:44px;height:44px;padding:9px}
+
+.registry-actions{display:flex;align-items:center;gap:4px}
+.registry-delete{display:grid;place-items:center;flex:none;width:40px;height:40px;padding:8px;border:0;border-radius:8px;background:transparent;color:#b44747}
+.registry-delete:hover{background:#fbeded;color:#a13131}
+.registry-delete:focus-visible{outline:2px solid #b44747;outline-offset:2px}
+.registry-workspace td{max-width:440px}
+.registry-workspace td:not(:first-child){white-space:normal;min-width:130px;overflow-wrap:anywhere}
+.registry-workspace td:last-child{min-width:108px}

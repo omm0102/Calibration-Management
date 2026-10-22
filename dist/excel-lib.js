@@ -52,6 +52,7 @@ async function parse(data){
   }
  }
  if(!sourceCount||!all.length)throw Error('找不到設備資料，請確認匯入的是原始清冊。');
+ const sourceHeaders=[...headers];
  for(const h of ['收件確認','完成日期'])if(!headers.includes(h))headers.push(h);
  const buckets=[{name:'內校',rows:[],headers:[...headers],visible:new Set(INTERNAL)},{name:'外校 遊校',rows:[],headers:[...EXTORDER.filter(h=>headers.includes(h)),...headers.filter(h=>!EXTORDER.includes(h))],visible:new Set(EXTERNAL)},{name:'其他校驗方式',rows:[],headers:[...headers],visible:new Set([...INTERNAL,'校驗方式'])}];
  for(const r of all){const m=String(r['校驗方式']?.value??'').trim();buckets[m==='內校'?0:(m==='外校'||m==='遊校')?1:2].rows.push(r);}
@@ -65,7 +66,7 @@ async function parse(data){
  const warnings=[];const seen=new Set();let dup=0,blank=0;
  for(const r of all){const id=String(r['量測/監控設備編號']?.value??'');if(!id)blank++;else if(seen.has(id))dup++;else seen.add(id);}
  if(blank)warnings.push(blank+' 筆設備編號空白，資料仍保留。');if(dup)warnings.push(dup+' 筆重複設備編號，資料仍保留。');if(buckets.length===3)warnings.push(buckets[2].rows.length+' 筆校驗方式未分類，已保留在「其他校驗方式」。');
- return {zip,wb,headers,all,buckets,warnings,headerStyle};
+ return {zip,wb,headers,sourceHeaders,all,buckets,warnings,headerStyle};
 }
 const inline=(ref,v,s)=>'<c r="'+ref+'" t="inlineStr"'+(s!==''?' s="'+s+'"':'')+'><is><t xml:space="preserve">'+esc(v)+'</t></is></c>';
 function moved(c,ref,style){let x=c.xml.replace(/\br="[^"]*"/,'r="'+ref+'"');if(/\bs="[^"]*"/.test(x))return x.replace(/\bs="[^"]*"/,'s="'+style+'"');return x.replace('<c ','<c s="'+style+'" ');}
