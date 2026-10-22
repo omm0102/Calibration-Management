@@ -38,7 +38,7 @@ function persist(){localStorage.setItem(KEY,JSON.stringify(db))}function save(){
 const rows=()=>db.rows.filter(r=>r.month===month);const months=()=>[...new Set(db.rows.map(r=>r.month))].sort();const complete=r=>!!r.p[r.type==='內校'?2:r.type==='外校'?4:3];const stages=r=>r.type==='內校'?['預計校驗日','收件確認','已完成']:r.type==='外校'?['已提供報價單','請購單','外送單','寄出／收件時間','已完成']:['已提供報價單','請購單','遊校日期','已完成'];
 function go(p){page=p;query='';status='all';render()}window.go=go;
 function hasMissingExternalVendor(){return db.rows.some(r=>['外校','遊校'].includes(r.type)&&!String(r.vendor??'').trim())}
-function render(){document.body.dataset.page=page;closeRegistryFilter();let ms=months();if(page!=='report'&&!ms.includes(month))month=ms.includes(today().slice(0,7))?today().slice(0,7):ms.at(-1)||'';$('nav').innerHTML=nav.map(([g,items])=>`<div class="navgroup"><label>${g}</label>${items.map(([id,t,ic])=>`<button class="${page===id?'active':''} ${id==='registry'?'registry-nav-button':''}" onclick="go('${id}')"><span class="ico">${ic}</span>${t}${id==='registry'&&hasMissingExternalVendor()?'<span class="registry-warning-badge" role="img" aria-label="外校設備未填寫廠商" title="外校設備未填寫廠商">!!!</span>':''}</button>`).join('')}</div>`).join('');$('title').textContent=nav.flatMap(n=>n[1]).find(n=>n[0]===page)[1];$('monthbox').innerHTML=!['calendar','import','backup','registry','report','external'].includes(page)?`<select onchange="month=this.value;render()" ${ms.length?'':'disabled'}>${ms.map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select>`:'';({calendar:renderCalendar,registry:renderRegistry,external:renderProgress,internal:renderProgress,cost:renderCost,report:renderReport,import:renderImport,backup:renderBackup}[page])()}
+function render(){document.body.dataset.page=page;closeRegistryFilter();let ms=months();if(page!=='report'&&!ms.includes(month))month=ms.includes(today().slice(0,7))?today().slice(0,7):ms.at(-1)||'';$('nav').innerHTML=nav.map(([g,items])=>`<div class="navgroup"><label>${g}</label>${items.map(([id,t,ic])=>`<button class="${page===id?'active':''} ${id==='registry'?'registry-nav-button':''}" onclick="go('${id}')"><span class="ico">${ic}</span>${t}${id==='registry'&&hasMissingExternalVendor()?'<span class="registry-warning-badge" role="img" aria-label="外校設備未填寫廠商" title="外校設備未填寫廠商">!!!</span>':''}</button>`).join('')}</div>`).join('');$('title').textContent=nav.flatMap(n=>n[1]).find(n=>n[0]===page)[1];$('monthbox').innerHTML=!['calendar','import','backup','registry','report','external','cost'].includes(page)?`<select onchange="month=this.value;render()" ${ms.length?'':'disabled'}>${ms.map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select>`:'';({calendar:renderCalendar,registry:renderRegistry,external:renderProgress,internal:renderProgress,cost:renderCost,report:renderReport,import:renderImport,backup:renderBackup}[page])()}
 // Fixed monthly tasks start in the month this feature is first enabled.
 function fixedMonthlyEvents(){
  if(!db.settings.fixedScheduleStart){db.settings.fixedScheduleStart=today().slice(0,7);persist()}
@@ -314,8 +314,22 @@ function annualExternalCost(key){
  const first=opening?'2026-10':year+'-01';
  return opening+Object.keys(db.quotes).filter(m=>m>=first&&m<=key&&m.slice(0,4)===year).reduce((total,m)=>total+sumCost(m),0);
 }
-function renderCost(){let v=vendors(),q=db.quotes[month]||{},all=[...new Set([...v,...Object.keys(q)])];$('content').innerHTML=`<div class="cost-workspace"><div class="stats"><div class="stat"><label>本月外校費用 · 未稅</label><strong>NT$ ${sumCost(month).toLocaleString()}</strong></div><div class="stat"><label>尚未填寫</label><strong>${v.filter(x=>q[x]===undefined||q[x]==='').length}<small class="muted"> 家廠商</small></strong></div></div><div class="tablewrap"><table><thead><tr><th>實驗室／廠商</th><th>當月設備</th><th>報價金額（未稅 NT$）</th></tr></thead><tbody>${all.map((x,i)=>`<tr><td>${esc(x)}${!v.includes(x)?'<div class="subtle">清冊已無此廠商，報價仍保留</div>':''}</td><td>${rows().filter(r=>r.vendor===x).length}</td><td><input class="money" type="number" min="0" step="1" data-vendor="${esc(x)}" value="${q[x]??''}" placeholder="尚未填寫"></td></tr>`).join('')}</tbody></table></div><div class="toolbar" style="margin-top:20px"><span class="muted">空白表示未填；0 表示已確認零元。</span><span class="spacer"></span><button class="primary" onclick="saveQuotes()">儲存報價</button></div></div>`}
-function saveQuotes(){let q={};for(let input of document.querySelectorAll('[data-vendor]')){if(input.value!==''&&(!Number.isInteger(+input.value)||+input.value<0))return toast('金額需為非負整數');q[input.dataset.vendor]=input.value===''?'':+input.value}db.quotes[month]=q;save();toast('報價已儲存，月報費用同步更新')}
+function renderCost(){
+ const v=vendors(),q=db.quotes[month]||{},all=[...new Set([...v,...Object.keys(q)])];
+ $('content').innerHTML=`<div class="cost-workspace"><div class="cost-summary"><select class="cost-month" aria-label="外校金額年月" onchange="month=this.value;render()">${months().map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select><div class="stat"><label>本月外校金額</label><strong id="cost-month-total">NT$ ${sumCost(month).toLocaleString()}</strong></div><div class="stat"><label>年度外校總金額</label><strong id="cost-year-total">NT$ ${annualExternalCost(month).toLocaleString()}</strong></div></div><div class="tablewrap"><table><thead><tr><th>實驗室／廠商</th><th>當月設備</th><th>報價金額</th></tr></thead><tbody>${all.map(x=>`<tr><td>${esc(x)}${!v.includes(x)?'<div class="subtle">清冊已無此廠商，報價仍保留</div>':''}</td><td>${rows().filter(r=>r.vendor===x).length}</td><td><input class="money" aria-label="${esc(x)}報價金額" type="number" min="0" step="1" data-vendor="${esc(x)}" value="${q[x]||0}" oninput="saveQuote(this)" onchange="finishQuote(this)"></td></tr>`).join('')}</tbody></table></div></div>`;
+}
+function saveQuote(input){
+ const amount=input.value===''?0:Number(input.value);
+ if(!input.validity.valid||!Number.isInteger(amount)||amount<0){input.setAttribute('aria-invalid','true');return}
+ input.removeAttribute('aria-invalid');(db.quotes[month]??={})[input.dataset.vendor]=amount;persist();
+ $('cost-month-total').textContent='NT$ '+sumCost(month).toLocaleString();
+ $('cost-year-total').textContent='NT$ '+annualExternalCost(month).toLocaleString();
+}
+function finishQuote(input){
+ if(input.getAttribute('aria-invalid')){toast('金額需為非負整數');input.value=db.quotes[month]?.[input.dataset.vendor]||0;input.removeAttribute('aria-invalid')}
+ if(input.value==='')input.value=0;
+ saveQuote(input);
+}
 function renderReport(){
  const previous=$('reportframe')?.contentWindow;
  if(previous&&typeof previous.appSaveDraftNow==='function')previous.appSaveDraftNow();

@@ -170,3 +170,11 @@ body.app-shell .external-progress-workspace .vendor-progress-body tbody tr:hover
 .cost-workspace :is(th,td):last-child{width:30%;text-align:right}
 .cost-workspace .money{width:200px;max-width:100%}
 @media(max-width:650px){.cost-workspace :is(th,td){padding:12px 8px}.cost-workspace :is(th,td):first-child{width:38%}.cost-workspace :is(th,td):last-child{width:42%}.cost-workspace th{white-space:normal}.cost-workspace>.toolbar{flex-wrap:wrap}}
+
+.cost-summary{display:grid;grid-template-columns:150px minmax(0,1fr) minmax(0,1fr);align-items:center;gap:24px;padding:20px 0 28px}
+.cost-summary .cost-month{width:125px}
+.cost-summary .stat{text-align:center}
+.cost-summary .stat label{font-size:17px}
+.cost-summary .stat strong{font-size:40px;line-height:1.4;margin-top:8px;font-variant-numeric:tabular-nums}
+.cost-workspace .money[aria-invalid=true]{border-color:var(--color-danger)}
+@media(max-width:650px){.cost-summary{grid-template-columns:1fr 1fr;gap:16px}.cost-summary .cost-month{grid-column:1/-1}.cost-summary .stat label{font-size:15px}.cost-summary .stat strong{font-size:26px}}
