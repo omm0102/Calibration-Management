@@ -205,3 +205,8 @@ body.app-shell .internal-equipment-table input[type=checkbox]{width:22px;height:
 .import-workspace td:first-child{white-space:normal;overflow-wrap:anywhere}
 .import-workspace :is(th,td):last-child{text-align:right;width:65px}
 .import-workspace .registry-delete{display:inline-flex;align-items:center;justify-content:center;color:var(--color-danger);padding:8px;border:0;background:transparent}
+
+.import-upload-icon{display:flex;align-items:center;justify-content:center;color:var(--color-primary)}
+.import-delete-message{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8;margin:0}
+body.app-shell .import-delete-confirm{background:var(--color-danger);border-color:var(--color-danger);color:var(--color-surface)}
+body.app-shell .import-delete-confirm:hover{background:var(--color-danger-hover)}
