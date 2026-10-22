@@ -153,3 +153,9 @@ body.app-shell .navgroup button .registry-warning-badge{margin-left:auto;display
 .registry-vendor-warning{color:var(--color-danger);font-size:15px;font-weight:600}
 
 body.app-shell .navgroup button.registry-nav-button{display:flex;align-items:center;gap:6px}
+
+/* Calibration type is shown on equipment rows instead of section headings. */
+.external-progress-workspace .progress-type-external{--progress-row-color:color-mix(in srgb,var(--schedule-yellow) 20%,var(--color-surface))}
+.external-progress-workspace .progress-type-tour{--progress-row-color:color-mix(in srgb,#8BC34A 20%,var(--color-surface))}
+body.app-shell .external-progress-workspace .vendor-progress-body tbody tr td{background:var(--progress-row-color)}
+body.app-shell .external-progress-workspace .vendor-progress-body tbody tr:hover td{background:color-mix(in srgb,var(--progress-row-color) 90%,var(--color-primary))}

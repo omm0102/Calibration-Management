@@ -285,11 +285,11 @@ function externalProgressTable(list){
 }
 function renderExternalProgress(){
  const list=filtered('外校／遊校'),total=rows().filter(r=>r.type==='外校'||r.type==='遊校'),pct=percent(total),vendors=new Map();
- for(const row of list){const vendor=row.vendor||'未指定廠商';if(!vendors.has(vendor))vendors.set(vendor,[]);vendors.get(vendor).push(row)}
+ for(const row of list){const vendor=String(row.vendor??'').trim();if(!vendor)continue;if(!vendors.has(vendor))vendors.set(vendor,[]);vendors.get(vendor).push(row)}
  const groups=[...vendors].sort(([a],[b])=>a.localeCompare(b,'zh-Hant'));
  $('content').innerHTML=`<div class="external-progress-workspace"><div class="toolbar">${registrySearch('外校進度')}<span class="spacer"></span><button onclick="tab='外校／遊校';go('registry')">查看清冊 →</button></div><section class="panel external-total"><div class="rowtitle"><h2>校驗總進度</h2><span>${pct}%</span></div><div class="progress"><i class="${pct===100?'complete':''}" style="width:${pct}%"></i></div></section>${groups.map(([vendor,equipment])=>`<details class="panel vendor-progress" data-progress-group="${esc(vendor)}" ontoggle="this.open?externalProgressOpen.add(this.dataset.progressGroup):externalProgressOpen.delete(this.dataset.progressGroup)" ${externalProgressOpen.has(vendor)?'open':''}><summary class="vendor-progress-title">${esc(vendor)}<span>${percent(equipment)}%</span></summary><div class="vendor-progress-body">${['外校','遊校'].map(type=>{
   const items=equipment.filter(r=>r.type===type);if(!items.length)return '';
-  return `<section class="group progress-type-${type==='外校'?'external':'tour'}"><h3 class="progress-type-title">${type}<span>${percent(items)}%</span></h3>${externalProgressTable(items)}</section>`;
+  return `<section class="group progress-type-${type==='外校'?'external':'tour'}">${externalProgressTable(items)}</section>`;
  }).join('')}</div></details>`).join('')||'<div class="empty">沒有符合條件的設備</div>'}</div>`;
 }
 function changeMode(key,mode){let r=db.rows.find(x=>x.key===key);if(r.date&&!confirm('切換寄出／收件將清除原日期與完成紀錄，確定？'))return render();r.mode=mode;r.date='';r.p[3]=r.p[4]=false;r.completed='';save()}
