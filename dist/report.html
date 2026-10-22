@@ -1192,13 +1192,14 @@ th,td{height:auto!important;min-height:0!important;padding:5px 5px;line-height:1
 <style>/* Larger editor text; report print layout stays fixed. */
 .controls{font-size:17px}.controls label{font-size:17px}.controls h2{font-size:19px}.controls h1{font-size:24px}.controls input,.controls select,.controls textarea,.controls button{font-size:17px}
 </style>
-<link rel="stylesheet" href="theme.css?v=20261022-27">
+<link rel="stylesheet" href="theme.css?v=20261022-29">
 </head>
 <body class="report-shell">
 <div class="app">
 <section class="panel controls-panel">
 <div class="controls">
 <h1>量測設備校驗管理月報</h1>
+<div class="report-input-scroll">
 <div class="input-stack">
 <div><label>報告月份</label><input id="monthInput" type="month"/></div>
 <div class="grid2 compact-row">
@@ -1215,11 +1216,9 @@ th,td{height:auto!important;min-height:0!important;padding:5px 5px;line-height:1
 <div id="summaryInput" class="summary-editor" contenteditable="true" spellcheck="false"></div>
 </div>
 <div class="errorbox" id="errorBox"></div>
-<div class="toolbar app-actionbar">
-<button class="primary" id="saveReportBtn" type="button">儲存月報</button>
-<button class="primary app-edit-btn" id="editReportBtn" type="button" hidden>修改</button>
-<button class="secondary" id="cancelEditBtn" type="button" hidden>取消修改</button>
-<button class="secondary" id="previewPdfBtn" type="button" onclick="previewRealPdf()">預覽 PDF</button>
+</div>
+<div class="toolbar app-actionbar report-footer">
+<button class="primary" id="exportPdfBtn" type="button" onclick="exportReportPdf()">匯出 PDF</button>
 </div>
 </div>
 </section>
@@ -1611,45 +1610,19 @@ function currentPrintTitle(){
   const m=($('monthInput').value||localMonthISO()).replace('-','');
   return `量測設備校驗管理月報_${m}`;
 }
-async function previewRealPdf(){
-  const errs=validate();
-  if(errs.length){
-    if(typeof appNotice==='function') appNotice('資料驗證未通過','請先修正紅色提示。'); else alert('資料驗證未通過，請先修正紅色提示。');
-    return;
-  }
-  update();
-  document.title=currentPrintTitle();
-  if(document.fonts && document.fonts.ready) await document.fonts.ready;
-  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-
-  // Render the finished 1600×900 report to a single image before printing.
-  // Printing the live HTML allows Edge's print engine to reflow/re-scale text,
-  // icons, tables and the donut differently. A single snapshot is immune to that.
-  let host=document.getElementById('printHost');
-  if(!host){
-    host=document.createElement('div');
-    host.id='printHost';
-    document.body.appendChild(host);
-  }
-  host.innerHTML='';
-  try{
-    const shot=await renderReportToJpeg();
-    const img=document.createElement('img');
-    img.alt=currentPrintTitle();
-    img.src=shot.dataUrl;
-    host.appendChild(img);
-    await new Promise((resolve,reject)=>{
-      if(img.complete) return resolve();
-      img.onload=resolve;
-      img.onerror=()=>reject(new Error('列印快照載入失敗'));
-    });
-    window.print();
-  }catch(err){
-    console.error(err);
-    if(typeof appNotice==='function') appNotice('列印預覽產生失敗',(err && err.message ? err.message : String(err))); else alert('列印預覽產生失敗：'+(err && err.message ? err.message : err));
-  }finally{
-    setTimeout(()=>{ if(host) host.innerHTML=''; },800);
-  }
+async function exportReportPdf(){
+ const errors=validate();
+ if(errors.length){await appNotice('資料驗證未通過','請先修正紅色提示。');return}
+ const button=$('exportPdfBtn');button.disabled=true;button.textContent='匯出中…';
+ try{
+  update();appSaveDraftNow();
+  if(document.fonts&&document.fonts.ready)await document.fonts.ready;
+  const image=await renderReportToJpeg();
+  const pdf=buildSingleImagePdf(dataUrlToBytes(image.dataUrl),image.w,image.h,960,540);
+  const url=URL.createObjectURL(pdf),link=document.createElement('a');
+  link.href=url;link.download=currentPrintTitle()+'.pdf';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ }catch(error){await appNotice('PDF 匯出失敗',error.message||String(error))}
+ finally{button.disabled=false;button.textContent='匯出 PDF'}
 }
 ['monthInput','internalInput','externalInput','costInput','annualInput'].forEach(id=>$(id).addEventListener('input',()=>{updateDynamicSummaryTokens();update();}));
 $('summaryInput').addEventListener('input',()=>{update();});
@@ -1715,7 +1688,7 @@ function appAnnualTotal(){
   const key=appMonthKey(); const [ys,ms]=(key||'').split('-'); const y=Number(ys), m=Number(ms);
   if(!y||!m)return n('costInput');
   let total=(y===2026 && m>=10)?Number(APP_OPENING_EXTERNAL_COST[2026]||0):0;
-  for(const [k,rec] of Object.entries(appHistoryCache)){
+  for(const [k,rec] of Object.entries({...appHistoryCache,...appDraftCache})){
     const [hy,hm]=k.split('-').map(Number);
     if(hy===y && hm<m) total+=Number(rec?.cost||0);
   }
@@ -1731,20 +1704,9 @@ function appSetReadonly(flag){
   $('summaryInput').setAttribute('contenteditable',flag?'false':'true');
   panel.querySelectorAll('.group > button.secondary[onclick^="add"],#overdueEditor .danger,#ngEditor .danger').forEach(el=>el.disabled=flag);
 }
-function appApplyMode(mode){
-  appMode=mode;
-  const readonly=mode==='readonly';
-  appSetReadonly(readonly);
-  const actionbar=document.querySelector('.app-actionbar');
-  if(actionbar) actionbar.classList.toggle('app-editing-mode',mode==='editing');
-  const save=$('saveReportBtn'), edit=$('editReportBtn'), cancel=$('cancelEditBtn');
-  if(mode==='readonly'){
-    save.hidden=true; edit.hidden=false; cancel.hidden=true;
-  }else if(mode==='editing'){
-    save.hidden=false; save.textContent='儲存修改'; edit.hidden=true; cancel.hidden=false;
-  }else{
-    save.hidden=false; save.textContent='儲存月報'; edit.hidden=true; cancel.hidden=true;
-  }
+function appApplyMode(){
+ appMode='auto';appSetReadonly(false);
+ const actionbar=document.querySelector('.app-actionbar');if(actionbar)actionbar.classList.remove('app-editing-mode');
 }
 
 function appShowLoading(show){
@@ -1777,8 +1739,8 @@ async function appLoadMonth(key,{animate=true}={}){
   appCurrentMonth=key;
   appSuspendDraft=true;
   $('monthInput').value=key;
-  if(hist){appSetUIFromRecord(hist);appApplyMode('readonly');}
-  else if(draft){appSetUIFromRecord(draft);appApplyMode('new');}
+  if(draft){appSetUIFromRecord(draft);appApplyMode('auto');}
+  else if(hist){appSetUIFromRecord(hist);appApplyMode('auto');}
   else{appSetUIFromRecord((typeof window.reportRecordSource==='function'&&window.reportRecordSource(key))||appDefaultRecord());appApplyMode('new');}
   appSuspendDraft=false;
   update();
@@ -1857,9 +1819,6 @@ function appInitV41(){
   $('monthInput').addEventListener('change',async e=>{const key=e.target.value||localMonthISO();await appLoadMonth(key,{animate:true});});
   ['internalInput','externalInput','costInput'].forEach(id=>$(id).addEventListener('input',()=>{if(appMode!=='readonly')appSaveDraftNow();}));
   $('summaryInput').addEventListener('input',()=>{if(appMode!=='readonly')appSaveDraftNow();});
-  $('saveReportBtn').addEventListener('click',appSaveReport);
-  $('editReportBtn').addEventListener('click',appBeginEdit);
-  $('cancelEditBtn').addEventListener('click',appCancelEdit);
   // Close modal only through explicit action buttons to avoid accidental loss.
   appLoadMonth(appCurrentMonth,{animate:false});
 }
