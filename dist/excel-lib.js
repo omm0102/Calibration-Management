@@ -26,7 +26,8 @@ const index=s=>[...s].reduce((a,c)=>a*26+c.charCodeAt(0)-64,0)-1;
 const textRuns=x=>[...x.matchAll(/<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/g)].map(m=>dec(m[1])).join('');
 function value(cell,strings){const t=attr(cell,'t');if(t==='inlineStr')return textRuns(cell);const v=cell.match(/<v(?:\s[^>]*)?>([\s\S]*?)<\/v>/);if(!v)return '';return t==='s'?(strings[+v[1]]??''):dec(v[1]);}
 function rows(xml,strings){return [...xml.matchAll(/<row\b[^>]*>[\s\S]*?<\/row>/g)].map(m=>{const cells=new Map();for(const c of m[0].matchAll(/<c\b[^>]*\/>|<c\b[^>]*>[\s\S]*?<\/c>/g)){const r=attr(c[0],'r').match(/^([A-Z]+)/);if(r)cells.set(index(r[1]),{xml:c[0],value:value(c[0],strings)});}return {cells,number:+attr(m[0],'r')};});}
-async function parse(data){
+async function parse(data,options={}){
+ const incompleteWarnings=[];
  const zip=await root.JSZip.loadAsync(data);
  const get=async p=>zip.file(p)?zip.file(p).async('string'):'';
  const wb=await get('xl/workbook.xml');if(!wb)throw Error('這不是有效的 .xlsx 活頁簿。');
@@ -39,12 +40,12 @@ async function parse(data){
   const target=links.get(attr(sm[0],'r:id'));if(!target)continue;
   const path=target.startsWith('/')?target.slice(1):'xl/'+target.replace(/^\.\//,'');
   const rs=rows(await get(path),strings);
-  const hi=rs.findIndex(r=>[...r.cells.values()].some(c=>c.value==='量測/監控設備編號')&&[...r.cells.values()].some(c=>c.value==='校驗方式'));
+  const hi=rs.findIndex(r=>{const values=[...r.cells.values()].map(c=>c.value);return options.allowIncomplete?(values.includes('量測/監控設備編號')||['名稱','校驗方式','有效日期','資產編號'].filter(h=>values.includes(h)).length>=2):values.includes('量測/監控設備編號')&&values.includes('校驗方式')});
   if(hi<0){if(rs.some(r=>[...r.cells.values()].some(c=>c.value!=='')))throw Error('工作表「'+attr(sm[0],'name')+'」沒有可辨識的設備欄位，請匯入完整的原始清冊。');continue;}
   sourceCount++;const hc=rs[hi].cells; const max=Math.max(...hc.keys()); const map=[];
   for(let i=0;i<=max;i++){const h=String(hc.get(i)?.value??'').trim();if(!h)throw Error('標題列有空白欄位，請補齊標題再匯入。');if(map.includes(h))throw Error('重複的欄位名稱：'+h);map.push(h);if(!headers.includes(h))headers.push(h);}
   headerStyle=headerStyle||attr(hc.values().next().value.xml,'s');
-  for(const required of ['量測/監控設備編號','名稱','校驗方式','保管單位','保管人'])if(!map.includes(required))throw Error('缺少必要欄位：'+required);
+  for(const required of ['量測/監控設備編號','名稱','校驗方式','保管單位','保管人'])if(!map.includes(required)){if(options.allowIncomplete)incompleteWarnings.push('缺少欄位：'+required);else throw Error('缺少必要欄位：'+required)}
   for(const r of rs.slice(hi+1)){
    if(![...r.cells.values()].some(c=>c.value!==''))continue;
    const record={};for(const [i,c] of r.cells){if(!map[i]&&c.value!=='')throw Error('發現沒有欄位標題的資料，請檢查來源檔。');if(/<f\b/.test(c.xml))throw Error('來源含有公式。請先將公式貼上為值，再匯入，以免分頁後引用錯誤。');if(map[i])record[map[i]]=c;}
@@ -63,7 +64,7 @@ async function parse(data){
  buckets[0].name='內校_'+buckets[0].rows.length;
  buckets[1].name='外校_'+buckets[1].rows.length;
  if(buckets[2])buckets[2].name='其他校驗方式_'+buckets[2].rows.length;
- const warnings=[];const seen=new Set();let dup=0,blank=0;
+ const warnings=[...incompleteWarnings];const seen=new Set();let dup=0,blank=0;
  for(const r of all){const id=String(r['量測/監控設備編號']?.value??'');if(!id)blank++;else if(seen.has(id))dup++;else seen.add(id);}
  if(blank)warnings.push(blank+' 筆設備編號空白，資料仍保留。');if(dup)warnings.push(dup+' 筆重複設備編號，資料仍保留。');if(buckets.length===3)warnings.push(buckets[2].rows.length+' 筆校驗方式未分類，已保留在「其他校驗方式」。');
  return {zip,wb,headers,sourceHeaders,all,buckets,warnings,headerStyle};

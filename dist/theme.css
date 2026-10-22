@@ -282,3 +282,5 @@ body.app-shell .vendor-bulk-controls input[type=checkbox]{width:22px;height:22px
 .vendor-bulk-cell.bulk-date-cell .bulk-progress-controls{justify-content:flex-start}
 .bulk-type-label{grid-column:2;text-align:center;font-size:14px}
 @media(max-width:900px){.vendor-bulk-controls{order:initial}.vendor-bulk-type{gap:0}.external-progress-workspace .vendor-progress-title>.vendor-percent{left:340px}}
+
+.import-issues{max-height:35vh;overflow:auto;padding-left:24px;color:var(--color-warning-text);line-height:1.8}
