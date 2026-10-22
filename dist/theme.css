@@ -256,3 +256,15 @@ body.app-shell .external-progress-workspace .progress-table{max-height:none;over
 .bulk-progress-controls{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:10px;min-height:44px}
 .external-equipment-table th:not(.progress-checkbox-cell) .bulk-progress-controls{justify-content:flex-start}
 body.app-shell .external-equipment-table .bulk-progress-controls input[type=checkbox]{width:22px;height:22px;margin:0;accent-color:var(--color-focus);cursor:pointer}
+
+.external-progress-workspace .vendor-progress-title{display:flex;align-items:center;gap:14px;list-style:none}
+.external-progress-workspace .vendor-progress-title::-webkit-details-marker{display:none}
+.external-progress-workspace .vendor-progress-title::before{content:'▸';flex-shrink:0}
+.external-progress-workspace .vendor-progress[open]>.vendor-progress-title::before{content:'▾'}
+.external-progress-workspace .vendor-progress-title>.vendor-name{float:none;font:inherit;color:inherit;margin-right:auto}
+.vendor-bulk-controls{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.vendor-bulk-type{display:flex;align-items:center;gap:18px}
+.vendor-bulk-controls .bulk-progress-controls{margin-top:0;min-height:44px}
+body.app-shell .vendor-bulk-controls input[type=checkbox]{width:22px;height:22px;margin:0;accent-color:var(--color-focus);cursor:pointer}
+.external-progress-workspace .vendor-progress-title>.vendor-percent{float:none;flex-shrink:0;font-weight:400}
+@media(max-width:900px){.external-progress-workspace .vendor-progress-title{flex-wrap:wrap}.vendor-bulk-controls{order:3;flex-basis:100%;gap:10px}.vendor-bulk-type{flex-wrap:wrap;gap:14px}}

@@ -36,8 +36,9 @@ let db;try{db=JSON.parse(localStorage.getItem(KEY))||seed()}catch{db=seed()};if(
 migrateSampleData();
 function persist(){localStorage.setItem(KEY,JSON.stringify(db))}function save(){persist();render()}function toast(t){$('toast').textContent=t;$('toast').classList.add('visible');setTimeout(()=>$('toast').classList.remove('visible'),2500)}
 const rows=()=>db.rows.filter(r=>r.month===month);const months=()=>[...new Set(db.rows.map(r=>r.month))].sort();const complete=r=>!!r.p[r.type==='內校'?2:r.type==='外校'?4:3];const stages=r=>r.type==='內校'?['預計校驗日','收件確認','已完成']:r.type==='外校'?['已提供報價單','請購單','外送單','寄出／收件時間','已完成']:['已提供報價單','請購單','遊校日期','已完成'];
-let internalRegistryQuery='';
-function go(p){if(page==='registry'&&tab==='內校')internalRegistryQuery=query;page=p;query='';status='all';render()}window.go=go;
+tab=db.settings.registryTab||tab;
+let internalRegistryQuery=db.settings.registrySearches?.['內校']||'';
+function go(p){if(page==='registry'&&tab==='內校')internalRegistryQuery=query;page=p;query=p==='registry'?(db.settings.registrySearches?.[tab]||''):'';status='all';render()}window.go=go;
 function hasMissingExternalVendor(){return db.rows.some(r=>['外校','遊校'].includes(r.type)&&!String(r.vendor??'').trim())}
 function sidebarIcon(id){
  const shapes={
@@ -73,6 +74,7 @@ function restorePageScroll(state){
  window.scrollTo({left:state.x,top:state.y,behavior:'instant'});
 }
 function render(){
+ if(page==='registry'){db.settings.registryFilters=registryFilters;db.settings.registrySearches??={};db.settings.registrySearches[tab]=query;db.settings.registryTab=tab;internalRegistryQuery=db.settings.registrySearches['內校']||'';persist()}
  const scroll=document.body.dataset.page===page?capturePageScroll():null;
  renderPage();if(scroll)restorePageScroll(scroll);
 }
@@ -242,7 +244,7 @@ function equipmentValue(r,key){return key.startsWith('extra:')?r.extra?.[extraCo
 function inactiveEquipment(r){return ['停用','報廢'].includes(instrumentStatus(r))}
 function registrySearch(scope='清冊'){return `<div class="registry-lookup"><select class="registry-month" aria-label="${esc(scope)}年月" onchange="month=this.value;render()">${months().map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select><form class="registry-search" onsubmit="event.preventDefault();query=this.elements.search.value.trim();render()"><input class="search" name="search" aria-label="搜尋${esc(scope)}" placeholder="搜尋" value="${esc(query)}"><button type="submit" class="registry-search-submit" aria-label="搜尋" title="搜尋"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/></svg></button></form></div>`}
 const REGISTRY_FILTER_FIELDS=new Set(['name','vendor','unit','owner']);
-let registryFilters={},registryFilterMenu;
+let registryFilters=db.settings.registryFilters||{},registryFilterMenu;
 function registryMatches(r,exceptKey,type=tab){return Object.entries(registryFilters[type]||{}).every(([key,values])=>key===exceptKey||values.includes(String(equipmentValue(r,key)??'')))}
 function closeRegistryFilter(){
  if(!registryFilterMenu)return;
@@ -330,7 +332,7 @@ function renderInternalProgress(){
  $('content').innerHTML=`<div class="internal-progress-workspace"><div class="toolbar">${registrySearch('內校進度')}<span class="spacer"></span><button onclick="tab='內校';go('registry')">查看清冊 →</button></div><section class="panel internal-total"><div class="rowtitle"><h2>校驗總進度</h2><span>${pct}%</span></div><div class="progress"><i class="${pct===100?'complete':''}" style="width:${pct}%"></i></div></section><div class="tablewrap"><table class="internal-equipment-table"><colgroup><col style="width:28%"><col style="width:18%"><col style="width:16%"><col style="width:18%"><col style="width:10%"><col style="width:10%"></colgroup><thead><tr><th>設備編號 / 名稱</th><th>資產編號</th><th>有效日期</th><th>預計校驗日</th><th>收件確認</th><th>已完成</th></tr></thead><tbody>${list.map(r=>`<tr class="${complete(r)?'finished':''}"><td>${esc(r.id)}<div class="subtle">${esc(r.name)}</div></td><td>${esc(r.asset)||'—'}</td><td>${esc(r.due)||'—'}</td><td><button onclick="schedule('${r.key}',0)">${esc(r.date)||'設定日期'}</button></td>${[1,2].map(i=>`<td><label class="step"><input type="checkbox" aria-label="${esc(r.id)} ${stages(r)[i]}" ${r.p[i]?'checked':''} ${!r.p[i-1]?'disabled':''} onchange="window.step('${r.key}',${i},this.checked)"></label></td>`).join('')}</tr>`).join('')||'<tr><td colspan="6" class="empty">沒有符合條件的設備</td></tr>'}</tbody></table></div></div>`;
 }
 const externalProgressOpen=new Set();
-function bulkProgressRows(control){const keys=new Set(JSON.parse(control.closest('table').dataset.equipmentKeys));return db.rows.filter(r=>keys.has(r.key))}
+function bulkProgressRows(control){const keys=new Set(JSON.parse(control.closest('[data-equipment-keys]').dataset.equipmentKeys));return db.rows.filter(r=>keys.has(r.key))}
 function bulkProgressHeader(list,i){
  const dateStage=i===stages(list[0]).length-2,name=stages(list[0])[i],disabled=i&&list.some(r=>!r.p[i-1]),sameDate=list.every(r=>r.date===list[0].date),sameMode=list.every(r=>r.mode===list[0].mode);
  if(dateStage)return `<div class="bulk-progress-controls">${list[0].type==='外校'?`<select class="smallselect" aria-label="全部設備收件寄出方式" onchange="bulkProgressMode(this)">${sameMode?'':'<option value="" selected disabled>混合</option>'}${['收件','寄出'].map(mode=>`<option ${sameMode&&list[0].mode===mode?'selected':''}>${mode}</option>`).join('')}</select> `:''}<button ${disabled?'disabled':''} onclick="bulkProgressDate(this,${i},false)">${sameDate&&list[0].date?esc(list[0].date):'設定日期'}</button></div>`;
@@ -365,12 +367,13 @@ function bulkProgressMode(control){
  save();
 }
 function externalProgressTable(list){
- return `<div class="tablewrap progress-table"><table class="external-equipment-table" data-equipment-keys="${esc(JSON.stringify(list.map(r=>r.key)))}"><colgroup><col class="progress-col-equipment"><col class="progress-col-asset">${stages(list[0]).map((s,i)=>`${list[0].type==='遊校'&&i===2?'<col class="progress-col-step">':''}<col class="${i===stages(list[0]).length-2?'progress-col-date':'progress-col-step'}">`).join('')}</colgroup><thead><tr><th>設備編號 / 名稱</th><th>資產編號</th>${stages(list[0]).map((s,i)=>`${list[0].type==='遊校'&&i===2?'<th aria-label="不適用外送單"></th>':''}<th class="${i===stages(list[0]).length-2?'':'progress-checkbox-cell'}">${s}${bulkProgressHeader(list,i)}</th>`).join('')}</tr></thead><tbody>${list.map(r=>`<tr class="${complete(r)?'finished':''}"><td>${esc(r.id)}<div class="subtle">${esc(r.name)}</div></td><td class="muted">${esc(r.asset)}</td>${stages(r).map((s,i)=>{
+ return `<div class="tablewrap progress-table"><table class="external-equipment-table" data-equipment-keys="${esc(JSON.stringify(list.map(r=>r.key)))}"><colgroup><col class="progress-col-equipment"><col class="progress-col-asset">${stages(list[0]).map((s,i)=>`${list[0].type==='遊校'&&i===2?'<col class="progress-col-step">':''}<col class="${i===stages(list[0]).length-2?'progress-col-date':'progress-col-step'}">`).join('')}</colgroup><thead><tr><th>設備編號 / 名稱</th><th>資產編號</th>${stages(list[0]).map((s,i)=>`${list[0].type==='遊校'&&i===2?'<th aria-label="不適用外送單"></th>':''}<th class="${i===stages(list[0]).length-2?'':'progress-checkbox-cell'}">${s}</th>`).join('')}</tr></thead><tbody>${list.map(r=>`<tr class="${complete(r)?'finished':''}"><td>${esc(r.id)}<div class="subtle">${esc(r.name)}</div></td><td class="muted">${esc(r.asset)}</td>${stages(r).map((s,i)=>{
   const dateStage=i===stages(r).length-2;
   return `${r.type==='遊校'&&i===2?'<td></td>':''}<td class="${dateStage?'':'progress-checkbox-cell'}">${dateStage?`${r.type==='外校'?`<select class="smallselect" aria-label="${esc(r.id)}收件寄出方式" onchange="changeMode('${r.key}',this.value)"><option ${r.mode==='收件'?'selected':''}>收件</option><option ${r.mode==='寄出'?'selected':''}>寄出</option></select> `:''}<button ${i&&!r.p[i-1]?'disabled':''} onclick="schedule('${r.key}',${i})">${r.date||'設定日期'}</button>`:`<label class="step"><input aria-label="${esc(r.id)} ${esc(s)}" type="checkbox" ${r.p[i]?'checked':''} ${i&&!r.p[i-1]?'disabled':''} onchange="window.step('${r.key}',${i},this.checked)"></label>`}</td>`;
  }).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 function toggleVendorProgress(event,summary){
+ if(event.target.closest('.vendor-bulk-controls'))return;
  event.preventDefault();
  const details=summary.parentElement,body=details.querySelector('.vendor-progress-body');
  if(details._progressAnimation)details._progressAnimation.cancel();
@@ -387,7 +390,7 @@ function renderExternalProgress(){
  const list=filtered('外校／遊校'),total=rows().filter(r=>r.type==='外校'||r.type==='遊校'),pct=percent(total),vendors=new Map();
  for(const row of list){const vendor=String(row.vendor??'').trim();if(!vendor)continue;if(!vendors.has(vendor))vendors.set(vendor,[]);vendors.get(vendor).push(row)}
  const groups=[...vendors].sort(([a],[b])=>a.localeCompare(b,'zh-Hant'));
- $('content').innerHTML=`<div class="external-progress-workspace"><div class="toolbar">${registrySearch('外校進度')}<span class="spacer"></span><button onclick="tab='外校／遊校';go('registry')">查看清冊 →</button></div><section class="panel external-total"><div class="rowtitle"><h2>校驗總進度</h2><span>${pct}%</span></div><div class="progress"><i class="${pct===100?'complete':''}" style="width:${pct}%"></i></div></section>${groups.map(([vendor,equipment])=>`<details class="panel vendor-progress" data-progress-group="${esc(vendor)}" ontoggle="this.open?externalProgressOpen.add(this.dataset.progressGroup):externalProgressOpen.delete(this.dataset.progressGroup)" ${externalProgressOpen.has(vendor)?'open':''}><summary class="vendor-progress-title" onclick="toggleVendorProgress(event,this)">${esc(vendor)}<span>${percent(equipment)}%</span></summary><div class="vendor-progress-body">${['外校','遊校'].map(type=>{
+ $('content').innerHTML=`<div class="external-progress-workspace"><div class="toolbar">${registrySearch('外校進度')}<span class="spacer"></span><button onclick="tab='外校／遊校';go('registry')">查看清冊 →</button></div><section class="panel external-total"><div class="rowtitle"><h2>校驗總進度</h2><span>${pct}%</span></div><div class="progress"><i class="${pct===100?'complete':''}" style="width:${pct}%"></i></div></section>${groups.map(([vendor,equipment])=>`<details class="panel vendor-progress" data-progress-group="${esc(vendor)}" ontoggle="this.open?externalProgressOpen.add(this.dataset.progressGroup):externalProgressOpen.delete(this.dataset.progressGroup)" ${externalProgressOpen.has(vendor)?'open':''}><summary class="vendor-progress-title" onclick="toggleVendorProgress(event,this)"><span class="vendor-name">${esc(vendor)}</span><div class="vendor-bulk-controls" onclick="event.stopPropagation()" onkeydown="event.stopPropagation()">${['外校','遊校'].map(type=>{const items=equipment.filter(r=>r.type===type);return items.length?`<div class="vendor-bulk-type" data-equipment-keys="${esc(JSON.stringify(items.map(r=>r.key)))}">${equipment.some(r=>r.type!==type)?`<span class="muted">${type}</span>`:''}${stages(items[0]).map((name,i)=>`<span title="${esc(name)}">${bulkProgressHeader(items,i)}</span>`).join('')}</div>`:''}).join('')}</div><span class="vendor-percent">${percent(equipment)}%</span></summary><div class="vendor-progress-body">${['外校','遊校'].map(type=>{
   const items=equipment.filter(r=>r.type===type);if(!items.length)return '';
   return `<section class="group progress-type-${type==='外校'?'external':'tour'}">${externalProgressTable(items)}</section>`;
  }).join('')}</div></details>`).join('')||'<div class="empty">沒有符合條件的設備</div>'}</div>`;
@@ -480,7 +483,7 @@ function removeImportData(id){
  // Remove the old migration snapshot, which could otherwise retain deleted equipment.
  localStorage.removeItem(KEY+'-before-real-sample-v1');
  db.imports=db.imports.filter(i=>i.id!==id);
- registryFilters={};internalRegistryQuery='';query='';save();toast('檔案及相關資料已刪除');
+ registryFilters={};db.settings.registryFilters={};db.settings.registrySearches={};internalRegistryQuery='';query='';save();toast('檔案及相關資料已刪除');
 }
 function renderImport(){
  ensureImportLinks();persist();
@@ -508,7 +511,7 @@ function renderBackup(){
 async function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(16)}
 function reportStorage(){let x={};for(let k of Object.keys(localStorage))if(k!==KEY)x[k]=localStorage.getItem(k);return x}
 async function backup(){let payload={db,reportStorage:reportStorage()},raw=JSON.stringify(payload);download(JSON.stringify({format:'aming-calibration',version:1,createdAt:new Date().toISOString(),checksum:await hash(raw),payload}),'儀校完整備份_'+today()+'.json');toast('完整備份已匯出')}
-async function restore(file){if(!file)return;try{let b=JSON.parse(await file.text());if(b.format!=='aming-calibration'||b.version!==1||!b.payload||b.checksum!==await hash(JSON.stringify(b.payload)))throw Error('格式或完整性檢查失敗');let d=b.payload.db;if(!Array.isArray(d.rows)||!Array.isArray(d.manual)||!d.events||!d.quotes||!d.settings||!Array.isArray(d.imports)||!d.reports||d.rows.some(r=>!r.key||!r.id||!r.month||!Array.isArray(r.p)))throw Error('備份缺少必要資料');if(!confirm('將完整取代目前所有月份資料，確定還原？'))return;const old=Object.fromEntries(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)]));try{localStorage.clear();for(let[k,v]of Object.entries(b.payload.reportStorage||{}))localStorage.setItem(k,v);localStorage.setItem(KEY,JSON.stringify(d))}catch(e){localStorage.clear();for(let[k,v]of Object.entries(old))localStorage.setItem(k,v);throw e}db=d;save();toast('已完成還原')}catch(e){toast('還原失敗，原資料保留：'+e.message)}}
+async function restore(file){if(!file)return;try{let b=JSON.parse(await file.text());if(b.format!=='aming-calibration'||b.version!==1||!b.payload||b.checksum!==await hash(JSON.stringify(b.payload)))throw Error('格式或完整性檢查失敗');let d=b.payload.db;if(!Array.isArray(d.rows)||!Array.isArray(d.manual)||!d.events||!d.quotes||!d.settings||!Array.isArray(d.imports)||!d.reports||d.rows.some(r=>!r.key||!r.id||!r.month||!Array.isArray(r.p)))throw Error('備份缺少必要資料');if(!confirm('將完整取代目前所有月份資料，確定還原？'))return;const old=Object.fromEntries(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)]));try{localStorage.clear();for(let[k,v]of Object.entries(b.payload.reportStorage||{}))localStorage.setItem(k,v);localStorage.setItem(KEY,JSON.stringify(d))}catch(e){localStorage.clear();for(let[k,v]of Object.entries(old))localStorage.setItem(k,v);throw e}db=d;registryFilters=db.settings.registryFilters||{};internalRegistryQuery=db.settings.registrySearches?.['內校']||'';save();toast('已完成還原')}catch(e){toast('還原失敗，原資料保留：'+e.message)}}
 function resetDemo(){if(confirm('清除目前 DEMO 資料並恢復示範資料？')){db=seed();save();toast('已恢復示範資料')}}
 new ResizeObserver(()=>updateSidebarIndicator()).observe($('nav'));
 persist();render();setInterval(()=>{if(page==='calendar'&&!$('dialog').open)renderCalendar()},60000);
