@@ -177,18 +177,32 @@ function editManual(id,date){
  });
 }
 
-let cols=[['id','設備編號'],['name','設備名稱'],['asset','資產編號'],['unit','保管單位'],['owner','保管人'],['type','校驗方式'],['vendor','實驗室／廠商'],['instrumentStatus','儀器狀態'],['due','有效日期']];let sortKey='id',sortDir=1;
+let cols=[['id','設備編號'],['name','設備名稱'],['asset','資產編號'],['unit','保管單位'],['owner','保管人'],['type','校驗方式'],['vendor','實驗室及廠商'],['instrumentStatus','儀器狀態'],['due','有效日期']];let sortKey='id',sortDir=1;
 function instrumentStatus(r){return String(r.instrumentStatus??r.extra?.['儀器狀態']??'').trim()}
 function extraColumnKey(header){return 'extra:'+Array.from(header,c=>c.codePointAt(0).toString(16)).join('-')}
 function extraColumnLabel(key){return String.fromCodePoint(...key.slice(6).split('-').map(c=>parseInt(c,16)))}
+const REGISTRY_PREFERRED_COLUMNS=[
+ ['id','設備編號'],['name','設備名稱'],['asset','資產編號'],
+ ...['廠牌','型號','序號'].map(h=>[extraColumnKey(h),h]),
+ ['type','校驗方式'],[extraColumnKey('允收標準'),'允收標準'],['vendor','實驗室及廠商'],['due','有效日期'],
+ [extraColumnKey('校驗週期'),'校驗週期'],['instrumentStatus','儀器狀態'],
+ ...['使用量測範圍','使用最小公差','儀器精度'].map(h=>[extraColumnKey(h),h])
+];
 function registryColumns(){
  const aliases=new Set(['量測/監控設備編號','量測／監控設備編號','名稱','實驗室/廠商','實驗室','實驗室／廠商',...cols.map(c=>c[1])]);
  const headers=new Set(db.settings.importColumns||[]);
  if(db.imports.some(i=>i.file==='量測監控設備清冊 (1).xlsx'))CALIBRATION_SAMPLE_COLUMNS.forEach(h=>headers.add(h));
  db.rows.forEach(r=>Object.keys(r.extra||{}).forEach(h=>headers.add(h)));
- return [...cols,...[...headers].filter(h=>!aliases.has(h)).map(h=>[extraColumnKey(h),h])];
+ const ordered=new Map(REGISTRY_PREFERRED_COLUMNS);
+ for(const [key,label]of [...cols,...[...headers].filter(h=>!aliases.has(h)).map(h=>[extraColumnKey(h),h])])if(!ordered.has(key))ordered.set(key,label);
+ return [...ordered];
 }
-function columnVisible(key){return !(db.settings.hidden||[]).includes(key)&&(!key.startsWith('extra:')||(db.settings.shownExtra||[]).includes(key))}
+function columnVisible(key){
+ const profile=db.settings.registryColumnsV2?.[tab];
+ if(profile)return profile.includes(key);
+ const defaults=tab==='內校'?['id','name','asset','due',extraColumnKey('校驗週期'),'instrumentStatus']:REGISTRY_PREFERRED_COLUMNS.slice(0,12).map(c=>c[0]);
+ return defaults.includes(key);
+}
 function equipmentValue(r,key){return key.startsWith('extra:')?r.extra?.[extraColumnLabel(key)]??'':key==='instrumentStatus'?instrumentStatus(r):r[key]}
 function inactiveEquipment(r){return ['停用','報廢'].includes(instrumentStatus(r))}
 function registrySearch(){return `<form class="registry-search" onsubmit="event.preventDefault();query=this.elements.search.value.trim();render()"><input class="search" name="search" aria-label="搜尋清冊" placeholder="搜尋" value="${esc(query)}"><button type="submit" class="registry-search-submit" aria-label="搜尋" title="搜尋"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/></svg></button></form><select aria-label="校驗完成狀態" onchange="status=this.value;render()"><option value="all">全部狀態</option><option value="open" ${status==='open'?'selected':''}>未完成</option><option value="done" ${status==='done'?'selected':''}>已完成</option></select>`}
@@ -196,11 +210,11 @@ function filtered(type){return rows().filter(r=>(type==='內校'?r.type==='內�
 function searchBar(){return `<input class="search" placeholder="搜尋設備編號、名稱、保管人…" value="${esc(query)}" onchange="query=this.value;render()"><select onchange="status=this.value;render()"><option value="all">全部狀態</option><option value="open" ${status==='open'?'selected':''}>未完成</option><option value="done" ${status==='done'?'selected':''}>已完成</option></select>`}
 function visibleCols(){return registryColumns().filter(([k])=>columnVisible(k))}
 function renderRegistry(){let list=filtered(tab),vc=visibleCols();$('content').innerHTML=`<div class="registry-workspace"><div class="tabs">${['內校','外校／遊校'].map(t=>`<button class="${tab===t?'active':''}" onclick="tab='${t}';render()">${t}_${rows().filter(r=>t==='內校'?r.type==='內校':r.type!=='內校').length}</button>`).join('')}</div><div class="toolbar">${registrySearch()}<span class="spacer"></span><button onclick="columnsDialog()">欄位設定</button><button onclick="exportExcel()">匯出 Excel</button><button class="primary" onclick="editEquipment()">＋ 新增設備</button></div><div class="toolbar"><span class="muted">顯示 ${list.length} 筆</span><span class="spacer"></span><button class="link" onclick="query='';status='all';render()">清除篩選</button></div><div class="tablewrap"><table><thead><tr>${vc.map(([k,t])=>`<th onclick="sortDir=sortKey==='${k}'?-sortDir:1;sortKey='${k}';render()">${esc(t)} ↕</th>`).join('')}<th></th></tr></thead><tbody>${list.map(r=>`<tr class="${inactiveEquipment(r)?'inactive-equipment':''}">${vc.map(([k])=>`<td>${esc(equipmentValue(r,k))||'—'}</td>`).join('')}<td><div class="registry-actions"><button class="registry-edit" aria-label="編輯設備 ${esc(r.id)}" title="編輯" onclick="editEquipment('${r.key}')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 5 5M3 21l5-1 13-13a2.1 2.1 0 0 0-5-5L3 15z"/><path d="m3 15 5 5"/></svg></button><button class="registry-delete" aria-label="刪除設備 ${esc(r.id)}" title="刪除" onclick="deleteEquipment('${r.key}')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button></div></td></tr>`).join('')}</tbody></table></div></div>`}
-function columnsDialog(){modal('欄位顯示',registryColumns().map(([k,t])=>`<label class="checkrow">${esc(t)}<input type="checkbox" data-col="${k}" ${columnVisible(k)?'checked':''}></label>`).join(''),()=>{
+function columnsDialog(){modal('欄位顯示 · '+tab,registryColumns().map(([k,t])=>`<label class="checkrow">${esc(t)}<input type="checkbox" data-col="${k}" ${columnVisible(k)?'checked':''}></label>`).join(''),()=>{
  const inputs=[...document.querySelectorAll('[data-col]')];
  if(!inputs.some(x=>x.checked))return toast('請至少保留一個顯示欄位');
- db.settings.hidden=inputs.filter(x=>!x.checked).map(x=>x.dataset.col);
- db.settings.shownExtra=inputs.filter(x=>x.checked&&x.dataset.col.startsWith('extra:')).map(x=>x.dataset.col);
+ db.settings.registryColumnsV2??={};
+ db.settings.registryColumnsV2[tab]=inputs.filter(x=>x.checked).map(x=>x.dataset.col);
  closeModal();save();
 })}
 function hasEquipmentActivity(r){return (r.p||[]).some(Boolean)||!!r.date||!!r.completed||Object.values(db.events).some(state=>state.done&&state.signature?.split(',').includes(r.key))}
