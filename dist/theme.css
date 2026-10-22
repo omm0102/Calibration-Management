@@ -161,3 +161,12 @@ body.app-shell .external-progress-workspace .vendor-progress-body tbody tr td{ba
 body.app-shell .external-progress-workspace .vendor-progress-body tbody tr:hover td{background:color-mix(in srgb,var(--progress-row-color) 90%,var(--color-primary))}
 
 .external-progress-workspace .vendor-progress-body{overflow:hidden}
+
+/* Cost table spans the workspace, with amounts aligned to its right edge. */
+.cost-workspace{width:100%;min-width:0}
+.cost-workspace table{table-layout:fixed}
+.cost-workspace :is(th,td):first-child{width:50%;white-space:normal;overflow-wrap:anywhere}
+.cost-workspace :is(th,td):nth-child(2){width:20%;text-align:center}
+.cost-workspace :is(th,td):last-child{width:30%;text-align:right}
+.cost-workspace .money{width:200px;max-width:100%}
+@media(max-width:650px){.cost-workspace :is(th,td){padding:12px 8px}.cost-workspace :is(th,td):first-child{width:38%}.cost-workspace :is(th,td):last-child{width:42%}.cost-workspace th{white-space:normal}.cost-workspace>.toolbar{flex-wrap:wrap}}
