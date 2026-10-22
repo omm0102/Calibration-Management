@@ -187,3 +187,33 @@ body:has(.calendar-workspace) #content{flex:1;min-height:0}
 .day-detail-group+ .day-detail-group{margin-top:22px}
 .day-detail-group>h3{margin:0;padding:7px 10px;background:#f1f4f8;border-radius:6px;color:#66768b;font-size:15px;font-weight:600;letter-spacing:1px}
 .day-detail-group .event-detail:last-child{border-bottom:0}
+
+/* Registry stays inside the viewport; only the equipment table scrolls. */
+body:has(.registry-workspace){height:100dvh;overflow:hidden}
+body:has(.registry-workspace) main{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+body:has(.registry-workspace) aside{overflow:auto}
+body:has(.registry-workspace) header{flex:none;margin-bottom:22px}
+body:has(.registry-workspace) #content{flex:1;min-height:0}
+.registry-workspace{height:100%;min-height:0;display:flex;flex-direction:column}
+.registry-workspace>.tabs,.registry-workspace>.toolbar{flex:none}
+.registry-workspace .tablewrap{flex:1;min-height:0;max-height:none}
+.registry-search{display:flex;align-items:center;gap:9px;flex:0 1 540px;min-width:240px}
+.registry-search .search{width:100%;min-width:0;flex:1}
+.registry-edit{display:grid;place-items:center;width:40px;height:40px;padding:8px;border:0;background:transparent;color:#5f6d80;border-radius:8px}
+.registry-edit:hover{background:#edf2f8;color:#283b54}
+.registry-edit:focus-visible{outline:2px solid #6486b2;outline-offset:2px}
+.registry-workspace tr.inactive-equipment td{color:#b44747;background:#fff0f0}
+.registry-workspace tr.inactive-equipment:hover td{background:#fbe4e4}
+.registry-workspace tr.inactive-equipment .registry-edit{color:#b44747}
+@media(max-width:650px){
+ body:has(.registry-workspace) aside{height:110px;padding:10px 12px;overflow:hidden}
+ body:has(.registry-workspace) aside nav{overflow-x:auto}
+ body:has(.registry-workspace) aside .navgroup{flex:none}
+ body:has(.registry-workspace) aside .navgroup button{padding:7px 9px}
+ body:has(.registry-workspace) main{height:calc(100dvh - 110px);padding:10px 10px 12px}
+ body:has(.registry-workspace) header{margin-bottom:12px}
+ .registry-workspace>.tabs{margin-bottom:12px}
+ .registry-workspace>.toolbar{gap:6px;margin-bottom:12px}
+ .registry-workspace .toolbar>button,.registry-workspace .toolbar>select{padding:6px 8px;font-size:14px}
+ .registry-search{flex-basis:100%;min-width:0}
+}
