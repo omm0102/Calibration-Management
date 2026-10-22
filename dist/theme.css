@@ -225,3 +225,8 @@ body.app-shell[data-page="backup"] #content{flex:1;min-height:0}
 .backup-workspace,.backup-workspace .cards{height:100%}
 .backup-workspace .cards{overflow:auto}
 @media(max-width:650px){body.app-shell[data-page="backup"] aside{height:110px;overflow:hidden}body.app-shell[data-page="backup"] main{height:calc(100dvh - 110px)}.backup-workspace .cards{grid-template-rows:1fr 1fr}.backup-workspace .panel{min-height:240px;padding:20px;gap:12px}.backup-transfer-icon svg{width:48px;height:48px}}
+
+body.app-shell .navgroup button{display:flex;align-items:center;gap:9px}
+body.app-shell .navgroup button.registry-nav-button{gap:9px}
+.sidebar-icon{display:block;flex:0 0 21px;width:21px;height:21px}
+.sidebar-label{min-width:0}
