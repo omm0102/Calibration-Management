@@ -57,16 +57,17 @@
 
 /* Calendar review: clearer grid, compact toolbar, and a continuous selected-week frame. */
 .calendar-workspace .calendar-toolbar{margin-bottom:8px}
-.calendar-workspace .calendar{border:2px solid #929ba8}
+.calendar-workspace .calendar{border:1px solid var(--line)}
 .calendar-workspace .weekday{border-right:1px solid #b6bec9}
 .calendar-workspace .weekday:nth-child(7){border-right:0}
 .calendar-workspace .day{background:#fff;border-top-color:#b6bec9;border-right-color:#b6bec9}
 .calendar-workspace .day.other-month{background:#f0f1f3}
 .calendar-workspace .day.other-month .daynum{color:#9299a3}
-.calendar-workspace .day.today{outline:3px solid #555d6b;outline-offset:-3px}
-.calendar-workspace .day.selected-week{box-shadow:inset 0 3px #555d6b,inset 0 -3px #555d6b}
-.calendar-workspace .day.selected-week.week-start{box-shadow:inset 3px 0 #555d6b,inset 0 3px #555d6b,inset 0 -3px #555d6b}
-.calendar-workspace .day.selected-week.week-end{box-shadow:inset -3px 0 #555d6b,inset 0 3px #555d6b,inset 0 -3px #555d6b}
+/* A diffused white light sits behind the date and events, without a heavy frame. */
+.calendar-workspace .day.today,
+.calendar-workspace .day.selected-week{outline:none;isolation:isolate;background-color:#eef0f3;box-shadow:inset 0 0 18px 5px #ffffff,0 0 9px #ffffffb3}
+.calendar-workspace .day.today::before,
+.calendar-workspace .day.selected-week::before{content:'';position:absolute;inset:8px;z-index:-1;pointer-events:none;border-radius:12px;background:#fff;filter:blur(12px);opacity:.95}
 .calendar-workspace .todo-add{display:grid;place-items:center;line-height:1}
 .calendar-workspace .todo-add span{display:block;line-height:1;font-family:Arial,sans-serif}
 /* Keep sidebar content from stretching the toolbar's grid row. */
