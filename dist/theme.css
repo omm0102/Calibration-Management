@@ -121,8 +121,8 @@ body.report-shell .controls .report-delete-icon:focus-visible{outline:2px solid 
 .external-progress-workspace .vendor-progress>.group{margin-bottom:14px;box-shadow:none}
 .external-progress-workspace .vendor-progress>.group:last-child{margin-bottom:0}
 body.app-shell .external-progress-workspace .progress-table{border:0;border-radius:0;box-shadow:none}
-body.app-shell .progress-type-external>summary{background:color-mix(in srgb,var(--schedule-yellow) 50%,transparent);color:var(--color-warning-text);border-left:3px solid var(--color-warning)}
-body.app-shell .progress-type-tour>summary{background:color-mix(in srgb,#8BC34A 50%,transparent);color:var(--color-success);border-left:3px solid var(--color-success)}
+body.app-shell .progress-type-external>summary{background:color-mix(in srgb,var(--schedule-yellow) 20%,transparent);color:var(--color-warning-text);border-left:3px solid var(--color-warning)}
+body.app-shell .progress-type-tour>summary{background:color-mix(in srgb,#8BC34A 20%,transparent);color:var(--color-success);border-left:3px solid var(--color-success)}
 body.app-shell .external-progress-workspace .progress-table th{background:var(--color-soft);color:var(--color-muted)}
 @media(max-width:650px){.external-progress-workspace .vendor-progress{padding:12px}}
 
