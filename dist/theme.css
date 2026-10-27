@@ -323,3 +323,6 @@ body.app-shell .monthly-total-control input{width:230px;max-width:100%;font-size
 body.app-shell .annual-cost-table .current-cost-month td{background:var(--color-accent-soft)}
 body.app-shell .annual-cost-table .opening-cost-row td{color:var(--color-primary);font-weight:600;background:var(--color-soft)}
 @media(max-width:650px){.annual-cost-summary>strong{font-size:34px}.annual-cost-controls{align-items:stretch;flex-wrap:wrap;gap:16px}.monthly-total-control{flex:1 0 100%;flex-wrap:wrap;gap:8px}.monthly-total-control input{width:100%!important}}
+
+.cost-entry-month{margin-right:auto}
+@media(max-width:650px){.cost-entry-month{margin-right:0}}
