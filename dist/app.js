@@ -455,27 +455,35 @@ function renderExternalProgress(){
 function changeMode(key,mode){let r=db.rows.find(x=>x.key===key);if(r.date&&!confirm('切換寄出／收件將清除原日期與完成紀錄，確定？'))return render();r.mode=mode;r.date='';r.p[stages(r).length-2]=r.p[stages(r).length-1]=false;r.completed='';save()}
 function step(key,i,checked){let r=db.rows.find(x=>x.key===key);if(checked&&i&&!r.p[i-1])return;if(!checked){for(let j=i;j<stages(r).length;j++)r.p[j]=false;let di=r.type==='內校'?0:stages(r).length-2;if(i<=di)r.date='';r.completed='';save();return}if(i===stages(r).length-1){modal('校驗完成',`<p>${esc(r.id)} · ${esc(r.name)}</p><label class="field">完成日期<input type="date" id="finish" value="${today()}" max="${today()}"></label>`,()=>{let d=$('finish').value;if(!d||d>today())return toast('完成日期不可為未來');r.p[i]=true;r.completed=d;closeModal();save()});render()}else{r.p[i]=true;save()}}
 function schedule(key,i){let r=db.rows.find(x=>x.key===key);modal('設定日期',`<p>${esc(r.id)} · ${esc(r.name)}</p><label class="field">${r.type==='內校'?'預計校驗日':r.type==='遊校'?'遊校日期':r.mode+'日期'}<input type="date" id="schedule" value="${r.date||r.due||today()}"></label>`,()=>{let d=$('schedule').value;if(d&&r.type==='內校'){if(r.due&&r.due>=today()&&d>r.due)return toast('不得晚於有效日期');if(r.due&&r.due<today()&&d<today())return toast('已過期設備請安排今天或之後');if(!r.due&&d.slice(0,7)!==r.month)return toast('有效日期空白時請選所屬月份')}if(!d&&!confirm('清除日期及後續進度？'))return;if(r.date!==d){r.date=d;r.p[i]=!!d;r.p[stages(r).length-1]=false;r.completed='';if(!d)for(let j=i;j<stages(r).length;j++)r.p[j]=false}closeModal();save()})}
-function vendors(){return[...new Set(rows().filter(r=>r.type!=='內校').map(r=>r.vendor||'未指定廠商'))]};function sumCost(m){return Object.values(db.quotes[m]||{}).reduce((s,v)=>s+(v===''?0:Number(v)||0),0)}
+function vendors(){return [...new Set(rows().filter(r=>r.type!=='內校').map(r=>r.vendor||'未指定廠商'))]}
+function sumCost(key){
+ const recorded=db.monthlyExternalCosts?.[key];
+ if(recorded!==undefined)return Math.max(0,Number(recorded)||0);
+ return Object.values(db.quotes[key]||{}).reduce((sum,value)=>sum+(Number(value)||0),0);
+}
 function annualExternalCost(key){
- const year=key.slice(0,4),opening=year==='2026'&&key>='2026-10'?446100:0;
- const first=opening?'2026-10':year+'-01';
- return opening+Object.keys(db.quotes).filter(m=>m>=first&&m<=key&&m.slice(0,4)===year).reduce((total,m)=>total+sumCost(m),0);
+ const year=key.slice(0,4),opening=year==='2026'&&key>='2026-10'?446100:0,first=opening?'2026-10':year+'-01';
+ const keys=new Set([...Object.keys(db.quotes),...Object.keys(db.monthlyExternalCosts||{})]);
+ return opening+[...keys].filter(m=>m>=first&&m<=key&&m.slice(0,4)===year).reduce((sum,m)=>sum+sumCost(m),0);
 }
+let costYear='';
 function renderCost(){
- const v=vendors(),q=db.quotes[month]||{},all=[...new Set([...v,...Object.keys(q)])];
- $('content').innerHTML=`<div class="cost-workspace"><div class="cost-summary"><select class="cost-month" aria-label="外校金額年月" onchange="month=this.value;render()">${months().map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select><div class="stat"><label>本月外校金額</label><strong id="cost-month-total">NT$ ${sumCost(month).toLocaleString()}</strong></div><div class="stat"><label>年度外校總金額</label><strong id="cost-year-total">NT$ ${annualExternalCost(month).toLocaleString()}</strong></div></div><div class="tablewrap"><table><thead><tr><th>實驗室／廠商</th><th>報價金額</th></tr></thead><tbody>${all.map(x=>`<tr><td>${esc(x)}${!v.includes(x)?'<div class="subtle">清冊已無此廠商，報價仍保留</div>':''}</td><td><input class="money" aria-label="${esc(x)}報價金額" type="number" min="0" step="1" data-vendor="${esc(x)}" value="${q[x]||0}" oninput="saveQuote(this)" onchange="finishQuote(this)"></td></tr>`).join('')}</tbody></table></div></div>`;
+ const current=today().slice(0,7),currentYear=current.slice(0,4);
+ costYear=costYear||currentYear;
+ const years=[...new Set([currentYear,String(Number(currentYear)-1),String(Number(currentYear)+1),costYear,...db.rows.map(r=>r.month.slice(0,4)),...Object.keys(db.quotes).map(m=>m.slice(0,4)),...Object.keys(db.monthlyExternalCosts||{}).map(m=>m.slice(0,4))])].filter(y=>/^\d{4}$/.test(y)).sort();
+ $('content').innerHTML=`<div class="cost-workspace yearly-cost-workspace"><div class="annual-cost-summary"><label>年度外校總金額</label><strong id="cost-year-total">NT$ ${annualExternalCost(costYear+'-12').toLocaleString()}</strong></div><div class="annual-cost-controls"><label class="cost-year-control">年份<select aria-label="外校金額年份" onchange="costYear=this.value;render()">${years.map(year=>`<option ${year===costYear?'selected':''}>${year}</option>`).join('')}</select></label>${costYear===currentYear?`<label class="monthly-total-control">本月總外校金額（${Number(current.slice(5))}月）<input id="monthly-external-total" class="money" type="number" min="0" step="1" aria-label="本月總外校金額" data-month="${current}" value="${sumCost(current)}" oninput="saveMonthlyExternalCost(this)" onchange="finishMonthlyExternalCost(this)"></label>`:''}</div><div class="tablewrap annual-cost-table"><table><thead><tr><th>月份</th><th>外校金額</th></tr></thead><tbody>${costYear==='2026'?'<tr class="opening-cost-row"><td>1–9 月歷史累計</td><td>NT$ 446,100</td></tr>':''}${Array.from({length:12},(_,i)=>{const key=costYear+'-'+String(i+1).padStart(2,'0'),legacy=costYear==='2026'&&i<9;return `<tr data-cost-month="${key}" class="${key===current?'current-cost-month':''}"><td>${i+1} 月${key===current?' <span class="current-month-tag">本月</span>':''}</td><td>${legacy?'—':'NT$ '+sumCost(key).toLocaleString()}</td></tr>`}).join('')}</tbody></table></div></div>`;
 }
-function saveQuote(input){
- const amount=input.value===''?0:Number(input.value);
- if(!input.validity.valid||!Number.isInteger(amount)||amount<0){input.setAttribute('aria-invalid','true');return}
- input.removeAttribute('aria-invalid');(db.quotes[month]??={})[input.dataset.vendor]=amount;persist();
- $('cost-month-total').textContent='NT$ '+sumCost(month).toLocaleString();
- $('cost-year-total').textContent='NT$ '+annualExternalCost(month).toLocaleString();
+function saveMonthlyExternalCost(input){
+ const value=input.value===''?0:Number(input.value);
+ if(!input.validity.valid||!Number.isInteger(value)||value<0){input.setAttribute('aria-invalid','true');return}
+ input.removeAttribute('aria-invalid');db.monthlyExternalCosts??={};db.monthlyExternalCosts[input.dataset.month]=value;persist();
+ $('cost-year-total').textContent='NT$ '+annualExternalCost(costYear+'-12').toLocaleString();
+ const cell=document.querySelector(`[data-cost-month="${input.dataset.month}"] td:last-child`);if(cell)cell.textContent='NT$ '+value.toLocaleString();
 }
-function finishQuote(input){
- if(input.getAttribute('aria-invalid')){toast('金額需為非負整數');input.value=db.quotes[month]?.[input.dataset.vendor]||0;input.removeAttribute('aria-invalid')}
+function finishMonthlyExternalCost(input){
+ if(input.getAttribute('aria-invalid')){toast('金額需為非負整數');input.value=sumCost(input.dataset.month);input.removeAttribute('aria-invalid')}
  if(input.value==='')input.value=0;
- saveQuote(input);
+ saveMonthlyExternalCost(input);
 }
 function renderReport(){
  const previous=$('reportframe')?.contentWindow;

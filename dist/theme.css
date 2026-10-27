@@ -307,3 +307,19 @@ body.app-shell .progress-date-controls button{width:116px;flex-basis:116px}
 .internal-equipment-table td:nth-child(3),.internal-equipment-table td:nth-child(4){white-space:normal;overflow-wrap:anywhere}
 
 .equipment-batch-add{padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--color-divider)}
+
+.annual-cost-summary{text-align:center;padding:12px 0 26px}
+.annual-cost-summary>label{display:block;font-size:17px;color:var(--color-muted);margin-bottom:8px}
+.annual-cost-summary>strong{font-size:44px;color:var(--color-primary);font-variant-numeric:tabular-nums}
+.annual-cost-controls{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:20px}
+.cost-year-control{display:flex;flex-direction:column;gap:6px;color:var(--color-muted);font-size:15px}
+.cost-year-control select{min-width:130px}
+.monthly-total-control{display:flex;align-items:center;gap:14px;color:var(--color-primary);font-size:17px}
+body.app-shell .monthly-total-control input{width:230px;max-width:100%;font-size:24px;font-variant-numeric:tabular-nums;text-align:right}
+.yearly-cost-workspace .annual-cost-table{max-height:none}
+.yearly-cost-workspace .annual-cost-table :is(th,td):first-child{width:60%;text-align:left}
+.yearly-cost-workspace .annual-cost-table :is(th,td):last-child{width:40%;text-align:right;font-variant-numeric:tabular-nums}
+.current-month-tag{font-size:13px;color:var(--color-accent);margin-left:8px}
+body.app-shell .annual-cost-table .current-cost-month td{background:var(--color-accent-soft)}
+body.app-shell .annual-cost-table .opening-cost-row td{color:var(--color-primary);font-weight:600;background:var(--color-soft)}
+@media(max-width:650px){.annual-cost-summary>strong{font-size:34px}.annual-cost-controls{align-items:stretch;flex-wrap:wrap;gap:16px}.monthly-total-control{flex:1 0 100%;flex-wrap:wrap;gap:8px}.monthly-total-control input{width:100%!important}}
