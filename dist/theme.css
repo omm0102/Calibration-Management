@@ -424,3 +424,18 @@ body.app-shell[data-page="dashboard"] main>header>div:first-child{padding-left:5
 .title-warning{display:inline-block;margin-left:12px;color:var(--color-danger);font-size:20px;font-weight:750;line-height:1;vertical-align:baseline;letter-spacing:1px}.dashboard-fees>strong.dashboard-unentered{font-size:26px;color:var(--color-muted);margin:14px 0}
 
 body.app-shell button.arrow-icon-button{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:40px;height:40px;padding:0;line-height:1}button.arrow-icon-button svg{display:block;flex-shrink:0}
+
+/* Persistent icon rail with grouped navigation and floating tooltips. */
+body.app-shell aside{width:76px;padding:18px 10px;transform:none;transition:none;overflow:auto;scrollbar-width:none}
+body.app-shell aside::-webkit-scrollbar{display:none}
+body.app-shell aside .brand,body.app-shell aside .navgroup label,body.app-shell aside .sidebar-label{display:none}
+body.app-shell aside .navgroup{margin:0;padding:12px 0}
+body.app-shell aside .navgroup+.navgroup{border-top:1px solid var(--color-border)}
+body.app-shell aside .navgroup button{position:relative;display:flex;align-items:center;justify-content:center;width:54px;height:50px;padding:0;margin:5px 0;gap:0}
+body.app-shell aside .sidebar-icon{width:26px;height:26px;flex-shrink:0}
+body.app-shell aside .registry-warning-badge{position:absolute;top:2px;right:2px;font-size:11px;line-height:1}
+body.app-shell main{margin-left:76px}
+body.app-shell main>header,body.app-shell[data-page="dashboard"] main>header>div:first-child{padding-left:0}
+.navigation-tooltip{position:fixed;z-index:100;background:var(--color-primary);color:white;padding:8px 12px;border-radius:7px;font-size:14px;line-height:1.4;box-shadow:var(--shadow-card);pointer-events:none;white-space:nowrap}
+.navigation-tooltip[hidden]{display:none}
+@media(max-width:650px){body.app-shell aside{width:60px;padding:12px 6px}body.app-shell aside .navgroup{padding:8px 0}body.app-shell aside .navgroup button{width:46px;height:44px;margin:4px 0}body.app-shell aside .sidebar-icon{width:24px;height:24px}body.app-shell main{margin-left:60px;padding:14px 10px}.dashboard-month-navigation{gap:2px}.dashboard-month-navigation>span{font-size:26px;min-width:180px}body.app-shell button.arrow-icon-button{width:32px;height:36px}}
