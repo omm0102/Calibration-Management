@@ -441,3 +441,8 @@ body.app-shell main>header,body.app-shell[data-page="dashboard"] main>header>div
 @media(max-width:650px){body.app-shell aside{width:60px;padding:12px 6px}body.app-shell aside .navgroup{padding:8px 0}body.app-shell aside .navgroup button{width:46px;height:44px;margin:4px 0}body.app-shell aside .sidebar-icon{width:24px;height:24px}body.app-shell main{margin-left:60px;padding:14px 10px}.dashboard-month-navigation{gap:2px}.dashboard-month-navigation>span{font-size:26px;min-width:180px}body.app-shell button.arrow-icon-button{width:32px;height:36px}}
 
 iframe.report-workspace.report-initializing{visibility:hidden}
+/* Dashboard hover stays visually neutral while controls remain clickable. */
+body.app-shell[data-page="dashboard"] .dashboard-grid button:hover{background:transparent;transform:none}
+body.app-shell[data-page="dashboard"] .dashboard-grid .dashboard-event:hover{background:var(--color-soft)}
+body.app-shell[data-page="dashboard"] .dashboard-grid .dashboard-card:hover{background:var(--color-surface);border-color:var(--color-border);box-shadow:0 5px 20px rgb(40 59 84 / 3%);transform:none}
+body.app-shell[data-page="dashboard"] .dashboard-month-navigation>button:hover{background:transparent}
