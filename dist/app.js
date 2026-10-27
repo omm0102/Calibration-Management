@@ -117,10 +117,10 @@ function render(){
  renderPage();if(scroll)restorePageScroll(scroll);
  if(previousPage&&previousPage!==page&&page!=='report')revealPageTransition();
 }
-let pageTransitionCover=null;
+let pageTransitionCover=null,pageSlideAnimation=null;
 function clearPageTransition(){pageTransitionCover?.remove();pageTransitionCover=null}
 function holdPageTransition(){
- clearPageTransition();
+ clearPageTransition();pageSlideAnimation?.cancel();pageSlideAnimation=null;
  const main=document.querySelector('main'),rect=main.getBoundingClientRect(),cover=main.cloneNode(true);
  const layout=getComputedStyle(main);cover.style.display=layout.display;cover.style.flexDirection=layout.flexDirection;
  const header=main.querySelector('header'),headerCopy=cover.querySelector('header');if(header&&headerCopy){const style=getComputedStyle(header);for(const key of ['display','gridTemplateColumns','gap','paddingLeft','minHeight'])headerCopy.style[key]=style[key]}
@@ -130,9 +130,10 @@ function holdPageTransition(){
  document.body.append(cover);pageTransitionCover=cover;
 }
 function revealPageTransition(){
- const cover=pageTransitionCover;if(!cover)return;
- if(matchMedia('(prefers-reduced-motion: reduce)').matches){clearPageTransition();return}
- cover.animate([{opacity:1},{opacity:0}],{duration:220,easing:'ease-out'}).finished.then(()=>{cover.remove();if(pageTransitionCover===cover)pageTransitionCover=null},()=>{cover.remove();if(pageTransitionCover===cover)pageTransitionCover=null});
+ if(!pageTransitionCover)return;
+ clearPageTransition();
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ pageSlideAnimation=document.querySelector('main').animate([{transform:'translateY(8px)'},{transform:'translateY(0)'}],{duration:200,easing:'cubic-bezier(.2,.7,.2,1)'});
 }
 function hideNavigationTooltip(){const tooltip=$('navigationTooltip');if(tooltip)tooltip.hidden=true}
 function showNavigationTooltip(button){const tooltip=$('navigationTooltip'),rect=button.getBoundingClientRect();tooltip.textContent=button.dataset.tooltip;tooltip.hidden=false;tooltip.style.left=(rect.right+12)+'px';tooltip.style.top=Math.max(8,Math.min(innerHeight-tooltip.offsetHeight-8,rect.top+(rect.height-tooltip.offsetHeight)/2))+'px'}
