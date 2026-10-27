@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>量測設備校驗管理月報</title><link rel="stylesheet" href="theme.css?v=20261027-89"><style>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>量測設備校驗管理月報</title><link rel="stylesheet" href="theme.css?v=20261027-90"><style>
 *{box-sizing:border-box}body{margin:0;font:17px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft JhengHei',sans-serif;background:var(--color-canvas);color:var(--color-text)}button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer;padding:9px 13px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-surface);transition:background .2s,border-color .2s}button:hover{background:var(--color-accent-soft)}button.primary{background:var(--color-primary);color:var(--color-surface);border-color:var(--color-primary)}button:disabled{opacity:.5;cursor:wait}input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-surface)}input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}textarea{resize:vertical;min-height:90px}label{display:block;color:var(--color-muted);margin-bottom:4px;font-size:15px}h2{font-size:18px;margin:0 0 12px;color:var(--color-primary)}.app{display:grid;gap:22px;padding:0;height:100dvh}body.report-shell .app{grid-template-columns:340px minmax(0,1fr)}.controls-panel{min-width:0}.controls{min-height:0;height:100%;display:flex;flex-direction:column}.controls>h1{display:none}.report-input-scroll{padding-right:10px}.group{margin-top:18px;padding-top:18px;border-top:1px solid var(--color-border)}.group>button{background:var(--color-accent-soft);color:var(--color-primary);border-color:transparent}.rowcard{background:var(--color-soft);border:1px solid var(--color-border);border-radius:10px;padding:12px;margin-bottom:12px;overflow:hidden}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rowcard .full{grid-column:1/-1}.rowcard .actions{display:flex;justify-content:flex-end;margin-top:8px}.lookup-note{font-size:13px;color:var(--color-muted);margin-top:6px}.lookup-note.warning{color:var(--color-warning-text)}.report-delete-icon{color:var(--color-danger);border:0;background:transparent;width:38px;height:38px;display:grid;place-items:center;padding:8px}.source-summary{display:flex;gap:8px;flex-wrap:wrap;color:var(--color-muted);font-size:14px;margin-top:12px}.source-summary span{padding:4px 7px;border-radius:5px;background:var(--color-accent-soft)}.report-footer{flex:none;padding-top:12px;margin-top:12px;border-top:1px solid var(--color-border)}#exportPdfBtn{width:100%;min-height:44px}.errorbox{color:var(--color-danger);font-size:14px;margin-top:12px}.stage{height:100%;overflow:auto;overscroll-behavior:contain;padding:8px}.page-slot{position:relative;margin:0 auto 20px}.report-wrap{position:absolute;left:0;top:0;transform-origin:top left}.report{width:1600px;height:900px;background:var(--color-surface);color:var(--color-primary);padding:36px 44px;display:grid;grid-template-rows:70px 166px 80px minmax(0,1fr) 100px;gap:18px;border-radius:8px;box-shadow:var(--shadow-card);font-family:'Microsoft JhengHei','Segoe UI',sans-serif}.report-header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--color-primary);padding-bottom:14px}.report-header h1{font-size:34px;letter-spacing:2px;margin:0}.report-period{text-align:right;font-size:26px;font-weight:600}.report-period small{display:block;font-size:14px;font-weight:400;color:var(--color-muted)}.overview{display:grid;grid-template-columns:minmax(0,1fr) 205px;gap:20px}.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.metric{border:1px solid var(--color-border);border-radius:10px;padding:9px 18px;background:var(--color-soft);display:flex;align-items:center;justify-content:space-between;gap:8px}.metric strong{font-size:34px;line-height:1.2;font-variant-numeric:tabular-nums}.metric span{font-size:18px}.metric:first-child{background:var(--color-accent-soft);border-color:var(--color-focus)}.rate-panel{border:1px solid var(--color-border);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:7px}.rate-ring{width:110px;height:110px;border-radius:50%;display:grid;place-items:center}.rate-center{width:90px;height:90px;border-radius:50%;background:var(--color-surface);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700}.fees{display:grid;grid-template-columns:1fr 1fr;gap:18px}.fee{display:flex;align-items:center;justify-content:space-between;background:var(--color-accent-soft);border-radius:10px;padding:14px 22px}.fee span{font-size:21px}.fee strong{font-size:33px;font-variant-numeric:tabular-nums}.details-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;min-height:0}.detail-card{border:1px solid var(--color-border);border-radius:10px;min-height:0;display:flex;flex-direction:column}.detail-card h2{margin:0;padding:12px 16px;background:var(--color-primary);color:var(--color-surface);border-radius:9px 9px 0 0;font-size:21px;display:flex;justify-content:space-between;gap:10px}.detail-card h2 small{font-weight:400;font-size:17px}.detail-body{padding:8px 12px;flex:1;min-height:0}.detail-body table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:17px}.detail-body th{background:var(--color-soft);color:var(--color-muted);font-size:15px;font-weight:500}.detail-body :is(th,td){text-align:left;vertical-align:top;padding:7px 5px;border-bottom:1px solid var(--color-divider);overflow-wrap:anywhere;white-space:pre-wrap}.detail-body td:first-child{font-weight:600}.detail-body td small{display:block;font-weight:400;color:var(--color-muted)}.detail-empty{height:100%;display:flex;align-items:center;justify-content:center;color:var(--color-muted);font-size:21px}.report-summary{border-top:1px solid var(--color-border);padding-top:10px;min-height:0}.report-summary h2{font-size:20px;margin:0 0 5px}.summary-text{font-size:19px;white-space:pre-wrap;line-height:1.55;overflow-wrap:anywhere}.preview-panel{min-width:0;min-height:0}.page-index{text-align:center;font-size:13px;color:var(--color-muted);padding:0 0 6px}.notice{position:fixed;inset:0;background:var(--color-overlay);display:grid;place-items:center;z-index:10;padding:20px}.notice[hidden]{display:none}.notice-card{background:var(--color-surface);border-radius:12px;padding:24px;max-width:440px;box-shadow:var(--shadow-card)}.notice-card button{float:right}.sr-only{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden}@media(max-width:979px){body.report-shell .app{grid-template-columns:1fr;grid-template-rows:minmax(0,2fr) minmax(0,3fr);gap:14px}.preview-panel{grid-row:1}.controls-panel{grid-row:2}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 
 /* Reading order: plan, completion, achievement; then costs and exception details. */
@@ -44,6 +44,53 @@
 .editor-group-body{overflow:hidden}
 .editor-group-body>button{background:var(--color-accent-soft);border-color:transparent;color:var(--color-primary)}
 
+
+/* Dashboard composition follows the reference; all colors use the existing palette. */
+.report.dashboard-report{display:grid;grid-template-rows:135px minmax(0,1fr);gap:18px;padding:26px 32px;background:var(--color-canvas)}
+.dashboard-header{position:relative;text-align:center;border:1px solid var(--color-border);border-radius:10px;background:var(--color-surface);padding:12px 160px}
+.dashboard-header h1{font-size:31px;margin:0 0 5px;letter-spacing:2px}
+.dashboard-header p{font-size:20px;margin:0;line-height:1.6;color:var(--color-muted)}
+.dashboard-header strong{color:var(--color-primary);font-weight:700}
+.dashboard-period{position:absolute;right:20px;top:15px;font-size:21px;color:var(--color-muted)}
+.dashboard-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:148px 220px minmax(0,1fr);gap:16px;min-height:0}
+.dashboard-panel{height:100%;min-width:0;min-height:0;border:1px solid var(--color-border);border-radius:10px;background:var(--color-surface);padding:20px 22px}
+.dashboard-panel h2{font-size:21px;margin:0;color:var(--color-primary)}
+.dashboard-kpis{grid-column:1/7;grid-row:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.dashboard-kpi h2{font-size:19px;font-weight:500}
+.dashboard-kpi>strong{display:inline-block;font-size:48px;line-height:1.2;margin-top:14px;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.dashboard-kpi>span{font-size:18px;margin-left:7px;color:var(--color-muted)}
+.dashboard-kpi strong small{font-size:26px;margin-left:3px}
+.dashboard-type{grid-column:7/10;grid-row:1/3;min-height:0}
+.dashboard-result{grid-column:10/13;grid-row:1/3;min-height:0}
+.distribution-panel{display:flex;flex-direction:column;gap:16px}
+.distribution-ring{width:190px;height:190px;flex:0 0 190px;align-self:center;border-radius:50%;display:grid;place-items:center;margin:3px 0}
+.distribution-center{width:150px;height:150px;border-radius:50%;background:var(--color-surface);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px}
+.distribution-center strong{font-size:31px;font-variant-numeric:tabular-nums}
+.distribution-center>span{font-size:16px;color:var(--color-muted)}
+.distribution-legend{margin-top:auto;display:flex;flex-direction:column;gap:9px;font-size:17px}
+.distribution-legend>div{display:grid;grid-template-columns:12px minmax(0,1fr) auto 55px;align-items:center;gap:8px}
+.legend-marker{width:10px;height:10px;border-radius:2px}
+.distribution-legend strong{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+.distribution-legend small{font-size:15px;text-align:right;color:var(--color-muted)}
+.dashboard-bars{grid-column:1/7;grid-row:2/4;display:flex;flex-direction:column}
+.status-bars{display:flex;flex:1;flex-direction:column;justify-content:space-evenly;gap:12px;margin:12px 0}
+.status-bar-label{display:flex;justify-content:space-between;align-items:center;font-size:21px;margin-bottom:10px}
+.status-bar-label strong{font-size:26px;line-height:1;font-variant-numeric:tabular-nums}
+.status-bar-label small{font-size:17px;font-weight:400;color:var(--color-muted)}
+.status-track{height:15px;background:var(--color-muted-surface);border-radius:4px;overflow:hidden}
+.status-track>div{height:100%;min-width:0;border-radius:4px}
+.bar-footnote{font-size:16px;color:var(--color-muted);padding-top:12px;border-top:1px solid var(--color-divider)}
+.dashboard-finance{grid-column:7/13;grid-row:3;display:flex;flex-direction:column;gap:15px}
+.dashboard-costs{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.dashboard-costs>div{background:var(--color-accent-soft);padding:13px 16px;border-radius:8px;min-width:0}
+.dashboard-costs span{display:block;font-size:19px;color:var(--color-muted)}
+.dashboard-costs strong{font-size:30px;display:block;margin-top:6px;font-variant-numeric:tabular-nums}
+.dashboard-notes{min-height:0}
+.dashboard-notes h3{margin:0 0 5px;font-size:18px}
+.dashboard-notes p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:18px;line-height:1.5;margin:0;color:var(--color-muted)}
+.report.report-detail-page{grid-template-rows:64px minmax(0,1fr) 90px}
+
+.status-bar-value{display:flex;align-items:baseline;gap:5px}
 </style></head><body class="report-shell"><div class="app">
 <section class="controls-panel"><div class="controls"><h1>量測設備校驗管理月報</h1><div class="report-input-scroll"><label for="monthInput">報告月份</label><input id="monthInput" type="month"><div class="source-summary" id="sourceSummary"></div><input type="hidden" id="internalInput"><input type="hidden" id="externalInput"><input type="hidden" id="costInput"><input type="hidden" id="annualInput">
 <details class="group report-editor-group" data-editor-type="overdue" open><summary onclick="toggleEditorGroup(event,this)"><h2>逾校_設備明細</h2><span data-editor-count="overdue">0 件</span></summary><div class="editor-group-body"><div id="overdueEditor"></div><button type="button" onclick="addOverdue()">＋ 新增逾校設備</button></div></details>
@@ -85,18 +132,18 @@ function addItem(type,value){const group=$(EDITORS[type]).closest('details');gro
 function addOverdue(value){addItem('overdue',value)}function addNg(value){addItem('ng',value)}function addChange(value){addItem('changes',value)}
 function removeRow(type,i){const editor=$(EDITORS[type]),card=editor.querySelector(`[data-row="${i}"]`),ghost=card?.cloneNode(true),scroller=document.querySelector('.report-input-scroll'),top=scroller.scrollTop;state[type].splice(i,1);renderEditors();if(ghost){ghost.inert=true;ghost.setAttribute('aria-hidden','true');editor.insertBefore(ghost,editor.children[i]||null);animateRow(ghost,true)}scroller.scrollTop=top;update();appSaveDraftNow()}
 function validate(){const issues=[];if(state.overdue.length>getTotal())issues.push('逾校件數不可大於預計校驗總數');if(state.ng.length>getDone())issues.push('不合格件數不可大於本月已校驗完成件數');for(const type of Object.keys(EDITORS)){const seen=new Set();state[type].forEach((r,i)=>{if(!r.code?.trim()||!r.name?.trim()||!r.reason?.trim()||(type==='overdue'&&!r.date)||(type==='ng'&&r.action==='其他'&&!r.other?.trim()))issues.push(`${LABELS[type]}第 ${i+1} 筆資料尚未完整`);if(r.code?.trim()&&seen.has(r.code.trim()))issues.push(`${LABELS[type]}設備編號 ${r.code} 重複`);seen.add(r.code?.trim())})}return issues}
-function paginateDetails(){
+function paginateDetails(capacity=400){
  const makePage=()=>({overdue:[],ng:[],changes:[]});
  const pages=[makePage()];let used=0;
  for(const type of Object.keys(EDITORS)){
-  if(!state[type].length){if(used+42>400){pages.push(makePage());used=0}pages.at(-1)[type]=null;used+=42;continue}
+  if(!state[type].length){if(used+42>capacity){pages.push(makePage());used=0}pages.at(-1)[type]=null;used+=42;continue}
   for(const row of state[type]){
    const reasonLines=Math.max(1,Math.ceil(String(row.reason||'').length/40));
    const nameLines=Math.max(1,Math.ceil(String(row.name||'').length/18));
    const actionLines=Math.max(1,Math.ceil(String((type==='ng'&&row.action==='其他'?row.other:row.action)||'').length/12));
    const rowHeight=Math.max(reasonLines,nameLines,actionLines,type==='overdue'?2:1)*26+12;
    const heading=pages.at(-1)[type].length?0:78;
-   if(used+heading+rowHeight>400&&used){pages.push(makePage());used=0}
+   if(used+heading+rowHeight>capacity&&used){pages.push(makePage());used=0}
    const newHeading=pages.at(-1)[type].length?0:78;
    pages.at(-1)[type].push(row);used+=newHeading+rowHeight;
   }
@@ -106,22 +153,35 @@ function paginateDetails(){
 function detailTable(type,items){
  return `<table><colgroup><col style="width:17%"><col style="width:23%"><col style="width:40%"><col style="width:20%"></colgroup><thead><tr><th>設備編號</th><th>設備名稱</th><th>${type==='changes'?'異動原因':'原因'}</th><th>${type==='overdue'?'類別／預計完成':type==='ng'?'處置':'異動類型'}</th></tr></thead><tbody>${items.map(r=>`<tr><td>${esc(r.code)}</td><td>${esc(r.name)}</td><td>${esc(r.reason)}</td><td>${type==='overdue'?esc(r.type)+'<small>'+esc(r.date)+'</small>':esc(type==='ng'&&r.action==='其他'?r.other:r.action)}</td></tr>`).join('')}</tbody></table>`;
 }
+function reportDonut(title,segments,center,label){
+ const total=segments.reduce((sum,item)=>sum+item.value,0);let angle=0;
+ const stops=segments.filter(item=>item.value>0).map(item=>{const start=angle;angle+=item.value/total*360;return `${item.color} ${start}deg ${angle}deg`});
+ const background=total?`conic-gradient(${stops.join(',')})`:'var(--color-border)';
+ return `<section class="dashboard-panel distribution-panel"><h2>${title}</h2><div class="distribution-ring" style="background:${background}"><div class="distribution-center"><strong>${esc(center)}</strong><span>${label}</span></div></div><div class="distribution-legend">${segments.map(item=>`<div><span class="legend-marker" style="background:${item.color}"></span><span>${item.label}</span><strong>${fmt(item.value)} 件</strong><small>${total?(item.value/total*100).toFixed(1):'0.0'}%</small></div>`).join('')}</div></section>`;
+}
 function renderPreview(){
- const scroll=$('stage').scrollTop,pages=paginateDetails(),summaryParts=summaryText().match(/[\s\S]{1,160}/g)||[''];
- const count=Math.max(pages.length,summaryParts.length),rate=getRate();
- const value=(id,number,i)=>`<strong ${i?'':`id="${id}"`}>${fmt(number)}</strong>`;
- $('pages').innerHTML=Array.from({length:count},(_,i)=>`<div class="page-slot"><div class="report-wrap"><article class="report" ${i?'':'id="report"'}>
-  <header class="report-header"><h1>量測設備校驗管理月報</h1><div class="report-period">${esc(appCurrentMonth.replace('-',' / '))}</div></header>
-  <section class="report-highlights">
-   <div class="highlight-card"><span class="highlight-label">預計校驗總數</span><div class="highlight-number">${value('totalText',getTotal(),i)}<span>件</span></div><div class="highlight-breakdown"><span>內校 ${value('internalText',source.internal,i)}</span><span>外校 ${value('externalText',source.external,i)}</span></div></div>
-   <div class="highlight-card"><span class="highlight-label">本月已校驗完成</span><div class="highlight-number">${value('doneText',getDone(),i)}<span>件</span></div><div class="highlight-breakdown"><span>合格 ${value('passText',Math.max(0,getDone()-state.ng.length),i)}</span><span>不合格 ${value('failText',state.ng.length,i)}</span></div></div>
-   <div class="highlight-card highlight-rate"><div class="rate-ring" style="background:conic-gradient(var(--color-primary) ${Math.min(100,rate)*3.6}deg,var(--color-border) 0)"><div class="rate-center" ${i?'':'id="rateCenter"'}>${rate.toFixed(1)}%</div></div><div class="rate-description"><span class="highlight-label">達成率</span><div class="overdue-inline">逾校 ${value('overdueCountText',state.overdue.length,i)} 件</div></div></div>
-  </section>
-  <section class="report-secondary"><div class="fee"><span>本月外校費用</span><strong ${i?'':'id="costText"'}>NT$ ${fmt(source.cost)}</strong></div><div class="fee"><span>年度費用</span><strong ${i?'':'id="annualText"'}>NT$ ${fmt(annualTotal())}</strong></div><div class="fee change-summary"><span>異動件數</span><div>${value('changeCountText',state.changes.length,i)}<span> 件</span></div></div></section>
-  <section class="report-detail-stack">${Object.keys(EDITORS).map(type=>{const items=pages[i]?.[type];if(items===null)return `<section class="detail-empty-row"><h2>${LABELS[type]}_設備明細</h2><span>本月無${LABELS[type]}設備</span></section>`;if(!items?.length)return '';return `<section class="detail-card"><h2>${LABELS[type]}_設備明細<small>${state[type].length} 件</small></h2><div class="detail-body">${detailTable(type,items)}</div></section>`}).join('')}</section>
-  <section class="report-summary"><h2>總結／其他事項${i?'（續）':''}</h2><div class="summary-text">${esc(summaryParts[i]||'')}</div></section>
- </article></div></div>`).join('');
- fitPreview();$('stage').scrollTop=scroll;
+ const scroll=$('stage').scrollTop,pages=paginateDetails(620),summaryParts=summaryText().match(/[\s\S]{1,160}/g)||[''];
+ const hasDetails=Object.keys(EDITORS).some(type=>state[type].length),detailCount=Math.max(hasDetails?pages.length:0,summaryParts.length-1);
+ const pass=Math.max(0,getDone()-state.ng.length),rate=getRate(),total=getTotal();
+ const types=[{label:'內校',value:Number(source.internal)||0,color:'var(--color-primary)'},{label:'外校／遊校',value:Number(source.external)||0,color:'var(--color-focus)'}];
+ const unknown=Math.max(0,total-types.reduce((s,item)=>s+item.value,0));if(unknown)types.push({label:'未分類',value:unknown,color:'var(--color-subtle)'});
+ const results=[{label:'合格',value:pass,color:'var(--color-primary)'},{label:'不合格',value:state.ng.length,color:'var(--color-focus)'},{label:'逾校',value:state.overdue.length,color:'var(--color-subtle)'}];
+ const bars=[['本月已校驗完成',getDone(),'doneText'],['合格',pass,'passText'],['不合格',state.ng.length,'failText'],['逾校件數',state.overdue.length,'overdueCountText'],['異動件數',state.changes.length,'changeCountText']];
+ const max=Math.max(1,total,...bars.map(row=>row[1]));
+ const overview=`<div class="page-slot"><div class="report-wrap"><article class="report dashboard-report" id="report">
+ <header class="dashboard-header"><div class="dashboard-period">${esc(appCurrentMonth.replace('-',' / '))}</div><h1>量測設備校驗管理月報</h1><p>本月預計校驗 <strong>${fmt(total)}</strong> 件，已完成 <strong>${fmt(getDone())}</strong> 件，達成率 <strong>${rate.toFixed(1)}%</strong>。<br>內校 <span id="internalText">${fmt(source.internal)}</span> 件、外校 <span id="externalText">${fmt(source.external)}</span> 件；逾校 ${state.overdue.length} 件、不合格 ${state.ng.length} 件、異動 ${state.changes.length} 件。</p></header>
+ <section class="dashboard-grid">
+ <div class="dashboard-kpis"><section class="dashboard-panel dashboard-kpi"><h2>預計校驗總數</h2><strong id="totalText">${fmt(total)}</strong><span>件</span></section><section class="dashboard-panel dashboard-kpi"><h2>本月已校驗完成</h2><strong>${fmt(getDone())}</strong><span>件</span></section><section class="dashboard-panel dashboard-kpi"><h2>達成率</h2><strong id="rateCenter">${rate.toFixed(1)}<small>%</small></strong></section></div>
+ <div class="dashboard-type">${reportDonut('校驗方式分布',types,fmt(total),'預計校驗總數')}</div>
+ <div class="dashboard-result">${reportDonut('校驗結果分布',results,rate.toFixed(1)+'%','達成率')}</div>
+ <section class="dashboard-panel dashboard-bars"><h2>校驗件數與異動</h2><div class="status-bars">${bars.map(([label,count,id],i)=>`<div class="status-bar"><div class="status-bar-label"><span>${label}</span><span class="status-bar-value"><strong id="${id}">${fmt(count)}</strong><small> 件</small></span></div><div class="status-track"><div style="width:${count/max*100}%;background:${i<2?'var(--color-primary)':i===2?'var(--color-focus)':'var(--color-subtle)'}"></div></div></div>`).join('')}</div><div class="bar-footnote">異動件數獨立統計，不列入校驗結果占比。</div></section>
+ <section class="dashboard-panel dashboard-finance"><h2>費用概況</h2><div class="dashboard-costs"><div><span>本月外校費用</span><strong id="costText">NT$ ${fmt(source.cost)}</strong></div><div><span>年度費用</span><strong id="annualText">NT$ ${fmt(annualTotal())}</strong></div></div><div class="dashboard-notes"><h3>總結／其他事項</h3><p>${esc(summaryParts[0]||'')}</p></div></section>
+ </section></article></div></div>`;
+ const details=Array.from({length:detailCount},(_,i)=>`<div class="page-slot"><div class="report-wrap"><article class="report report-detail-page"><header class="report-header"><h1>量測設備校驗管理月報｜設備明細</h1><div class="report-period">${esc(appCurrentMonth.replace('-',' / '))}</div></header><section class="report-detail-stack">${Object.keys(EDITORS).map(type=>{const items=hasDetails?pages[i]?.[type]:undefined;if(items===null)return `<section class="detail-empty-row"><h2>${LABELS[type]}_設備明細</h2><span>本月無${LABELS[type]}設備</span></section>`;if(!items?.length)return '';return `<section class="detail-card"><h2>${LABELS[type]}_設備明細<small>${state[type].length} 件</small></h2><div class="detail-body">${detailTable(type,items)}</div></section>`}).join('')}</section><section class="report-summary">${summaryParts[i+1]?`<h2>總結／其他事項（續）</h2><div class="summary-text">${esc(summaryParts[i+1])}</div>`:''}</section></article></div></div>`).join('');
+ $('pages').innerHTML=overview+details;fitPreview();$('stage').scrollTop=scroll;
+ const finance=document.querySelector('.dashboard-finance'),note=finance.querySelector('.dashboard-notes p');
+ let noteSize=18;while(finance.scrollHeight>finance.clientHeight+1&&noteSize>12)note.style.fontSize=(--noteSize)+'px';
+ document.querySelectorAll('.dashboard-costs strong').forEach(el=>{let size=30;while(el.scrollWidth>el.clientWidth+1&&size>18)el.style.fontSize=(--size)+'px'});
  document.querySelectorAll('.report-detail-stack').forEach(stack=>{let size=20;while(stack.scrollHeight>stack.clientHeight+1&&size>11){size--;stack.querySelectorAll('td,th').forEach(e=>{e.style.fontSize=size+'px';e.style.paddingBlock=(size<16?3:5)+'px'})}});
 }
 function toggleEditorGroup(event,summary){
