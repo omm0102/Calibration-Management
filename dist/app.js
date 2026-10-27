@@ -160,21 +160,34 @@ function eventsForDay(events,date){
 }
 function moveCalendarWeek(direction){calendarMonth='';offset+=direction;selectedWeek=true;render()}
 function resetCalendarToday(){offset=0;calendarMonth='';selectedWeek=false;render()}
-function toggleEvent(id){
+function toggleEvent(id,source=''){
  const e=allEvents().find(e=>e.id===id);if(!e)return;
  if(e.done){
+  const previous=db.events[id];
+  for(const snapshot of previous?.internalProgressBefore||[]){
+   const row=db.rows.find(r=>r.key===snapshot.key);
+   if(row&&row.completed===previous.done&&row.p.slice(0,stages(row).length).every(Boolean)){row.p=snapshot.p;row.completed=snapshot.completed}
+  }
   if(e.auto)delete db.events[id];
   else Object.assign(db.manual.find(x=>x.id===id),{done:'',actionDate:''});
  }else{
   const completion={done:today(),actionDate:today()};
+  if(source==='today'&&e.auto&&e.type==='internal'&&e.start<=today()&&e.end>=today()){
+   completion.internalProgressBefore=[];
+   for(const equipment of e.rows||[]){
+    const row=db.rows.find(r=>r.key===equipment.key);if(!row||inactiveEquipment(row))continue;
+    completion.internalProgressBefore.push({key:row.key,p:[...row.p],completed:row.completed||''});
+    row.p=stages(row).map(()=>true);row.completed=today();
+   }
+  }
   if(e.auto)db.events[id]={...completion,signature:e.signature};
   else Object.assign(db.manual.find(x=>x.id===id),completion);
  }
  save();
 }
-function todo(e,late=false){return `<div class="todo ${eventClass(e)}"><button type="button" data-event-id="${esc(e.id)}" class="todo-name ${e.done?'done':''}" aria-pressed="${!!e.done}" title="${e.done?'點擊取消完成':'點擊標示完成'}" onclick="toggleEvent('${esc(e.id)}')">${esc(e.name)}</button>${late?`<small>${e.start.slice(5).replace('-','/')}${e.end!==e.start?'–'+e.end.slice(5).replace('-','/'):''}</small>`:''}</div>`}
+function todo(e,late=false){return `<div class="todo ${eventClass(e)}"><button type="button" data-event-id="${esc(e.id)}" class="todo-name ${e.done?'done':''}" aria-pressed="${!!e.done}" title="${e.done?'點擊取消完成':'點擊標示完成'}" onclick="toggleEvent('${esc(e.id)}','${late?'overdue':'today'}')">${esc(e.name)}</button>${late?`<small>${e.start.slice(5).replace('-','/')}${e.end!==e.start?'–'+e.end.slice(5).replace('-','/'):''}</small>`:''}</div>`}
 
-function renderCalendarContent(){let d=new Date(today()+'T12:00:00'),start=add(today(),-d.getDay()-7+Math.floor((offset+1)/5)*35),count=35;if(calendarMonth){let first=calendarMonth+'-01',f=new Date(first+'T12:00:00'),last=new Date(f.getFullYear(),f.getMonth()+1,0).getDate();start=add(first,-f.getDay());count=Math.ceil((f.getDay()+last)/7)*7}let focusStart=add(today(),-d.getDay()+offset*7),focusEnd=add(focusStart,6),displayMonth=calendarMonth||today().slice(0,7);let events=allEvents(),onToday=events.filter(e=>e.start&&today()>=e.start&&today()<=e.end&&(!e.done||e.actionDate===today())),late=events.filter(e=>e.end&&e.end<today()&&(!e.done||e.done===today())).sort((a,b)=>Number(!!a.done)-Number(!!b.done)||a.end.localeCompare(b.end));$('content').innerHTML=`<div class="calendar-workspace"><div class="toolbar calendar-toolbar"><button aria-label="上一週" onclick="moveCalendarWeek(-1)">‹</button><input aria-label="月曆年月" type="month" value="${displayMonth}" onchange="calendarMonth=this.value;selectedWeek=false;offset=0;render()"><button aria-label="下一週" onclick="moveCalendarWeek(1)">›</button><button onclick="resetCalendarToday()">回到今天</button><span class="spacer"></span><button class="primary" onclick="editManual(null,today())">＋ 新增行程</button></div><div class="cal-layout"><div class="calendar" style="--calendar-weeks:${count/7}">${['日','一','二','三','四','五','六'].map(s=>`<div class="weekday">${s}</div>`).join('')}${Array.from({length:count},(_,i)=>{let date=add(start,i),n=new Date(date+'T12:00:00').getDate(),inSelectedWeek=selectedWeek&&date>=focusStart&&date<=focusEnd;return `<div data-date="${date}" class="day ${i%7===0||i%7===6?'weekend':''} ${!selectedWeek&&date===today()?'today':''} ${date.slice(0,7)!==displayMonth?'other-month':''} ${inSelectedWeek?'selected-week':''} ${inSelectedWeek&&date===focusStart?'week-start':''} ${inSelectedWeek&&date===focusEnd?'week-end':''}" onclick="showDay('${date}')"><div class="daynum">${n}</div>${eventsForDay(events,date).map(e=>`<div class="event ${eventClass(e)}">${esc(e.name)}</div>`).join('')}</div>`}).join('')}</div><div class="right-rail"><section class="panel"><div class="section-head"><h2>待辦事項</h2><button class="todo-add" onclick="editManual(null,'')" aria-label="新增待辦事項"><span aria-hidden="true">＋</span></button></div>${[['internal','內校'],['external','外校'],['manual','其他']].map(([k,t])=>`<h3 class="muted">${t}</h3>${onToday.filter(e=>e.type===k&&!e.done).map(e=>todo(e)).join('')||'<div class="empty">目前沒有事項</div>'}`).join('')}<div class="divider"></div><h3>其他事項</h3>${events.filter(e=>!e.start&&!e.done).map(e=>todo(e)).join('')||'<div class="empty">目前沒有事項</div>'}${[...onToday,...events.filter(e=>!e.start&&e.actionDate===today())].some(e=>e.done)?`<div class="divider"></div><h3 class="muted">已完成</h3>${[...onToday,...events.filter(e=>!e.start&&e.actionDate===today())].filter(e=>e.done).map(e=>todo(e)).join('')}`:''}</section><section class="panel"><div class="section-head"><h2>逾期提醒</h2></div>${late.map(e=>todo(e,true)).join('')||'<div class="empty">目前沒有逾期事項</div>'}</section></div></div></div>`}
+function renderCalendarContent(){let d=new Date(today()+'T12:00:00'),start=add(today(),-d.getDay()-7+Math.floor((offset+1)/5)*35),count=35;if(calendarMonth){let first=calendarMonth+'-01',f=new Date(first+'T12:00:00'),last=new Date(f.getFullYear(),f.getMonth()+1,0).getDate();start=add(first,-f.getDay());count=Math.ceil((f.getDay()+last)/7)*7}let focusStart=add(today(),-d.getDay()+offset*7),focusEnd=add(focusStart,6),displayMonth=calendarMonth||today().slice(0,7);let events=allEvents(),onToday=events.filter(e=>e.start&&today()>=e.start&&today()<=e.end&&(!e.done||e.actionDate===today())),late=events.filter(e=>e.end&&e.end<today()&&(!e.done||e.done===today())).sort((a,b)=>Number(!!a.done)-Number(!!b.done)||a.end.localeCompare(b.end));$('content').innerHTML=`<div class="calendar-workspace"><div class="toolbar calendar-toolbar"><button aria-label="上一週" onclick="moveCalendarWeek(-1)">‹</button><input aria-label="月曆年月" type="month" value="${displayMonth}" onchange="calendarMonth=this.value;selectedWeek=false;offset=0;render()"><button aria-label="下一週" onclick="moveCalendarWeek(1)">›</button><button onclick="resetCalendarToday()">今日</button><span class="spacer"></span><button class="primary" onclick="editManual(null,today())">＋ 新增行程</button></div><div class="cal-layout"><div class="calendar" style="--calendar-weeks:${count/7}">${['日','一','二','三','四','五','六'].map(s=>`<div class="weekday">${s}</div>`).join('')}${Array.from({length:count},(_,i)=>{let date=add(start,i),n=new Date(date+'T12:00:00').getDate(),inSelectedWeek=selectedWeek&&date>=focusStart&&date<=focusEnd;return `<div data-date="${date}" class="day ${i%7===0||i%7===6?'weekend':''} ${!selectedWeek&&date===today()?'today':''} ${date.slice(0,7)!==displayMonth?'other-month':''} ${inSelectedWeek?'selected-week':''} ${inSelectedWeek&&date===focusStart?'week-start':''} ${inSelectedWeek&&date===focusEnd?'week-end':''}" onclick="showDay('${date}')"><div class="daynum">${n}</div>${eventsForDay(events,date).map(e=>`<div class="event ${eventClass(e)}">${esc(e.name)}</div>`).join('')}</div>`}).join('')}</div><div class="right-rail"><section class="panel"><div class="section-head"><h2>待辦事項</h2><button class="todo-add" onclick="editManual(null,'')" aria-label="新增待辦事項"><span aria-hidden="true">＋</span></button></div>${[['internal','內校'],['external','外校'],['manual','其他']].map(([k,t])=>`<h3 class="muted">${t}</h3>${onToday.filter(e=>e.type===k&&!e.done).map(e=>todo(e)).join('')||'<div class="empty">目前沒有事項</div>'}`).join('')}<div class="divider"></div><h3>其他事項</h3>${events.filter(e=>!e.start&&!e.done).map(e=>todo(e)).join('')||'<div class="empty">目前沒有事項</div>'}${[...onToday,...events.filter(e=>!e.start&&e.actionDate===today())].some(e=>e.done)?`<div class="divider"></div><h3 class="muted">已完成</h3>${[...onToday,...events.filter(e=>!e.start&&e.actionDate===today())].filter(e=>e.done).map(e=>todo(e)).join('')}`:''}</section><section class="panel"><div class="section-head"><h2>逾期提醒</h2></div>${late.map(e=>todo(e,true)).join('')||'<div class="empty">目前沒有逾期事項</div>'}</section></div></div></div>`}
 let calendarFrameObserver;
 function renderCalendar(){
  const oldFrame=document.querySelector('.calendar-focus-frame')?.getBoundingClientRect();
@@ -467,7 +480,7 @@ function finishQuote(input){
 function renderReport(){
  const previous=$('reportframe')?.contentWindow;
  if(previous&&typeof previous.appSaveDraftNow==='function')previous.appSaveDraftNow();
- $('content').innerHTML=`<iframe id="reportframe" class="report-workspace" title="量測設備校驗管理月報" src="report.html?v=20261027-91"></iframe>`;
+ $('content').innerHTML=`<iframe id="reportframe" class="report-workspace" title="量測設備校驗管理月報" src="report.html?v=20261027-92"></iframe>`;
  $('reportframe').onload=()=>{
   const w=$('reportframe').contentWindow;
   try{

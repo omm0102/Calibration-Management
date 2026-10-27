@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>量測設備校驗管理月報</title><link rel="stylesheet" href="theme.css?v=20261027-91"><style>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>量測設備校驗管理月報</title><link rel="stylesheet" href="theme.css?v=20261027-92"><style>
 *{box-sizing:border-box}body{margin:0;font:17px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft JhengHei',sans-serif;background:var(--color-canvas);color:var(--color-text)}button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer;padding:9px 13px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-surface);transition:background .2s,border-color .2s}button:hover{background:var(--color-accent-soft)}button.primary{background:var(--color-primary);color:var(--color-surface);border-color:var(--color-primary)}button:disabled{opacity:.5;cursor:wait}input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-surface)}input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}textarea{resize:vertical;min-height:90px}label{display:block;color:var(--color-muted);margin-bottom:4px;font-size:15px}h2{font-size:18px;margin:0 0 12px;color:var(--color-primary)}.app{display:grid;gap:22px;padding:0;height:100dvh}body.report-shell .app{grid-template-columns:340px minmax(0,1fr)}.controls-panel{min-width:0}.controls{min-height:0;height:100%;display:flex;flex-direction:column}.controls>h1{display:none}.report-input-scroll{padding-right:10px}.group{margin-top:18px;padding-top:18px;border-top:1px solid var(--color-border)}.group>button{background:var(--color-accent-soft);color:var(--color-primary);border-color:transparent}.rowcard{background:var(--color-soft);border:1px solid var(--color-border);border-radius:10px;padding:12px;margin-bottom:12px;overflow:hidden}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rowcard .full{grid-column:1/-1}.rowcard .actions{display:flex;justify-content:flex-end;margin-top:8px}.lookup-note{font-size:13px;color:var(--color-muted);margin-top:6px}.lookup-note.warning{color:var(--color-warning-text)}.report-delete-icon{color:var(--color-danger);border:0;background:transparent;width:38px;height:38px;display:grid;place-items:center;padding:8px}.source-summary{display:flex;gap:8px;flex-wrap:wrap;color:var(--color-muted);font-size:14px;margin-top:12px}.source-summary span{padding:4px 7px;border-radius:5px;background:var(--color-accent-soft)}.report-footer{flex:none;padding-top:12px;margin-top:12px;border-top:1px solid var(--color-border)}#exportPdfBtn{width:100%;min-height:44px}.errorbox{color:var(--color-danger);font-size:14px;margin-top:12px}.stage{height:100%;overflow:auto;overscroll-behavior:contain;padding:8px}.page-slot{position:relative;margin:0 auto 20px}.report-wrap{position:absolute;left:0;top:0;transform-origin:top left}.report{width:1600px;height:900px;background:var(--color-surface);color:var(--color-primary);padding:36px 44px;display:grid;grid-template-rows:70px 166px 80px minmax(0,1fr) 100px;gap:18px;border-radius:8px;box-shadow:var(--shadow-card);font-family:'Microsoft JhengHei','Segoe UI',sans-serif}.report-header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--color-primary);padding-bottom:14px}.report-header h1{font-size:34px;letter-spacing:2px;margin:0}.report-period{text-align:right;font-size:26px;font-weight:600}.report-period small{display:block;font-size:14px;font-weight:400;color:var(--color-muted)}.overview{display:grid;grid-template-columns:minmax(0,1fr) 205px;gap:20px}.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.metric{border:1px solid var(--color-border);border-radius:10px;padding:9px 18px;background:var(--color-soft);display:flex;align-items:center;justify-content:space-between;gap:8px}.metric strong{font-size:34px;line-height:1.2;font-variant-numeric:tabular-nums}.metric span{font-size:18px}.metric:first-child{background:var(--color-accent-soft);border-color:var(--color-focus)}.rate-panel{border:1px solid var(--color-border);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:7px}.rate-ring{width:110px;height:110px;border-radius:50%;display:grid;place-items:center}.rate-center{width:90px;height:90px;border-radius:50%;background:var(--color-surface);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700}.fees{display:grid;grid-template-columns:1fr 1fr;gap:18px}.fee{display:flex;align-items:center;justify-content:space-between;background:var(--color-accent-soft);border-radius:10px;padding:14px 22px}.fee span{font-size:21px}.fee strong{font-size:33px;font-variant-numeric:tabular-nums}.details-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;min-height:0}.detail-card{border:1px solid var(--color-border);border-radius:10px;min-height:0;display:flex;flex-direction:column}.detail-card h2{margin:0;padding:12px 16px;background:var(--color-primary);color:var(--color-surface);border-radius:9px 9px 0 0;font-size:21px;display:flex;justify-content:space-between;gap:10px}.detail-card h2 small{font-weight:400;font-size:17px}.detail-body{padding:8px 12px;flex:1;min-height:0}.detail-body table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:17px}.detail-body th{background:var(--color-soft);color:var(--color-muted);font-size:15px;font-weight:500}.detail-body :is(th,td){text-align:left;vertical-align:top;padding:7px 5px;border-bottom:1px solid var(--color-divider);overflow-wrap:anywhere;white-space:pre-wrap}.detail-body td:first-child{font-weight:600}.detail-body td small{display:block;font-weight:400;color:var(--color-muted)}.detail-empty{height:100%;display:flex;align-items:center;justify-content:center;color:var(--color-muted);font-size:21px}.report-summary{border-top:1px solid var(--color-border);padding-top:10px;min-height:0}.report-summary h2{font-size:20px;margin:0 0 5px}.summary-text{font-size:19px;white-space:pre-wrap;line-height:1.55;overflow-wrap:anywhere}.preview-panel{min-width:0;min-height:0}.page-index{text-align:center;font-size:13px;color:var(--color-muted);padding:0 0 6px}.notice{position:fixed;inset:0;background:var(--color-overlay);display:grid;place-items:center;z-index:10;padding:20px}.notice[hidden]{display:none}.notice-card{background:var(--color-surface);border-radius:12px;padding:24px;max-width:440px;box-shadow:var(--shadow-card)}.notice-card button{float:right}.sr-only{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden}@media(max-width:979px){body.report-shell .app{grid-template-columns:1fr;grid-template-rows:minmax(0,2fr) minmax(0,3fr);gap:14px}.preview-panel{grid-row:1}.controls-panel{grid-row:2}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 
 /* Reading order: plan, completion, achievement; then costs and exception details. */
@@ -120,6 +120,63 @@
 .single-notes h2{font-size:19px;margin:0 0 8px}
 .single-notes p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:18px;line-height:1.5;margin:0;color:var(--color-muted)}
 
+
+/* Return to the original three-column monthly report with navy title bands. */
+.report.classic-report{display:grid;position:relative;grid-template-rows:102px minmax(0,1fr) 124px;gap:16px;padding:18px;background:var(--color-surface);color:var(--color-primary)}
+.classic-report-header{text-align:center;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.classic-title-line{display:flex;align-items:center;gap:24px}
+.classic-title-line>span{flex:1;height:4px;background:var(--color-primary)}
+.classic-title-line h1{margin:0;font-size:40px;letter-spacing:3px;white-space:nowrap}
+.classic-period{font-size:27px;font-weight:600}
+.classic-columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;min-height:0}
+.classic-column{display:grid;gap:16px;min-height:0}
+.classic-first-column{grid-template-rows:minmax(0,1.05fr) minmax(0,1fr)}
+.classic-middle-column{grid-template-rows:268px minmax(0,1fr)}
+.classic-last-column{min-height:0}
+.classic-card{border:3px solid var(--color-primary);border-radius:22px;background:var(--color-surface);min-height:0;display:flex;flex-direction:column}
+.classic-card>h2{display:flex;justify-content:center;align-items:center;gap:15px;border-radius:17px 17px 0 0;margin:0;padding:10px 12px;background:var(--color-primary);color:var(--color-surface);font-size:27px;font-weight:500;line-height:1.25;flex:none}
+.classic-card>h2 small{font-size:18px;font-weight:400}
+.classic-overview-body{padding:18px;display:flex;flex-direction:column;justify-content:space-around;flex:1;min-height:0}
+.classic-total{display:flex;justify-content:center;gap:24px;align-items:center}
+.classic-total>div>span{display:block;font-size:24px}
+.classic-total strong{font-size:57px;line-height:1.3;display:block;font-variant-numeric:tabular-nums}
+.classic-total strong small{font-size:23px;font-weight:400}
+.classic-type-counts{display:grid;grid-template-columns:1fr 1fr;gap:15px;border-top:1px solid var(--color-border);padding-top:12px;text-align:center}
+.classic-type-counts>div>span{display:block;color:var(--color-muted);font-size:22px}
+.classic-type-counts strong{font-size:37px;font-variant-numeric:tabular-nums;margin-right:8px}
+.classic-type-counts small{font-size:20px}
+.classic-cost-body{flex:1;display:flex;flex-direction:column;justify-content:space-evenly;min-height:0;padding:8px 20px}
+.classic-cost-body>div{position:relative;padding:6px 12px;text-align:center}
+.classic-cost-body>div+div{border-top:1px solid var(--color-border);padding-top:10px}
+.classic-cost-body svg{position:absolute;left:0;top:8px;width:45px;height:45px}
+.classic-cost-body span{display:block;font-size:23px;color:var(--color-muted)}
+.classic-cost strong{display:block;font-size:43px;font-variant-numeric:tabular-nums;line-height:1.4}
+.classic-result-body{display:grid;grid-template-columns:minmax(0,1fr) 155px;align-items:center;gap:10px;flex:1;min-height:0;padding:14px 16px}
+.classic-done>span{font-size:22px;display:block}
+.classic-done>strong{font-size:54px;display:block;font-variant-numeric:tabular-nums;line-height:1.3}
+.classic-done>strong small{font-size:21px;font-weight:400}
+.classic-result-counts{display:flex;gap:13px;font-size:19px;margin-top:10px}
+.classic-result-counts b{font-size:23px;margin-left:4px}
+.classic-rate{text-align:center}
+.classic-rate-ring{width:145px;height:145px;border-radius:50%;display:grid;place-items:center;margin:0 auto 5px}
+.classic-rate-ring>div{width:117px;height:117px;display:grid;place-items:center;background:var(--color-surface);border-radius:50%;font-size:28px;font-weight:700}
+.classic-rate>span{font-size:20px}
+.classic-fit{flex:1;min-height:0;padding:10px 8px}
+.classic-detail-content .detail-empty{height:100%}
+.classic-detail-content table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:21px}
+.classic-detail-content :is(th,td){padding:6px 5px;text-align:left;vertical-align:top;overflow-wrap:anywhere;white-space:pre-wrap;border-bottom:1px solid var(--color-border);line-height:1.3}
+.classic-detail-content th{font-weight:500;background:var(--color-soft);color:var(--color-muted);font-size:18px}
+.classic-detail-content td small{display:block;font-size:.85em;color:var(--color-muted)}
+.classic-empty{font-size:25px;color:var(--color-muted);text-align:center;padding:30px 8px}
+.classic-summary>h2{padding:6px 12px;font-size:25px}
+.classic-summary-body{min-height:0;flex:1;padding:8px 18px}
+.classic-summary-body p{margin:0;font-size:23px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
+
+.classic-detail-content col:nth-child(1){width:24%!important}
+.classic-detail-content col:nth-child(2){width:26%!important}
+.classic-detail-content col:nth-child(3){width:30%!important}
+.classic-detail-content col:nth-child(4){width:20%!important}
+.classic-detail-content td small{font-size:15px;white-space:nowrap}
 </style></head><body class="report-shell"><div class="app">
 <section class="controls-panel"><div class="controls"><h1>量測設備校驗管理月報</h1><div class="report-input-scroll"><label for="monthInput">報告月份</label><input id="monthInput" type="month"><div class="source-summary" id="sourceSummary"></div><input type="hidden" id="internalInput"><input type="hidden" id="externalInput"><input type="hidden" id="costInput"><input type="hidden" id="annualInput">
 <details class="group report-editor-group" data-editor-type="overdue" open><summary onclick="toggleEditorGroup(event,this)"><h2>逾校_設備明細</h2><span data-editor-count="overdue">0 件</span></summary><div class="editor-group-body"><div id="overdueEditor"></div><button type="button" onclick="addOverdue()">＋ 新增逾校設備</button></div></details>
@@ -170,24 +227,37 @@ function reportDonut(title,segments,center,label){
  const background=total?`conic-gradient(${stops.join(',')})`:'var(--color-border)';
  return `<section class="dashboard-panel distribution-panel"><h2>${title}</h2><div class="distribution-ring" style="background:${background}"><div class="distribution-center"><strong>${esc(center)}</strong><span>${label}</span></div></div><div class="distribution-legend">${segments.map(item=>`<div><span class="legend-marker" style="background:${item.color}"></span><span>${item.label}</span><strong>${fmt(item.value)} 件</strong><small>${total?(item.value/total*100).toFixed(1):'0.0'}%</small></div>`).join('')}</div></section>`;
 }
+function classicIcon(type){
+ const paths=type==='calendar'?'<rect x="5" y="8" width="38" height="35" rx="5"/><path d="M5 19h38M15 4v10M33 4v10M14 27h7m7 0h7M14 35h7m7 0h7"/>':'<ellipse cx="24" cy="12" rx="16" ry="7"/><path d="M8 12v24c0 4 7 8 16 8s16-4 16-8V12M8 24c0 4 7 8 16 8s16-4 16-8"/>';
+ return `<svg viewBox="0 0 48 48" width="62" height="62" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+}
 function fitSingleReport(){
- const box=document.querySelector('.single-details'),content=document.querySelector('.single-details-content');if(!box||!content)return;
- let font=20;
- while(content.scrollHeight>box.clientHeight&&font>12){font--;content.querySelectorAll('td,th').forEach(cell=>{cell.style.fontSize=font+'px';cell.style.paddingBlock=(font<16?3:5)+'px'})}
- if(content.scrollHeight>box.clientHeight){const scale=Math.min(1,box.clientHeight/content.scrollHeight);content.style.width=(100/scale)+'%';content.style.transform=`scale(${scale})`;content.style.transformOrigin='top left'}
- const notes=document.querySelector('.single-notes'),text=notes?.querySelector('p');if(notes&&text){let size=18;while(notes.scrollHeight>notes.clientHeight&&size>11)text.style.fontSize=(--size)+'px';if(notes.scrollHeight>notes.clientHeight){const available=Math.max(1,notes.getBoundingClientRect().bottom-text.getBoundingClientRect().top-14);const scale=Math.min(1,available/text.getBoundingClientRect().height);text.style.transform=`scale(${scale})`;text.style.transformOrigin='top left'}}
- document.querySelectorAll('.single-fee strong').forEach(el=>{let size=29;while(el.scrollWidth>el.clientWidth&&size>17)el.style.fontSize=(--size)+'px'});
+ document.querySelectorAll('.classic-fit').forEach(box=>{
+  const content=box.querySelector('.classic-detail-content');if(!content)return;
+  const boxStyle=getComputedStyle(box),available=box.clientHeight-parseFloat(boxStyle.paddingTop)-parseFloat(boxStyle.paddingBottom);let font=21;
+  while(content.scrollHeight>available&&font>12){font--;content.querySelectorAll('td,th').forEach(cell=>{cell.style.fontSize=font+'px';cell.style.paddingBlock=(font<16?3:5)+'px'})}
+  if(content.scrollHeight>available){const scale=Math.min(1,available/content.scrollHeight);content.style.width=(100/scale)+'%';content.style.transform=`scale(${scale})`;content.style.transformOrigin='top left'}
+ });
+ const summary=document.querySelector('.classic-summary-body'),text=summary.querySelector('p');let size=23;
+ while(summary.scrollHeight>summary.clientHeight&&size>12)text.style.fontSize=(--size)+'px';
+ if(summary.scrollHeight>summary.clientHeight){const scale=summary.clientHeight/summary.scrollHeight;text.style.transform=`scale(${scale})`;text.style.transformOrigin='top left'}
+ document.querySelectorAll('.classic-cost strong').forEach(el=>{let size=43;while(el.scrollWidth>el.clientWidth&&size>20)el.style.fontSize=(--size)+'px'});
 }
 function renderPreview(){
  const scroll=$('stage').scrollTop,total=getTotal(),done=getDone(),pass=Math.max(0,done-state.ng.length),rate=getRate();
- const results=[{label:'合格',value:pass,color:'var(--color-primary)'},{label:'不合格',value:state.ng.length,color:'var(--color-focus)'},{label:'逾校',value:state.overdue.length,color:'var(--color-subtle)'}];
- $('pages').innerHTML=`<div class="page-slot"><div class="report-wrap"><article class="report single-report" id="report">
- <header class="dashboard-header"><div class="dashboard-period">${esc(appCurrentMonth.replace('-',' / '))}</div><h1>量測設備校驗管理月報</h1><p>本月預計校驗 <strong>${fmt(total)}</strong> 件，已完成 <strong>${fmt(done)}</strong> 件，達成率 <strong>${rate.toFixed(1)}%</strong>。<br>內校 <span id="internalText">${fmt(source.internal)}</span> 件、外校 <span id="externalText">${fmt(source.external)}</span> 件；逾校 <span id="overdueCountText">${state.overdue.length}</span> 件、不合格 <span id="failText">${state.ng.length}</span> 件、異動 <span id="changeCountText">${state.changes.length}</span> 件。</p></header>
- <section class="single-report-grid">
- <div class="dashboard-kpis single-kpis"><section class="dashboard-panel dashboard-kpi"><h2>預計校驗總數</h2><strong id="totalText">${fmt(total)}</strong><span>件</span></section><section class="dashboard-panel dashboard-kpi"><h2>本月已校驗完成</h2><strong id="doneText">${fmt(done)}</strong><span>件</span></section><section class="dashboard-panel dashboard-kpi"><h2>達成率</h2><strong id="rateCenter">${rate.toFixed(1)}<small>%</small></strong></section></div>
- <div class="single-details"><div class="single-details-content">${Object.keys(EDITORS).map(type=>state[type].length?`<section class="detail-card"><h2>${LABELS[type]}_設備明細<small>${state[type].length} 件</small></h2><div class="detail-body">${detailTable(type,state[type])}</div></section>`:`<section class="detail-empty-row"><h2>${LABELS[type]}_設備明細</h2><span>本月無${LABELS[type]}設備</span></section>`).join('')}</div></div>
- <aside class="single-sidebar">${reportDonut('校驗結果分布',results,rate.toFixed(1)+'%','達成率')}<div class="single-fee"><span>本月外校費用</span><strong id="costText">NT$ ${fmt(source.cost)}</strong></div><div class="single-fee"><span>年度費用</span><strong id="annualText">NT$ ${fmt(annualTotal())}</strong></div><section class="dashboard-panel single-notes"><h2>總結／其他事項</h2><p>${esc(summaryText())}</p></section></aside>
- </section><span class="sr-only" id="passText">${fmt(pass)}</span></article></div></div>`;
+ const detail=type=>`<section class="classic-card classic-detail classic-${type}"><h2>${LABELS[type]}_設備明細 <small>${state[type].length} 件</small></h2><div class="classic-fit"><div class="classic-detail-content">${state[type].length?detailTable(type,state[type]):`<div class="classic-empty">本月無${LABELS[type]}設備</div>`}</div></div></section>`;
+ const overdueWeight=Math.max(1,state.overdue.length*1.3),ngWeight=Math.max(1,state.ng.length),overdueShare=Math.max(30,Math.min(70,overdueWeight/(overdueWeight+ngWeight)*100));
+ $('pages').innerHTML=`<div class="page-slot"><div class="report-wrap"><article class="report classic-report" id="report">
+ <header class="classic-report-header"><div class="classic-title-line"><span></span><h1>量測設備校驗管理月報</h1><span></span></div><div class="classic-period">${esc(appCurrentMonth.replace('-',' / '))}</div></header>
+ <div class="classic-columns">
+  <div class="classic-column classic-first-column"><section class="classic-card classic-overview"><h2>本月校驗概況</h2><div class="classic-overview-body"><div class="classic-total">${classicIcon('calendar')}<div><span>預計校驗總數</span><strong><span id="totalText">${fmt(total)}</span><small> 件</small></strong></div></div><div class="classic-type-counts"><div><span>內校</span><strong id="internalText">${fmt(source.internal)}</strong><small>件</small></div><div><span>外校／遊校</span><strong id="externalText">${fmt(source.external)}</strong><small>件</small></div></div></div></section>
+  <section class="classic-card classic-cost"><h2>外校費用</h2><div class="classic-cost-body"><div>${classicIcon('cost')}<span>本月外校費用</span><strong id="costText">NT$ ${fmt(source.cost)}</strong></div><div><span>年度費用</span><strong id="annualText">NT$ ${fmt(annualTotal())}</strong></div></div></section></div>
+  <div class="classic-column classic-middle-column"><section class="classic-card classic-result"><h2>校驗成果</h2><div class="classic-result-body"><div class="classic-done"><span>本月已校驗完成</span><strong><span id="doneText">${fmt(done)}</span><small> 件</small></strong><div class="classic-result-counts"><span>合格 <b id="passText">${fmt(pass)}</b></span><span>不合格 <b id="failText">${state.ng.length}</b></span></div></div><div class="classic-rate"><div class="classic-rate-ring" style="background:conic-gradient(var(--color-primary) ${rate*3.6}deg,var(--color-border) 0)"><div id="rateCenter">${rate.toFixed(1)}%</div></div><span>達成率</span></div></div></section>${detail('changes')}</div>
+  <div class="classic-column classic-last-column" style="grid-template-rows:minmax(0,${overdueShare}fr) minmax(0,${100-overdueShare}fr)">${detail('overdue')}${detail('ng')}</div>
+ </div>
+ <section class="classic-card classic-summary"><h2>總結／其他事項</h2><div class="classic-summary-body"><p>${esc(summaryText())}</p></div></section>
+ <span class="sr-only" id="overdueCountText">${state.overdue.length}</span><span class="sr-only" id="changeCountText">${state.changes.length}</span>
+ </article></div></div>`;
  fitSingleReport();fitPreview();$('stage').scrollTop=scroll;
 }
 function toggleEditorGroup(event,summary){
