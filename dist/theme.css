@@ -305,3 +305,5 @@ body.app-shell .progress-date-controls button{width:116px;flex-basis:116px}
 .internal-equipment-table{min-width:1150px}
 .internal-equipment-table .registry-column-head{justify-content:center}
 .internal-equipment-table td:nth-child(3),.internal-equipment-table td:nth-child(4){white-space:normal;overflow-wrap:anywhere}
+
+.equipment-batch-add{padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--color-divider)}
