@@ -41,11 +41,34 @@ function normalizeExternalStages(){
   r.externalStageVersion=2;
  }
 }
+function monthlyFilterMemory(key=month){
+ db.settings.monthFilterMemory??={};
+ return db.settings.monthFilterMemory[key]??={registryFilters:{},registrySearches:{},internalProgressFilters:{},internalSortKey:'date',internalSortDir:1,registrySortKey:'id',registrySortDir:1};
+}
+function initializeMonthlyFilters(){
+ if(!db.settings.monthFilterMemory){
+  const state=monthlyFilterMemory();
+  Object.assign(state,{registryFilters:db.settings.registryFilters||{},registrySearches:db.settings.registrySearches||{},internalProgressFilters:db.settings.internalProgressFilters||{},internalSortKey:db.settings.internalSortKey||'date',internalSortDir:db.settings.internalSortDir||1});
+ }
+}
+initializeMonthlyFilters();
+let filterMemoryMonth=month;
+function saveMonthlyFilters(){
+ const state=monthlyFilterMemory(filterMemoryMonth);
+ Object.assign(state,{registryFilters,internalProgressFilters,internalSortKey,internalSortDir,registrySortKey:sortKey,registrySortDir:sortDir});
+}
+function loadMonthlyFilters(){
+ const state=monthlyFilterMemory();filterMemoryMonth=month;
+ registryFilters=state.registryFilters;internalProgressFilters=state.internalProgressFilters;
+ internalSortKey=state.internalSortKey;internalSortDir=state.internalSortDir;sortKey=state.registrySortKey;sortDir=state.registrySortDir;
+ internalRegistryQuery=state.registrySearches['內校']||'';
+ query=page==='registry'?(state.registrySearches[tab]||''):page==='internal'?(state.internalSearch||''):'';
+}
 function persist(){localStorage.setItem(KEY,JSON.stringify(db))}function save(){persist();render()}function toast(t){$('toast').textContent=t;$('toast').classList.add('visible');setTimeout(()=>$('toast').classList.remove('visible'),2500)}
 const rows=()=>db.rows.filter(r=>r.month===month);const months=()=>[...new Set(db.rows.map(r=>r.month))].sort();const complete=r=>!!r.p[r.type==='內校'?2:r.type==='外校'?5:3];const stages=r=>r.type==='內校'?['預計校驗日','收件確認','已完成']:r.type==='外校'?['已提供報價單','請購單','外送單','設備確認','寄出／收件時間','已完成']:['已提供報價單','請購單','遊校日期','已完成'];
 tab=db.settings.registryTab||tab;
-let internalRegistryQuery=db.settings.registrySearches?.['內校']||'';
-function go(p){if(page==='registry'&&tab==='內校')internalRegistryQuery=query;page=p;query=p==='registry'?(db.settings.registrySearches?.[tab]||''):'';status='all';render()}window.go=go;
+let internalRegistryQuery=monthlyFilterMemory().registrySearches['內校']||'';
+function go(p){if(page==='registry'&&tab==='內校')internalRegistryQuery=query;page=p;query=p==='registry'?(monthlyFilterMemory().registrySearches[tab]||''):p==='internal'?(monthlyFilterMemory().internalSearch||''):'';status='all';render()}window.go=go;
 function hasMissingExternalVendor(){return db.rows.some(r=>['外校','遊校'].includes(r.type)&&!String(r.vendor??'').trim())}
 function sidebarIcon(id){
  const shapes={
@@ -82,12 +105,15 @@ function restorePageScroll(state){
 }
 function render(){
  normalizeExternalStages();
- if(page==='internal'){db.settings.internalProgressFilters=internalProgressFilters;db.settings.internalSortKey=internalSortKey;db.settings.internalSortDir=internalSortDir;persist()}
- if(page==='registry'){db.settings.registryFilters=registryFilters;db.settings.registrySearches??={};db.settings.registrySearches[tab]=query;db.settings.registryTab=tab;internalRegistryQuery=db.settings.registrySearches['內校']||'';persist()}
+ if(filterMemoryMonth!==month){saveMonthlyFilters();loadMonthlyFilters()}
+ const memory=monthlyFilterMemory();
+ if(page==='registry'){memory.registrySearches[tab]=query;db.settings.registryTab=tab;internalRegistryQuery=memory.registrySearches['內校']||''}
+ if(page==='internal')memory.internalSearch=query;
+ saveMonthlyFilters();persist();
  const scroll=document.body.dataset.page===page?capturePageScroll():null;
  renderPage();if(scroll)restorePageScroll(scroll);
 }
-function renderPage(){const previousNavRect=$('nav').querySelector('button.active')?.getBoundingClientRect();document.body.dataset.page=page;closeRegistryFilter();let ms=months();if(page!=='report'&&!ms.includes(month))month=ms.includes(today().slice(0,7))?today().slice(0,7):ms.at(-1)||'';$('nav').innerHTML=nav.map(([g,items])=>`<div class="navgroup"><label>${g}</label>${items.map(([id,t,ic])=>`<button class="${page===id?'active':''} ${id==='registry'?'registry-nav-button':''}" onclick="go('${id}')">${sidebarIcon(id)}<span class="sidebar-label">${t}</span>${id==='registry'&&hasMissingExternalVendor()?'<span class="registry-warning-badge" role="img" aria-label="外校設備未填寫廠商" title="外校設備未填寫廠商">!!!</span>':''}</button>`).join('')}</div>`).join('');updateSidebarIndicator(previousNavRect);$('title').textContent=nav.flatMap(n=>n[1]).find(n=>n[0]===page)[1];$('monthbox').innerHTML=!['calendar','import','backup','registry','report','external','cost','internal'].includes(page)?`<select onchange="month=this.value;render()" ${ms.length?'':'disabled'}>${ms.map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select>`:'';({calendar:renderCalendar,registry:renderRegistry,external:renderProgress,internal:renderProgress,cost:renderCost,report:renderReport,import:renderImport,backup:renderBackup}[page])()}
+function renderPage(){const previousNavRect=$('nav').querySelector('button.active')?.getBoundingClientRect();document.body.dataset.page=page;closeRegistryFilter();let ms=months();if(page!=='report'&&!ms.includes(month))month=ms.includes(today().slice(0,7))?today().slice(0,7):ms.at(-1)||'';if(filterMemoryMonth!==month){saveMonthlyFilters();loadMonthlyFilters()}$('nav').innerHTML=nav.map(([g,items])=>`<div class="navgroup"><label>${g}</label>${items.map(([id,t,ic])=>`<button class="${page===id?'active':''} ${id==='registry'?'registry-nav-button':''}" onclick="go('${id}')">${sidebarIcon(id)}<span class="sidebar-label">${t}</span>${id==='registry'&&hasMissingExternalVendor()?'<span class="registry-warning-badge" role="img" aria-label="外校設備未填寫廠商" title="外校設備未填寫廠商">!!!</span>':''}</button>`).join('')}</div>`).join('');updateSidebarIndicator(previousNavRect);$('title').textContent=nav.flatMap(n=>n[1]).find(n=>n[0]===page)[1];$('monthbox').innerHTML=!['calendar','import','backup','registry','report','external','cost','internal'].includes(page)?`<select onchange="month=this.value;render()" ${ms.length?'':'disabled'}>${ms.map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select>`:'';({calendar:renderCalendar,registry:renderRegistry,external:renderProgress,internal:renderProgress,cost:renderCost,report:renderReport,import:renderImport,backup:renderBackup}[page])()}
 // Fixed monthly tasks start in the month this feature is first enabled.
 function fixedMonthlyEvents(){
  if(!db.settings.fixedScheduleStart){db.settings.fixedScheduleStart=today().slice(0,7);persist()}
@@ -228,7 +254,7 @@ function editManual(id,date){
  });
 }
 
-let cols=[['id','設備編號'],['name','設備名稱'],['asset','資產編號'],['unit','保管單位'],['owner','保管人'],['type','校驗方式'],['vendor','實驗室及廠商'],['instrumentStatus','儀器狀態'],['due','有效日期']];let sortKey='id',sortDir=1;
+let cols=[['id','設備編號'],['name','設備名稱'],['asset','資產編號'],['unit','保管單位'],['owner','保管人'],['type','校驗方式'],['vendor','實驗室及廠商'],['instrumentStatus','儀器狀態'],['due','有效日期']];let sortKey=monthlyFilterMemory().registrySortKey,sortDir=monthlyFilterMemory().registrySortDir;
 function instrumentStatus(r){return String(r.instrumentStatus??r.extra?.['儀器狀態']??'').trim()}
 function extraColumnKey(header){return 'extra:'+Array.from(header,c=>c.codePointAt(0).toString(16)).join('-')}
 function extraColumnLabel(key){return String.fromCodePoint(...key.slice(6).split('-').map(c=>parseInt(c,16)))}
@@ -254,14 +280,14 @@ function equipmentValue(r,key){return key.startsWith('extra:')?r.extra?.[extraCo
 function inactiveEquipment(r){return ['停用','報廢'].includes(instrumentStatus(r))}
 function registrySearch(scope='清冊'){return `<div class="registry-lookup"><select class="registry-month" aria-label="${esc(scope)}年月" onchange="month=this.value;render()">${months().map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select><form class="registry-search" onsubmit="event.preventDefault();query=this.elements.search.value.trim();render()"><input class="search" name="search" aria-label="搜尋${esc(scope)}" placeholder="搜尋" value="${esc(query)}"><button type="submit" class="registry-search-submit" aria-label="搜尋" title="搜尋"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/></svg></button></form></div>`}
 const REGISTRY_FILTER_FIELDS=new Set(['name','vendor','unit','owner']);
-let registryFilters=db.settings.registryFilters||{},registryFilterMenu;
-function registryMatches(r,exceptKey,type=tab){return Object.entries(registryFilters[type]||{}).every(([key,values])=>key===exceptKey||values.includes(String(equipmentValue(r,key)??'')))}
+let registryFilters=monthlyFilterMemory().registryFilters,registryFilterMenu;
+function registryMatches(r,exceptKey,type=tab){return Object.entries((r.month===filterMemoryMonth?registryFilters:monthlyFilterMemory(r.month).registryFilters)[type]||{}).every(([key,values])=>key===exceptKey||values.includes(String(equipmentValue(r,key)??'')))}
 function closeRegistryFilter(){
  if(!registryFilterMenu)return;
  const {element}=registryFilterMenu;registryFilterMenu=null;
  if(element.matches(':popover-open'))element.hidePopover();element.remove();
 }
-let internalProgressFilters=db.settings.internalProgressFilters||{},internalSortKey=db.settings.internalSortKey||'date',internalSortDir=db.settings.internalSortDir||1;
+let internalProgressFilters=monthlyFilterMemory().internalProgressFilters,internalSortKey=monthlyFilterMemory().internalSortKey,internalSortDir=monthlyFilterMemory().internalSortDir;
 function internalProgressMatches(r,exceptKey){return Object.entries(internalProgressFilters).every(([key,values])=>key===exceptKey||values.includes(String(equipmentValue(r,key)??'')))}
 function openRegistryFilter(event,key,scope='registry'){
  event.stopPropagation();closeRegistryFilter();
@@ -332,7 +358,7 @@ function deleteEquipment(key){
 }
 function percent(list){return list.length?Math.round(list.filter(complete).length/list.length*100):0}
 function renderProgress(){return page==='external'?renderExternalProgress():renderInternalProgress()}
-function matchesInternalProgressScope(r){return !inactiveEquipment(r)&&r.type==='內校'&&registryMatches(r,null,'內校')&&equipmentMatchesQuery(r,internalRegistryQuery)}
+function matchesInternalProgressScope(r){return !inactiveEquipment(r)&&r.type==='內校'&&registryMatches(r,null,'內校')&&equipmentMatchesQuery(r,r.month===filterMemoryMonth?internalRegistryQuery:monthlyFilterMemory(r.month).registrySearches['內校']||'')}
 function internalProgressHeader(key,label){return `<th><div class="registry-column-head"><button type="button" class="registry-column-sort" onclick="internalSortDir=internalSortKey==='${key}'?-internalSortDir:1;internalSortKey='${key}';render()">${label} ${internalSortKey===key?(internalSortDir===1?'↑':'↓'):'↕'}</button><button type="button" class="registry-filter-trigger ${internalProgressFilters[key]?'is-filtered':''}" aria-label="篩選${label}" aria-haspopup="dialog" onclick="openRegistryFilter(event,'${key}','internal')"><svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h14l-5.5 6v5l-3-1.5V10z"/></svg></button></div></th>`}
 function renderInternalProgress(){
  let initialized=false;
@@ -500,7 +526,7 @@ function removeImportData(id){
  // Remove the old migration snapshot, which could otherwise retain deleted equipment.
  localStorage.removeItem(KEY+'-before-real-sample-v1');
  db.imports=db.imports.filter(i=>i.id!==id);
- registryFilters={};internalProgressFilters={};db.settings.internalProgressFilters={};db.settings.registryFilters={};db.settings.registrySearches={};internalRegistryQuery='';query='';save();toast('檔案及相關資料已刪除');
+ for(const m of affected)delete (db.settings.monthFilterMemory||{})[m];loadMonthlyFilters();save();toast('檔案及相關資料已刪除');
 }
 function renderImport(){
  ensureImportLinks();persist();
@@ -563,7 +589,7 @@ function renderBackup(){
 async function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(16)}
 function reportStorage(){let x={};for(let k of Object.keys(localStorage))if(k!==KEY)x[k]=localStorage.getItem(k);return x}
 async function backup(){let payload={db,reportStorage:reportStorage()},raw=JSON.stringify(payload);download(JSON.stringify({format:'aming-calibration',version:1,createdAt:new Date().toISOString(),checksum:await hash(raw),payload}),'儀校完整備份_'+today()+'.json');toast('完整備份已匯出')}
-async function restore(file){if(!file)return;try{let b=JSON.parse(await file.text());if(b.format!=='aming-calibration'||b.version!==1||!b.payload||b.checksum!==await hash(JSON.stringify(b.payload)))throw Error('格式或完整性檢查失敗');let d=b.payload.db;if(!Array.isArray(d.rows)||!Array.isArray(d.manual)||!d.events||!d.quotes||!d.settings||!Array.isArray(d.imports)||!d.reports||d.rows.some(r=>!r.key||!r.id||!r.month||!Array.isArray(r.p)))throw Error('備份缺少必要資料');if(!confirm('將完整取代目前所有月份資料，確定還原？'))return;const old=Object.fromEntries(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)]));try{localStorage.clear();for(let[k,v]of Object.entries(b.payload.reportStorage||{}))localStorage.setItem(k,v);localStorage.setItem(KEY,JSON.stringify(d))}catch(e){localStorage.clear();for(let[k,v]of Object.entries(old))localStorage.setItem(k,v);throw e}db=d;registryFilters=db.settings.registryFilters||{};internalProgressFilters=db.settings.internalProgressFilters||{};internalSortKey=db.settings.internalSortKey||'date';internalSortDir=db.settings.internalSortDir||1;internalRegistryQuery=db.settings.registrySearches?.['內校']||'';save();toast('已完成還原')}catch(e){toast('還原失敗，原資料保留：'+e.message)}}
+async function restore(file){if(!file)return;try{let b=JSON.parse(await file.text());if(b.format!=='aming-calibration'||b.version!==1||!b.payload||b.checksum!==await hash(JSON.stringify(b.payload)))throw Error('格式或完整性檢查失敗');let d=b.payload.db;if(!Array.isArray(d.rows)||!Array.isArray(d.manual)||!d.events||!d.quotes||!d.settings||!Array.isArray(d.imports)||!d.reports||d.rows.some(r=>!r.key||!r.id||!r.month||!Array.isArray(r.p)))throw Error('備份缺少必要資料');if(!confirm('將完整取代目前所有月份資料，確定還原？'))return;const old=Object.fromEntries(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)]));try{localStorage.clear();for(let[k,v]of Object.entries(b.payload.reportStorage||{}))localStorage.setItem(k,v);localStorage.setItem(KEY,JSON.stringify(d))}catch(e){localStorage.clear();for(let[k,v]of Object.entries(old))localStorage.setItem(k,v);throw e}db=d;initializeMonthlyFilters();loadMonthlyFilters();save();toast('已完成還原')}catch(e){toast('還原失敗，原資料保留：'+e.message)}}
 function resetDemo(){if(confirm('清除目前 DEMO 資料並恢復示範資料？')){db=seed();save();toast('已恢復示範資料')}}
 new ResizeObserver(()=>updateSidebarIndicator()).observe($('nav'));
 persist();render();setInterval(()=>{if(page==='calendar'&&!$('dialog').open)renderCalendar()},60000);
