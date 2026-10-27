@@ -467,7 +467,7 @@ function finishQuote(input){
 function renderReport(){
  const previous=$('reportframe')?.contentWindow;
  if(previous&&typeof previous.appSaveDraftNow==='function')previous.appSaveDraftNow();
- $('content').innerHTML=`<iframe id="reportframe" class="report-workspace" title="量測設備校驗管理月報" src="report.html?v=20261022-32"></iframe>`;
+ $('content').innerHTML=`<iframe id="reportframe" class="report-workspace" title="量測設備校驗管理月報" src="report.html?v=20261027-87"></iframe>`;
  $('reportframe').onload=()=>{
   const w=$('reportframe').contentWindow;
   try{
@@ -476,7 +476,8 @@ function renderReport(){
    const fit=()=>{if(frame.isConnected&&typeof w.fitPreview==='function')w.fitPreview()};
    const observer=new ResizeObserver(fit);observer.observe(frame);
    w.addEventListener('pagehide',()=>observer.disconnect(),{once:true});fit();
-   w.reportDataSource=key=>{const equipment=db.rows.filter(r=>r.month===key&&!inactiveEquipment(r));return{internal:equipment.filter(r=>r.type==='內校').length,external:equipment.filter(r=>r.type==='外校'||r.type==='遊校').length,cost:sumCost(key)}};
+   w.reportDataSource=key=>{const equipment=db.rows.filter(r=>r.month===key&&!inactiveEquipment(r));return{total:equipment.length,internal:equipment.filter(r=>r.type==='內校').length,external:equipment.filter(r=>r.type==='外校'||r.type==='遊校').length,cost:sumCost(key)}};
+   w.reportEquipmentSource=(key,code)=>{const row=db.rows.find(r=>r.month===key&&r.id.trim().toLowerCase()===String(code).trim().toLowerCase());return row?structuredClone(row):null};
    w.reportRecordSource=key=>db.reports[key]?structuredClone(db.reports[key]):null;
    w.reportPersistRecord=(key,record)=>{db.reports[key]=structuredClone(record);persist()};
    w.reportMonthChanged=key=>{month=key;$('monthbox').innerHTML=''};
