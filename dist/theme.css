@@ -276,7 +276,7 @@ body.app-shell .vendor-bulk-controls input[type=checkbox]{width:22px;height:22px
 .external-progress-workspace .vendor-progress-title>.vendor-name{position:absolute;left:24px;top:10px;margin:0}
 .external-progress-workspace .vendor-progress-title>.vendor-percent{position:absolute;left:31%;top:14px;font-size:14px}
 .vendor-bulk-controls{display:block;min-width:1100px;width:100%}
-.vendor-bulk-type{display:grid;grid-template-columns:24% 15% 10% 10% 10% 21% 10%;gap:0;align-items:center;min-height:48px}
+.vendor-bulk-type{display:grid;grid-template-columns:24% 15% 8% 8% 8% 8% 21% 8%;gap:0;align-items:center;min-height:48px}
 .vendor-bulk-cell{padding:0 14px;min-width:0}
 .vendor-bulk-cell .bulk-progress-controls{justify-content:center;gap:5px}
 .vendor-bulk-cell.bulk-date-cell .bulk-progress-controls{justify-content:flex-start}
