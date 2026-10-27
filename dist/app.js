@@ -133,7 +133,7 @@ function revealPageTransition(){
  if(!pageTransitionCover)return;
  clearPageTransition();
  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
- pageSlideAnimation=document.querySelector('main').animate([{transform:'translateY(8px)'},{transform:'translateY(0)'}],{duration:400,easing:'cubic-bezier(.2,.7,.2,1)'});
+ pageSlideAnimation=document.querySelector('main').animate([{transform:'translateY(8px)'},{transform:'translateY(0)'}],{duration:800,easing:'cubic-bezier(.2,.7,.2,1)'});
 }
 function hideNavigationTooltip(){const tooltip=$('navigationTooltip');if(tooltip)tooltip.hidden=true}
 function showNavigationTooltip(button){const tooltip=$('navigationTooltip'),rect=button.getBoundingClientRect();tooltip.textContent=button.dataset.tooltip;tooltip.hidden=false;tooltip.style.left=(rect.right+12)+'px';tooltip.style.top=Math.max(8,Math.min(innerHeight-tooltip.offsetHeight-8,rect.top+(rect.height-tooltip.offsetHeight)/2))+'px'}
