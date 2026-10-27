@@ -113,34 +113,26 @@ function render(){
  saveMonthlyFilters();persist();
  const previousPage=document.body.dataset.page;
  const scroll=previousPage===page?capturePageScroll():null;
- if(previousPage&&previousPage!==page){if(page==='report')holdReportTransition();else clearReportTransition()}
+ if(previousPage&&previousPage!==page)holdPageTransition()
  renderPage();if(scroll)restorePageScroll(scroll);
- if(previousPage&&previousPage!==page&&page!=='report')animatePageTransition();
+ if(previousPage&&previousPage!==page&&page!=='report')revealPageTransition();
 }
-let pageTransitionAnimation=null;
-let reportTransitionCover=null;
-function clearReportTransition(){reportTransitionCover?.remove();reportTransitionCover=null}
-function holdReportTransition(){
- clearReportTransition();pageTransitionAnimation?.cancel();
+let pageTransitionCover=null;
+function clearPageTransition(){pageTransitionCover?.remove();pageTransitionCover=null}
+function holdPageTransition(){
+ clearPageTransition();
  const main=document.querySelector('main'),rect=main.getBoundingClientRect(),cover=main.cloneNode(true);
  const layout=getComputedStyle(main);cover.style.display=layout.display;cover.style.flexDirection=layout.flexDirection;
  const header=main.querySelector('header'),headerCopy=cover.querySelector('header');if(header&&headerCopy){const style=getComputedStyle(header);for(const key of ['display','gridTemplateColumns','gap','paddingLeft','minHeight'])headerCopy.style[key]=style[key]}
  cover.removeAttribute('id');cover.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));cover.setAttribute('aria-hidden','true');cover.inert=true;
- cover.className='report-transition-cover';
+ cover.className='page-transition-cover';
  Object.assign(cover.style,{position:'fixed',inset:'auto',left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px',margin:'0',overflow:'hidden',zIndex:'40',pointerEvents:'none',background:'var(--color-canvas)'});
- document.body.append(cover);reportTransitionCover=cover;
+ document.body.append(cover);pageTransitionCover=cover;
 }
-function revealReportTransition(){
- const cover=reportTransitionCover;if(!cover)return;
- reportTransitionCover=null;
- if(matchMedia('(prefers-reduced-motion: reduce)').matches){cover.remove();return}
- cover.animate([{opacity:1},{opacity:0}],{duration:220,easing:'ease-out'}).finished.then(()=>cover.remove(),()=>cover.remove());
-}
-function animatePageTransition(){
- pageTransitionAnimation?.cancel();pageTransitionAnimation=null;
- if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
- const main=document.querySelector('main');
- pageTransitionAnimation=main.animate([{opacity:.15,transform:'translateY(10px)'},{opacity:1,transform:'translateY(0)'}],{duration:260,easing:'cubic-bezier(.2,.7,.2,1)'});
+function revealPageTransition(){
+ const cover=pageTransitionCover;if(!cover)return;
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches){clearPageTransition();return}
+ cover.animate([{opacity:1},{opacity:0}],{duration:220,easing:'ease-out'}).finished.then(()=>{cover.remove();if(pageTransitionCover===cover)pageTransitionCover=null},()=>{cover.remove();if(pageTransitionCover===cover)pageTransitionCover=null});
 }
 function hideNavigationTooltip(){const tooltip=$('navigationTooltip');if(tooltip)tooltip.hidden=true}
 function showNavigationTooltip(button){const tooltip=$('navigationTooltip'),rect=button.getBoundingClientRect();tooltip.textContent=button.dataset.tooltip;tooltip.hidden=false;tooltip.style.left=(rect.right+12)+'px';tooltip.style.top=Math.max(8,Math.min(innerHeight-tooltip.offsetHeight-8,rect.top+(rect.height-tooltip.offsetHeight)/2))+'px'}
@@ -603,9 +595,9 @@ function renderReport(){
    w.appLoadMonth(month,{animate:false});
    Promise.resolve(w.document.fonts.ready).then(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{
     if(!frame.isConnected)return;
-    w.fitSingleReport();fit();frame.classList.remove('report-initializing');revealReportTransition();
+    w.fitSingleReport();fit();frame.classList.remove('report-initializing');revealPageTransition();
    })));
-  }catch(error){clearReportTransition();$('reportframe')?.classList.remove('report-initializing');toast('月報載入失敗：'+error.message)}
+  }catch(error){clearPageTransition();$('reportframe')?.classList.remove('report-initializing');toast('月報載入失敗：'+error.message)}
  };
 }
 function ensureImportLinks(){
