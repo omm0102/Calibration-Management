@@ -348,3 +348,13 @@ body.app-shell .annual-cost-table .selected-cost-month td:first-child{box-shadow
 @media(max-width:650px){body.app-shell[data-page="cost"] aside{height:110px;overflow:hidden}body.app-shell[data-page="cost"] main{height:calc(100dvh - 110px)}body.app-shell[data-page="cost"] main>header{margin-bottom:8px}.yearly-cost-workspace .annual-cost-summary{padding-bottom:8px}.yearly-cost-workspace .annual-cost-summary>label{font-size:15px;margin-bottom:2px}.yearly-cost-workspace .annual-cost-summary>strong{font-size:30px}.yearly-cost-workspace .annual-cost-controls{flex-wrap:nowrap;align-items:flex-end;gap:12px;margin-bottom:10px}.yearly-cost-workspace .cost-year-control select{min-width:90px;width:90px}.yearly-cost-workspace .monthly-total-control{flex:1;flex-direction:column;align-items:flex-end;flex-wrap:nowrap;gap:5px;font-size:14px}.yearly-cost-workspace .monthly-total-control input{width:145px!important;font-size:20px}.yearly-cost-workspace .annual-cost-table table{font-size:clamp(10px,calc((100dvh - 340px)/25),15px)}body.app-shell .yearly-cost-workspace .annual-cost-table :is(th,td){padding-inline:9px}.yearly-cost-workspace .annual-cost-table th{height:25px}}
 .yearly-cost-workspace .annual-cost-table{container-type:size}
 .yearly-cost-workspace .annual-cost-table table{font-size:clamp(8px,calc((100cqh - 70px)/16),17px)}
+
+/* Add the registry due date while preserving external/touring and bulk alignment. */
+.external-progress-workspace .external-equipment-table{min-width:1200px}
+.external-equipment-table .progress-col-equipment{width:20%}
+.external-equipment-table .progress-col-asset{width:12%}
+.external-equipment-table .progress-col-due{width:11%}
+.vendor-bulk-controls{min-width:1200px}
+.vendor-bulk-type{grid-template-columns:20% 12% 11% 7.2% 7.2% 7.2% 7.2% 21% 7.2%}
+body.app-shell .external-equipment-table .progress-due-cell{text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
+body.app-shell .external-equipment-table th{white-space:normal;line-height:1.4}
