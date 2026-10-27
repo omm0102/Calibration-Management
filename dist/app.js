@@ -202,12 +202,13 @@ function toggleDetail(event){
  animation.onfinish=()=>{details.open=opening;details.style.overflow='';details.classList.remove('is-closing');detailAnimations.delete(details)};
 }
 function deleteManual(id){if(confirm('確定刪除整筆行程？')){db.manual=db.manual.filter(e=>e.id!==id);closeModal();save()}}
+function syncEventDates(){const start=$('es').value,end=$('ee');if(start&&end.value<start)end.value=start}
 function editManual(id,date){
  const existing=db.manual.find(x=>x.id===id);
  const isTodo=existing?!existing.start:!date;
  const e=existing||{name:'',start:date||'',end:date||'',note:''};
  const title=(id?'編輯':'新增')+(isTodo?'待辦事項':'行程');
- modal(title,`<div class="formgrid"><label class="field full">${isTodo?'項目':'行程名稱'}<input id="en" required value="${esc(e.name)}"></label>${isTodo?'':`<label class="field">開始日期（必填）<input id="es" type="date" required value="${e.start}"></label><label class="field">結束日期（必填）<input id="ee" type="date" required value="${e.end}"></label>`}<label class="field full">備註<textarea id="note">${esc(e.note)}</textarea></label></div>`,()=>{
+ modal(title,`<div class="formgrid"><label class="field full">${isTodo?'項目':'行程名稱'}<input id="en" required value="${esc(e.name)}"></label>${isTodo?'':`<label class="field">開始日期（必填）<input id="es" type="date" required value="${e.start}" oninput="syncEventDates()" onchange="syncEventDates()"></label><label class="field">結束日期（必填）<input id="ee" type="date" required value="${e.end}"></label>`}<label class="field full">備註<textarea id="note">${esc(e.note)}</textarea></label></div>`,()=>{
   const name=$('en').value.trim(),start=isTodo?'':$('es').value,end=isTodo?'':$('ee').value;
   if(!name){$('en').focus();return toast(isTodo?'請填寫項目':'請填寫行程名稱')}
   if(!isTodo&&(!start||!end)){(!start?$('es'):$('ee')).focus();return toast('行程必須填寫開始與結束日期')}
