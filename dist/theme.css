@@ -448,3 +448,12 @@ body.app-shell[data-page="dashboard"] .dashboard-grid .dashboard-card:hover{back
 body.app-shell[data-page="dashboard"] .dashboard-month-navigation>button:hover{background:transparent}
 body.app-shell[data-page="dashboard"] .dashboard-grid .dashboard-card:hover{outline:2px solid #222;outline-offset:-1px}
 body.app-shell[data-page="dashboard"] .dashboard-month-navigation>button:hover{background:var(--color-divider)}
+
+.dashboard-cost-chart{margin-top:22px;overflow-x:auto;max-width:100%}
+.dashboard-cost-bars{display:grid;grid-template-columns:repeat(12,minmax(46px,1fr));gap:8px;min-width:640px;padding:0 2px}
+.dashboard-cost-column{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}
+.dashboard-bar-value{font-size:11px;color:var(--color-muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dashboard-bar-area{height:115px;width:100%;display:flex;align-items:flex-end;justify-content:center;border-bottom:1px solid var(--color-border)}
+.dashboard-bar-area i{display:block;width:65%;max-width:36px;background:var(--color-primary);border-radius:4px 4px 0 0;min-height:0}
+.dashboard-bar-area i.selected-month{background:var(--color-accent)}
+.dashboard-bar-month{font-size:12px;color:var(--color-muted)}.dashboard-chart-note{font-size:12px;color:var(--color-muted);margin-top:12px}
