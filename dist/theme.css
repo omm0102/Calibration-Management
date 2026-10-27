@@ -301,3 +301,7 @@ body.app-shell .progress-date-controls button{width:116px;flex-basis:116px}
 .progress-date-controls.tour-date-controls::before{width:64px;flex-basis:64px}
 
 .tour-date-heading{display:block;margin-left:69px;width:116px;text-align:center}
+
+.internal-equipment-table{min-width:1150px}
+.internal-equipment-table .registry-column-head{justify-content:center}
+.internal-equipment-table td:nth-child(3),.internal-equipment-table td:nth-child(4){white-space:normal;overflow-wrap:anywhere}
