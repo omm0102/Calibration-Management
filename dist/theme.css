@@ -358,3 +358,12 @@ body.app-shell .annual-cost-table .selected-cost-month td:first-child{box-shadow
 .vendor-bulk-type{grid-template-columns:20% 12% 11% 7.2% 7.2% 7.2% 7.2% 21% 7.2%}
 body.app-shell .external-equipment-table .progress-due-cell{text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
 body.app-shell .external-equipment-table th{white-space:normal;line-height:1.4}
+
+.calendar-workspace .daynum{display:flex;align-items:center;justify-content:space-between;gap:5px}
+.calendar-workspace .holiday-label{font-size:12px;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--color-muted)}
+.calendar-workspace .day.is-holiday:not(.other-month){background:var(--color-soft)}
+.calendar-workspace .day.is-holiday .holiday-label{color:var(--color-danger)}
+.calendar-holiday-source{font-size:13px;color:var(--color-muted);text-decoration:none;white-space:nowrap}
+.calendar-holiday-source:hover{text-decoration:underline}
+
+.import-target-hint{color:var(--color-warning-text);background:var(--color-warning-soft);border-radius:8px;padding:10px 12px;font-size:15px;line-height:1.6}
