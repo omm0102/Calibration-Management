@@ -420,3 +420,5 @@ body.app-shell[data-page="dashboard"] main>header>div:first-child{padding-left:5
 .dashboard-month-navigation>button:hover{background:var(--color-divider)}
 @media(max-width:650px){.dashboard-month-navigation{gap:8px}.dashboard-month-navigation>span{font-size:30px;min-width:200px}.dashboard-month-navigation>button{font-size:30px}}
 .dashboard-month-navigation>button{display:grid;place-items:center;width:42px;height:44px;padding:0;line-height:1;font-family:Arial,sans-serif}
+
+.title-warning{display:inline-block;margin-left:12px;color:var(--color-danger);font-size:20px;font-weight:750;line-height:1;vertical-align:baseline;letter-spacing:1px}.dashboard-fees>strong.dashboard-unentered{font-size:26px;color:var(--color-muted);margin:14px 0}
