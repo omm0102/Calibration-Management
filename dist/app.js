@@ -177,7 +177,7 @@ function eventsForDay(events,date){
   result.push({...representative,rows,done:members.every(e=>e.done)?representative.done:''});
  }
  const order={external:0,internal:1,manual:2};
- return result.sort((a,b)=>(order[a.type]??2)-(order[b.type]??2)||Number(!!a.done)-Number(!!b.done));
+ return result.sort((a,b)=>Number(!!a.done)-Number(!!b.done)||(order[a.type]??2)-(order[b.type]??2));
 }
 function moveCalendarWeek(direction){calendarMonth='';offset+=direction;selectedWeek=true;render()}
 function resetCalendarToday(){offset=0;calendarMonth='';selectedWeek=false;render()}
