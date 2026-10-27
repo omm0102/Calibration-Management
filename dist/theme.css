@@ -476,3 +476,14 @@ body.app-shell[data-page="dashboard"] #content{flex:1;min-height:0}
 .dashboard-fees .dashboard-cost-chart{flex:1;min-height:0;overflow:hidden;margin-top:12px}.dashboard-cost-bars{height:100%;min-width:0;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px}.dashboard-cost-column{gap:4px}.dashboard-bar-area{flex:1;min-height:0;height:auto}.dashboard-chart-note{margin-top:6px;font-size:11px}
 @media(max-height:750px) and (min-width:801px){body.app-shell[data-page="dashboard"] main{padding-top:14px;padding-bottom:14px}body.app-shell[data-page="dashboard"] main>header{min-height:60px;margin-bottom:10px}.dashboard-grid{gap:12px}.dashboard-grid .dashboard-card{padding:12px}.dashboard-card-heading{margin-bottom:8px}.dashboard-total strong{font-size:38px}.dashboard-total{padding-bottom:8px}.dashboard-split{padding-top:6px}.dashboard-calibration .dashboard-progress{padding:8px 0}.dashboard-agenda{gap:5px}.dashboard-agenda-part+.dashboard-agenda-part{padding-top:5px}.dashboard-agenda-part h2{font-size:14px}.dashboard-agenda-part .dashboard-event{padding:3px 6px;font-size:12px}.dashboard-bar-value{font-size:10px}}
 @media(max-width:800px){body.app-shell[data-page="dashboard"] main{overflow:auto}body.app-shell[data-page="dashboard"] #content{flex:none}.dashboard-grid{height:auto;grid-template-columns:1fr;grid-template-rows:auto;grid-template-areas:"overview" "progress" "calendar" "agenda" "fees"}.dashboard-calendar{height:330px}.dashboard-agenda{height:380px}.dashboard-grid .dashboard-fees{height:380px}.dashboard-bar-value{font-size:9px}.dashboard-cost-bars{gap:3px}.dashboard-bar-month{font-size:10px}}
+/* Stagger card boundaries for an asymmetric dashboard. */
+@media(min-width:801px){
+ .dashboard-grid{grid-template-columns:.95fr 1.15fr 1fr;grid-template-rows:repeat(20,minmax(0,1fr));grid-template-areas:none}
+ .dashboard-overview{grid-area:1 / 1 / 8 / 2;display:flex;flex-direction:column;justify-content:center}
+ .dashboard-agenda{grid-area:8 / 1 / 21 / 2}
+ .dashboard-calibration{grid-area:1 / 2 / 11 / 3;display:flex;flex-direction:column;justify-content:center}
+ .dashboard-calendar{grid-area:1 / 3 / 11 / 4}
+ .dashboard-fees{grid-area:11 / 2 / 21 / 4}
+ .dashboard-overview .dashboard-card-heading,.dashboard-calibration .dashboard-card-heading{margin-bottom:auto}
+ .dashboard-overview .dashboard-split,.dashboard-calibration .dashboard-progress:last-child{margin-bottom:auto}
+}
