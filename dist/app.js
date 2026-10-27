@@ -111,8 +111,17 @@ function render(){
  if(page==='registry'){memory.registrySearches[tab]=query;db.settings.registryTab=tab;internalRegistryQuery=memory.registrySearches['內校']||''}
  if(page==='internal')memory.internalSearch=query;
  saveMonthlyFilters();persist();
- const scroll=document.body.dataset.page===page?capturePageScroll():null;
+ const previousPage=document.body.dataset.page;
+ const scroll=previousPage===page?capturePageScroll():null;
  renderPage();if(scroll)restorePageScroll(scroll);
+ if(previousPage&&previousPage!==page)animatePageTransition();
+}
+let pageTransitionAnimation=null;
+function animatePageTransition(){
+ pageTransitionAnimation?.cancel();pageTransitionAnimation=null;
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ const main=document.querySelector('main');
+ pageTransitionAnimation=main.animate([{opacity:.15,transform:'translateY(10px)'},{opacity:1,transform:'translateY(0)'}],{duration:260,easing:'cubic-bezier(.2,.7,.2,1)'});
 }
 function hideNavigationTooltip(){const tooltip=$('navigationTooltip');if(tooltip)tooltip.hidden=true}
 function showNavigationTooltip(button){const tooltip=$('navigationTooltip'),rect=button.getBoundingClientRect();tooltip.textContent=button.dataset.tooltip;tooltip.hidden=false;tooltip.style.left=(rect.right+12)+'px';tooltip.style.top=Math.max(8,Math.min(innerHeight-tooltip.offsetHeight-8,rect.top+(rect.height-tooltip.offsetHeight)/2))+'px'}
