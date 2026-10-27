@@ -488,7 +488,7 @@ function finishMonthlyExternalCost(input){
 function renderReport(){
  const previous=$('reportframe')?.contentWindow;
  if(previous&&typeof previous.appSaveDraftNow==='function')previous.appSaveDraftNow();
- $('content').innerHTML=`<iframe id="reportframe" class="report-workspace" title="量測設備校驗管理月報" src="report.html?v=20261027-97"></iframe>`;
+ $('content').innerHTML=`<iframe id="reportframe" class="report-workspace" title="量測設備校驗管理月報" src="report.html?v=20261027-98"></iframe>`;
  $('reportframe').onload=()=>{
   const w=$('reportframe').contentWindow;
   try{
