@@ -565,7 +565,7 @@ function finishMonthlyExternalCost(input){
 function renderReport(){
  const previous=$('reportframe')?.contentWindow;
  if(previous&&typeof previous.appSaveDraftNow==='function')previous.appSaveDraftNow();
- $('content').innerHTML=`<iframe id="reportframe" class="report-workspace" title="量測設備校驗管理月報" src="report.html?v=20261027-107"></iframe>`;
+ $('content').innerHTML=`<iframe id="reportframe" class="report-workspace report-initializing" title="量測設備校驗管理月報" src="report.html?v=20261027-121"></iframe>`;
  $('reportframe').onload=()=>{
   const w=$('reportframe').contentWindow;
   try{
@@ -582,7 +582,11 @@ function renderReport(){
    w.appAnnualTotal=()=>annualExternalCost(w.document.getElementById('monthInput').value);
    w.document.getElementById('monthInput').disabled=false;
    w.appLoadMonth(month,{animate:false});
-  }catch(error){toast('月報載入失敗：'+error.message)}
+   Promise.resolve(w.document.fonts.ready).then(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    if(!frame.isConnected)return;
+    w.fitSingleReport();fit();frame.classList.remove('report-initializing');
+   })));
+  }catch(error){$('reportframe')?.classList.remove('report-initializing');toast('月報載入失敗：'+error.message)}
  };
 }
 function ensureImportLinks(){

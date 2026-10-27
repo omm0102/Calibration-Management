@@ -439,3 +439,5 @@ body.app-shell main>header,body.app-shell[data-page="dashboard"] main>header>div
 .navigation-tooltip{position:fixed;z-index:100;background:var(--color-primary);color:white;padding:8px 12px;border-radius:7px;font-size:14px;line-height:1.4;box-shadow:var(--shadow-card);pointer-events:none;white-space:nowrap}
 .navigation-tooltip[hidden]{display:none}
 @media(max-width:650px){body.app-shell aside{width:60px;padding:12px 6px}body.app-shell aside .navgroup{padding:8px 0}body.app-shell aside .navgroup button{width:46px;height:44px;margin:4px 0}body.app-shell aside .sidebar-icon{width:24px;height:24px}body.app-shell main{margin-left:60px;padding:14px 10px}.dashboard-month-navigation{gap:2px}.dashboard-month-navigation>span{font-size:26px;min-width:180px}body.app-shell button.arrow-icon-button{width:32px;height:36px}}
+
+iframe.report-workspace.report-initializing{visibility:hidden}
