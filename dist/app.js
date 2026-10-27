@@ -113,10 +113,29 @@ function render(){
  saveMonthlyFilters();persist();
  const previousPage=document.body.dataset.page;
  const scroll=previousPage===page?capturePageScroll():null;
+ if(previousPage&&previousPage!==page){if(page==='report')holdReportTransition();else clearReportTransition()}
  renderPage();if(scroll)restorePageScroll(scroll);
- if(previousPage&&previousPage!==page)animatePageTransition();
+ if(previousPage&&previousPage!==page&&page!=='report')animatePageTransition();
 }
 let pageTransitionAnimation=null;
+let reportTransitionCover=null;
+function clearReportTransition(){reportTransitionCover?.remove();reportTransitionCover=null}
+function holdReportTransition(){
+ clearReportTransition();pageTransitionAnimation?.cancel();
+ const main=document.querySelector('main'),rect=main.getBoundingClientRect(),cover=main.cloneNode(true);
+ const layout=getComputedStyle(main);cover.style.display=layout.display;cover.style.flexDirection=layout.flexDirection;
+ const header=main.querySelector('header'),headerCopy=cover.querySelector('header');if(header&&headerCopy){const style=getComputedStyle(header);for(const key of ['display','gridTemplateColumns','gap','paddingLeft','minHeight'])headerCopy.style[key]=style[key]}
+ cover.removeAttribute('id');cover.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));cover.setAttribute('aria-hidden','true');cover.inert=true;
+ cover.className='report-transition-cover';
+ Object.assign(cover.style,{position:'fixed',inset:'auto',left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px',margin:'0',overflow:'hidden',zIndex:'40',pointerEvents:'none',background:'var(--color-canvas)'});
+ document.body.append(cover);reportTransitionCover=cover;
+}
+function revealReportTransition(){
+ const cover=reportTransitionCover;if(!cover)return;
+ reportTransitionCover=null;
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches){cover.remove();return}
+ cover.animate([{opacity:1},{opacity:0}],{duration:220,easing:'ease-out'}).finished.then(()=>cover.remove(),()=>cover.remove());
+}
 function animatePageTransition(){
  pageTransitionAnimation?.cancel();pageTransitionAnimation=null;
  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
@@ -584,9 +603,9 @@ function renderReport(){
    w.appLoadMonth(month,{animate:false});
    Promise.resolve(w.document.fonts.ready).then(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{
     if(!frame.isConnected)return;
-    w.fitSingleReport();fit();frame.classList.remove('report-initializing');
+    w.fitSingleReport();fit();frame.classList.remove('report-initializing');revealReportTransition();
    })));
-  }catch(error){$('reportframe')?.classList.remove('report-initializing');toast('月報載入失敗：'+error.message)}
+  }catch(error){clearReportTransition();$('reportframe')?.classList.remove('report-initializing');toast('月報載入失敗：'+error.message)}
  };
 }
 function ensureImportLinks(){
