@@ -367,3 +367,10 @@ body.app-shell .external-equipment-table th{white-space:normal;line-height:1.4}
 .calendar-holiday-source:hover{text-decoration:underline}
 
 .import-target-hint{color:var(--color-warning-text);background:var(--color-warning-soft);border-radius:8px;padding:10px 12px;font-size:15px;line-height:1.6}
+
+/* Keep empty calendar categories compact so unscheduled tasks remain visible. */
+.calendar-workspace .todo-category h3{margin:12px 0 6px}
+.calendar-workspace .todo-category.is-empty{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:38px}
+.calendar-workspace .todo-category.is-empty h3{margin:0;flex-shrink:0}
+.calendar-workspace .todo-category.is-empty .empty{padding:4px 0;font-size:14px}
+.calendar-workspace .todo-category + .divider{margin:12px 0}
