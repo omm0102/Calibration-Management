@@ -446,3 +446,4 @@ body.app-shell[data-page="dashboard"] .dashboard-grid button:hover{background:tr
 body.app-shell[data-page="dashboard"] .dashboard-grid .dashboard-event:hover{background:var(--color-soft)}
 body.app-shell[data-page="dashboard"] .dashboard-grid .dashboard-card:hover{background:var(--color-surface);border-color:var(--color-border);box-shadow:0 5px 20px rgb(40 59 84 / 3%);transform:none}
 body.app-shell[data-page="dashboard"] .dashboard-month-navigation>button:hover{background:transparent}
+body.app-shell[data-page="dashboard"] .dashboard-grid .dashboard-card:hover{outline:2px solid #222;outline-offset:-1px}
