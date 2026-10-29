@@ -115,7 +115,7 @@ function render(){
  const scroll=previousPage===page?capturePageScroll():null;
  if(previousPage&&previousPage!==page)holdPageTransition()
  renderPage();if(scroll)restorePageScroll(scroll);
- if(page==='dashboard'&&previousPage!==page)animateDashboardCharts();
+ if(page==='dashboard'&&previousPage!==page)animateDashboardEntrance();
  if(previousPage&&previousPage!==page&&page!=='report')revealPageTransition();
 }
 let pageTransitionCover=null,pageSlideAnimation=null;
@@ -159,13 +159,21 @@ function dashboardCostChart(){
  return `<div class="dashboard-cost-chart" role="img" aria-label="${month.slice(0,4)}年每月外校費用長條圖"><div class="dashboard-cost-bars">${data.map((d,i)=>`<div class="dashboard-cost-column" title="${i+1}月：NT$ ${d.value.toLocaleString()}${d.estimated?'（平均分攤）':''}"><span class="dashboard-bar-value">${d.value.toLocaleString()}</span><div class="dashboard-bar-area"><i style="height:${d.value/max*100}%" class="${d.key===month?'selected-month':''}"></i></div><span class="dashboard-bar-month">${i+1}月</span></div>`).join('')}</div></div>${data.some(d=>d.estimated)?'<div class="dashboard-chart-note">1–9 月未分月費用採平均分攤</div>':''}`;
 }
 
+function animateDashboardEntrance(){
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ document.querySelectorAll('.dashboard-grid>.dashboard-card').forEach((card,index)=>{
+  card.dataset.entranceDelay=String(index*100);
+  card.animate([{transform:'translateY(32px)',clipPath:'inset(100% 0 0 0 round 16px)'},{transform:'translateY(0)',clipPath:'inset(0 0 0 0 round 16px)'}],{duration:800,delay:index*100,easing:'cubic-bezier(.2,.7,.2,1)',fill:'backwards'});
+ });
+ animateDashboardCharts();
+}
 function animateDashboardCharts(){
  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
  document.querySelectorAll('.dashboard-ring-value').forEach(circle=>{
-  circle.animate([{strokeDasharray:'0 100'},{strokeDasharray:circle.getAttribute('stroke-dasharray')}],{duration:800,easing:'cubic-bezier(.2,.7,.2,1)'});
+  circle.animate([{strokeDasharray:'0 100'},{strokeDasharray:circle.getAttribute('stroke-dasharray')}],{duration:800,delay:Number(circle.closest('.dashboard-card')?.dataset.entranceDelay||0)+180,easing:'cubic-bezier(.2,.7,.2,1)',fill:'backwards'});
  });
  document.querySelectorAll('.dashboard-bar-area i').forEach((bar,index)=>{
-  bar.animate([{transform:'scaleY(0)'},{transform:'scaleY(1)'}],{duration:650,delay:index*12,easing:'cubic-bezier(.2,.7,.2,1)',fill:'backwards'});
+  bar.animate([{transform:'scaleY(0)'},{transform:'scaleY(1)'}],{duration:650,delay:Number(bar.closest('.dashboard-card')?.dataset.entranceDelay||0)+180+index*12,easing:'cubic-bezier(.2,.7,.2,1)',fill:'backwards'});
  });
 }
 function renderDashboard(){

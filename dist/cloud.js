@@ -41,9 +41,7 @@ window.Cloud=(()=>{
    const record=await load();
    if(identity()!==user||!safeDailyRead()||revision!==expectedRevision)return;
    if(!validData(record.data))throw Error('INVALID_CALIBRATION_DATA');
-   if(Number(record.revision)!==revision||record.member_role!==role){
-    role=record.member_role;revision=Number(record.revision);applyData(record.data,{preserveView:true});baseline=snapshot();
-   }
+   role=record.member_role;revision=Number(record.revision);applyData(record.data);baseline=snapshot();
    markDailyRead();status(role==='viewer'?'僅供檢視 · 今日雲端資料已更新':'今日雲端資料已更新');
   }catch(error){
    if(identity()===user&&dataActive){dailyRetryAt=Date.now()+5*60*1000;status('每日更新暫時失敗，稍後會重試；目前資料仍保留。'+friendly(error),true)}
@@ -96,10 +94,11 @@ window.Cloud=(()=>{
    applyData(record.data);mode='ready';baseline=snapshot();openApp();markDailyRead();status(role==='viewer'?'僅供檢視':'已儲存至雲端');
   }catch(error){mode='error';status(friendly(error),true);gate('無法讀取雲端資料',`<p class="cloud-message">${esc(friendly(error))}</p><button class="primary" onclick="Cloud.connect()">重新連線</button><button onclick="Cloud.signOut()">重新登入</button>`)}
  }
- function applyData(data,{preserveView=false}={}){
+ function applyData(data){
+  const wasDashboard=document.body.dataset.page==='dashboard';
   applying=true;try{
    dataActive=true;workingKey=cacheKey()+':working';db=structuredClone(data);Object.assign(db.settings,parse(prefsKey())||{});db.settings.sampleDatasetVersion=SAMPLE_VERSION;
-   normalizeExternalStages();initializeMonthlyFilters();loadMonthlyFilters();storePreferences(db);if(!preserveView)page='dashboard';render();
+   normalizeExternalStages();initializeMonthlyFilters();loadMonthlyFilters();storePreferences(db);page='dashboard';render();if(wasDashboard)animateDashboardEntrance();
    writeCache({data:db,revision,pending:false}).catch(cacheFailure);
   }finally{applying=false}
  }
@@ -152,7 +151,7 @@ window.Cloud=(()=>{
  }
  async function confirmReload(){try{const record=await load();if(!validData(record.data))throw Error('INVALID_CALIBRATION_DATA');role=record.member_role;revision=Number(record.revision);applyData(record.data);baseline=snapshot();mode='ready';openApp();markDailyRead();status(role==='viewer'?'僅供檢視':'已載入最新雲端資料')}catch(error){status(friendly(error),true);gate('載入失敗',`<p>${esc(friendly(error))}</p><button onclick="Cloud.confirmReload()">重試</button><button onclick="Cloud.cancelReload()">返回</button>`)}}
  function cancelReload(){if(mode==='conflict'&&$('cloudGate').innerText.includes('工作畫面')){openApp();status('雲端版本衝突，修改仍保留於本機',true)}else connect()}
- async function reload(){if(inflight)await inflight;if(snapshot()!==baseline){await discardPending();return}try{const record=await load();if(record.data&&Number(record.revision)!==revision){role=record.member_role;revision=Number(record.revision);applyData(record.data,{preserveView:true});baseline=snapshot()}markDailyRead();status(role==='viewer'?'僅供檢視':'已載入最新雲端資料')}catch(error){mode='error';status(friendly(error),true)}}
+ async function reload(){if(inflight)await inflight;if(snapshot()!==baseline){await discardPending();return}try{const record=await load();if(snapshot()!==baseline||inflight){status('有新的本機修改，請完成儲存後再載入雲端');return}if(!validData(record.data))throw Error('INVALID_CALIBRATION_DATA');role=record.member_role;revision=Number(record.revision);applyData(record.data);baseline=snapshot();markDailyRead();status(role==='viewer'?'僅供檢視':'已載入最新雲端資料')}catch(error){mode='error';status(friendly(error),true)}}
  async function restoreBackup(file){if(role==='viewer')return;try{const data=await parseBackup(file);modal('確認還原到雲端',`<p>這份備份有 ${data.rows.length} 筆設備。還原會取代共用工作區的資料，其他使用者也會看到變更。建議先匯出現有完整備份。</p>`,async()=>{closeModal();applyData(data);mode='ready';baseline='';changed(db);await flush()},'確認還原')}catch(error){toast(error.message)}}
  async function signOut(force=false){
   if(inflight)await inflight;
