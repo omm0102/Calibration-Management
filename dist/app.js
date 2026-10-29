@@ -64,7 +64,7 @@ function loadMonthlyFilters(){
  internalRegistryQuery=state.registrySearches['內校']||'';
  query=page==='registry'?(state.registrySearches[tab]||''):page==='internal'?(state.internalSearch||''):'';
 }
-function persist(){localStorage.setItem(KEY,JSON.stringify(db))}function save(){persist();render()}function toast(t){$('toast').textContent=t;$('toast').classList.add('visible');setTimeout(()=>$('toast').classList.remove('visible'),2500)}
+function persist(){if(window.Cloud)Cloud.persistData(db);else localStorage.setItem(KEY,JSON.stringify(db))}function save(){persist();render()}function toast(t){$('toast').textContent=t;$('toast').classList.add('visible');setTimeout(()=>$('toast').classList.remove('visible'),2500)}
 const rows=()=>db.rows.filter(r=>r.month===month);const months=()=>[...new Set(db.rows.map(r=>r.month))].sort();const complete=r=>!!r.p[r.type==='內校'?2:r.type==='外校'?5:3];const stages=r=>r.type==='內校'?['預計校驗日','收件確認','已完成']:r.type==='外校'?['已提供報價單','請購單','外送單','設備確認','寄出／收件時間','已完成']:['已提供報價單','請購單','遊校日期','已完成'];
 tab=db.settings.registryTab||tab;
 let internalRegistryQuery=monthlyFilterMemory().registrySearches['內校']||'';
@@ -595,9 +595,10 @@ function finishMonthlyExternalCost(input){
  saveMonthlyExternalCost(input);
 }
 function renderReport(){
+ const reportDatabase=db;
  const previous=$('reportframe')?.contentWindow;
  if(previous&&typeof previous.appSaveDraftNow==='function')previous.appSaveDraftNow();
- $('content').innerHTML=`<iframe id="reportframe" class="report-workspace report-initializing" title="量測設備校驗管理月報" src="report.html?v=20261027-121"></iframe>`;
+ $('content').innerHTML=`<iframe id="reportframe" class="report-workspace report-initializing" title="量測設備校驗管理月報" src="report.html?v=20261029-138"></iframe>`;
  $('reportframe').onload=()=>{
   const w=$('reportframe').contentWindow;
   try{
@@ -609,11 +610,12 @@ function renderReport(){
    w.reportDataSource=key=>{const equipment=db.rows.filter(r=>r.month===key&&!inactiveEquipment(r));return{total:equipment.length,internal:equipment.filter(r=>r.type==='內校').length,external:equipment.filter(r=>r.type==='外校'||r.type==='遊校').length,cost:sumCost(key)}};
    w.reportEquipmentSource=(key,code)=>{const row=db.rows.find(r=>r.month===key&&r.id.trim().toLowerCase()===String(code).trim().toLowerCase());return row?structuredClone(row):null};
    w.reportRecordSource=key=>db.reports[key]?structuredClone(db.reports[key]):null;
-   w.reportPersistRecord=(key,record)=>{db.reports[key]=structuredClone(record);persist()};
+   w.reportPersistRecord=(key,record)=>{if(db!==reportDatabase||window.Cloud&&!Cloud.canWrite())return;db.reports[key]=structuredClone(record);persist()};
    w.reportMonthChanged=key=>{month=key;$('monthbox').innerHTML=''};
    w.appAnnualTotal=()=>annualExternalCost(w.document.getElementById('monthInput').value);
    w.document.getElementById('monthInput').disabled=false;
    w.appLoadMonth(month,{animate:false});
+   if(window.Cloud&&!Cloud.canWrite()){w.document.querySelectorAll('input,textarea,select,button').forEach(el=>{if(!['monthInput','exportPdfBtn'].includes(el.id))el.disabled=true})}
    Promise.resolve(w.document.fonts.ready).then(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{
     if(!frame.isConnected)return;
     w.fitSingleReport();fit();frame.classList.remove('report-initializing');revealPageTransition();
@@ -654,7 +656,8 @@ function removeImportData(id){
   if(!db.rows.some(r=>r.month===m))delete db.quotes[m];
   delete db.reports[m];localStorage.removeItem('calibration:'+m);
  }
- for(const key of ['calibrationV41.history','calibrationV41.drafts']){
+ for(const name of ['calibrationV41.history','calibrationV41.drafts']){
+  const key=window.Cloud?.isConnected()?Cloud.reportKey(name):name;
   const raw=localStorage.getItem(key);if(!raw)continue;
   try{const store=JSON.parse(raw);for(const m of affected)delete store[m];localStorage.setItem(key,JSON.stringify(store))}catch{localStorage.removeItem(key)}
  }
@@ -742,9 +745,9 @@ function renderBackup(){
  $('content').innerHTML=`<div class="backup-workspace"><div class="cards"><section class="panel">${icon('down')}<h2>完整資料備份</h2><p class="muted">${months().length} 個月份 · ${db.rows.length} 筆設備</p><button class="primary" onclick="backup()">匯出完整備份</button></section><section class="panel">${icon('up')}<h2>從備份還原</h2><button onclick="document.getElementById('restoreFile').click()">選擇備份檔</button><input id="restoreFile" type="file" accept=".json" hidden onchange="restore(this.files[0]);this.value='' "></section></div></div>`;
 }
 async function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(16)}
-function reportStorage(){let x={};for(let k of Object.keys(localStorage))if(k!==KEY)x[k]=localStorage.getItem(k);return x}
+function reportStorage(){const result={};for(const name of ['calibrationV41.history','calibrationV41.drafts']){const key=window.Cloud?.isConnected()?Cloud.reportKey(name):name;if(localStorage.getItem(key))result[name]=localStorage.getItem(key)}return result}
 async function backup(){let payload={db,reportStorage:reportStorage()},raw=JSON.stringify(payload);download(JSON.stringify({format:'aming-calibration',version:1,createdAt:new Date().toISOString(),checksum:await hash(raw),payload}),'儀校完整備份_'+today()+'.json');toast('完整備份已匯出')}
-async function restore(file){if(!file)return;try{let b=JSON.parse(await file.text());if(b.format!=='aming-calibration'||b.version!==1||!b.payload||b.checksum!==await hash(JSON.stringify(b.payload)))throw Error('格式或完整性檢查失敗');let d=b.payload.db;if(!Array.isArray(d.rows)||!Array.isArray(d.manual)||!d.events||!d.quotes||!d.settings||!Array.isArray(d.imports)||!d.reports||d.rows.some(r=>!r.key||!r.id||!r.month||!Array.isArray(r.p)))throw Error('備份缺少必要資料');if(!confirm('將完整取代目前所有月份資料，確定還原？'))return;const old=Object.fromEntries(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)]));try{localStorage.clear();for(let[k,v]of Object.entries(b.payload.reportStorage||{}))localStorage.setItem(k,v);localStorage.setItem(KEY,JSON.stringify(d))}catch(e){localStorage.clear();for(let[k,v]of Object.entries(old))localStorage.setItem(k,v);throw e}db=d;initializeMonthlyFilters();loadMonthlyFilters();save();toast('已完成還原')}catch(e){toast('還原失敗，原資料保留：'+e.message)}}
+async function restore(file){if(!file)return;if(window.Cloud?.isConnected())return Cloud.restoreBackup(file);try{let b=JSON.parse(await file.text());if(b.format!=='aming-calibration'||b.version!==1||!b.payload||b.checksum!==await hash(JSON.stringify(b.payload)))throw Error('格式或完整性檢查失敗');let d=b.payload.db;if(!Array.isArray(d.rows)||!Array.isArray(d.manual)||!d.events||!d.quotes||!d.settings||!Array.isArray(d.imports)||!d.reports||d.rows.some(r=>!r.key||!r.id||!r.month||!Array.isArray(r.p)))throw Error('備份缺少必要資料');if(!confirm('將完整取代目前所有月份資料，確定還原？'))return;const old=Object.fromEntries(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)]));try{localStorage.clear();for(let[k,v]of Object.entries(b.payload.reportStorage||{}))localStorage.setItem(k,v);localStorage.setItem(KEY,JSON.stringify(d))}catch(e){localStorage.clear();for(let[k,v]of Object.entries(old))localStorage.setItem(k,v);throw e}db=d;initializeMonthlyFilters();loadMonthlyFilters();save();toast('已完成還原')}catch(e){toast('還原失敗，原資料保留：'+e.message)}}
 function resetDemo(){if(confirm('清除目前 DEMO 資料並恢復示範資料？')){db=seed();save();toast('已恢復示範資料')}}
 new ResizeObserver(()=>updateSidebarIndicator()).observe($('nav'));
 persist();render();setInterval(()=>{if(!$('dialog').open){if(page==='calendar')renderCalendar();else if(page==='dashboard')renderDashboard()}},60000);

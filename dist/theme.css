@@ -520,3 +520,14 @@ body.app-shell[data-page="dashboard"] #content{flex:1;min-height:0}
 .dashboard-mini-calendar b.tour,.dashboard-legend i.tour{background:var(--color-tour)}
 .dashboard-event.tour{border-color:var(--color-tour)}
 .dashboard-calendar .dashboard-legend{flex-wrap:wrap;column-gap:8px;row-gap:2px}
+/* Cloud account and persistence status; the workspace keeps its own scrolling. */
+.cloud-bar{position:fixed;z-index:60;left:76px;right:0;bottom:0;min-height:36px;display:flex;align-items:center;gap:14px;padding:5px 20px;background:var(--color-surface);border-top:1px solid var(--color-border);font-size:12px;color:var(--color-muted)}
+#cloudStatus{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#cloudStatus.is-error{color:var(--color-danger)}
+.cloud-bar button{padding:2px 6px;font-size:12px;background:transparent;border:0}.cloud-bar [hidden]{display:none}
+body.app-shell.cloud-enabled main{padding-bottom:52px}
+body.app-shell.cloud-enabled:is([data-page="dashboard"],[data-page="report"],[data-page="cost"],[data-page="backup"]) main{height:calc(100dvh - 36px);padding-bottom:16px}
+.cloud-gate{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:24px;background:var(--color-canvas);overflow:auto}
+.cloud-gate[hidden]{display:none}.cloud-card{background:white;width:min(100%,520px);padding:32px;border:1px solid var(--color-border);border-radius:16px;box-shadow:var(--shadow-card);max-height:calc(100dvh - 48px);overflow:auto}
+.cloud-card h1{font-size:26px;margin:0 0 16px}.cloud-card p{font-size:15px}.cloud-card label{display:block;font-size:14px;margin:16px 0 6px;color:var(--color-muted)}.cloud-card input:not([type="checkbox"]){display:block;width:100%;margin-top:6px;padding:10px 12px}
+.cloud-card form button{width:100%;margin-top:8px}.cloud-card button{font-size:14px;margin:5px 6px 5px 0}.cloud-card .cloud-message{color:var(--color-danger);min-height:20px}.cloud-help{font-size:13px!important;line-height:1.7}.cloud-source{padding:14px;background:var(--color-soft);border-radius:8px}.cloud-card .cloud-confirm{display:flex;gap:8px;align-items:center;color:var(--color-primary)}.cloud-card hr{border:0;border-top:1px solid var(--color-border);margin:18px 0}
+@media(max-width:650px){.cloud-bar{left:60px;gap:6px;padding:5px 8px;min-height:36px}#cloudAccount{display:none}.cloud-bar button{font-size:11px}.cloud-gate{padding:12px}.cloud-card{padding:22px;max-height:calc(100dvh - 24px)}}
