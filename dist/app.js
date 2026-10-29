@@ -138,8 +138,8 @@ function revealPageTransition(){
 }
 function hideNavigationTooltip(){const tooltip=$('navigationTooltip');if(tooltip)tooltip.hidden=true}
 function showNavigationTooltip(button){const tooltip=$('navigationTooltip'),rect=button.getBoundingClientRect();tooltip.textContent=button.dataset.tooltip;tooltip.hidden=false;tooltip.style.left=(rect.right+12)+'px';tooltip.style.top=Math.max(8,Math.min(innerHeight-tooltip.offsetHeight-8,rect.top+(rect.height-tooltip.offsetHeight)/2))+'px'}
-document.addEventListener('mouseover',e=>{const button=e.target.closest('#nav button[data-tooltip]');if(button)showNavigationTooltip(button);else hideNavigationTooltip()});
-document.addEventListener('focusin',e=>{const button=e.target.closest('#nav button[data-tooltip]');if(button)showNavigationTooltip(button);else hideNavigationTooltip()});
+document.addEventListener('mouseover',e=>{const button=e.target.closest('#nav button[data-tooltip],#cloudAccountToggle[data-tooltip]');if(button)showNavigationTooltip(button);else hideNavigationTooltip()});
+document.addEventListener('focusin',e=>{const button=e.target.closest('#nav button[data-tooltip],#cloudAccountToggle[data-tooltip]');if(button)showNavigationTooltip(button);else hideNavigationTooltip()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')hideNavigationTooltip()});
 window.addEventListener('scroll',hideNavigationTooltip,true);
 function dashboardCardClick(event,target){if(!event.target.closest('button,input,select,a'))go(target)}

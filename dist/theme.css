@@ -524,8 +524,6 @@ body.app-shell[data-page="dashboard"] #content{flex:1;min-height:0}
 .cloud-bar{position:fixed;z-index:60;left:76px;right:0;bottom:0;min-height:36px;display:flex;align-items:center;gap:14px;padding:5px 20px;background:var(--color-surface);border-top:1px solid var(--color-border);font-size:12px;color:var(--color-muted)}
 #cloudStatus{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#cloudStatus.is-error{color:var(--color-danger)}
 .cloud-bar button{padding:2px 6px;font-size:12px;background:transparent;border:0}.cloud-bar [hidden]{display:none}
-body.app-shell.cloud-enabled main{padding-bottom:52px}
-body.app-shell.cloud-enabled:is([data-page="dashboard"],[data-page="report"],[data-page="cost"],[data-page="backup"]) main{height:calc(100dvh - 36px);padding-bottom:16px}
 .cloud-gate{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:24px;background:var(--color-canvas);overflow:auto}
 .cloud-gate[hidden]{display:none}.cloud-card{background:white;width:min(100%,520px);padding:32px;border:1px solid var(--color-border);border-radius:16px;box-shadow:var(--shadow-card);max-height:calc(100dvh - 48px);overflow:auto}
 .cloud-card h1{font-size:26px;margin:0 0 16px}.cloud-card p{font-size:15px}.cloud-card label{display:block;font-size:14px;margin:16px 0 6px;color:var(--color-muted)}.cloud-card input:not([type="checkbox"]){display:block;width:100%;margin-top:6px;padding:10px 12px}
@@ -538,3 +536,20 @@ body.app-shell.cloud-enabled:is([data-page="dashboard"],[data-page="report"],[da
 .cloud-reading #cloudStatus::before{content:"";display:inline-block;width:12px;height:12px;margin-right:8px;border:2px solid var(--color-divider);border-top-color:var(--color-primary);border-radius:50%;vertical-align:-2px;animation:cloud-loading-spin .8s linear infinite}
 @keyframes cloud-loading-spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.cloud-loading-spinner,.cloud-reading #cloudStatus::before{animation:none}}
+
+/* Account controls live at the foot of the icon rail. */
+body.app-shell.cloud-enabled aside #nav{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+body.app-shell.cloud-enabled aside #nav::-webkit-scrollbar{display:none}
+.cloud-bar.cloud-rail-account{position:static;inset:auto;display:block;flex:none;width:54px;min-height:54px;padding:8px 0 0;margin-top:12px;border:0;border-top:1px solid var(--color-border);background:transparent}
+.cloud-bar .cloud-account-trigger{position:relative;display:grid;place-items:center;width:54px;height:48px;padding:0;border:0;border-radius:8px;color:var(--color-primary);background:transparent}
+.cloud-bar .cloud-account-trigger:hover,.cloud-bar .cloud-account-trigger[aria-expanded="true"]{background:var(--color-accent-soft)}
+.cloud-account-alert{position:absolute;right:7px;top:7px;width:7px;height:7px;background:var(--color-danger);border-radius:50%}
+.cloud-account-panel{position:fixed;left:86px;bottom:16px;z-index:80;width:min(310px,calc(100vw - 100px));padding:18px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:12px;box-shadow:var(--shadow-dialog);font-size:14px}
+.cloud-account-panel[hidden],.cloud-account-alert[hidden]{display:none}
+.cloud-account-panel #cloudAccount{display:block;font-size:14px;color:var(--color-primary);overflow-wrap:anywhere;margin-bottom:10px}
+.cloud-account-panel #cloudStatus{display:block;font-size:13px;white-space:normal;line-height:1.6;margin-bottom:10px}.cloud-account-panel #cloudStatus:empty{display:none}
+.cloud-account-panel button{display:block;width:100%;text-align:left;padding:9px 10px;font-size:14px;margin-top:4px;border-radius:6px}
+.cloud-account-panel button:hover{background:var(--color-soft)}
+.cloud-reading .cloud-account-trigger::after{content:"";position:absolute;width:34px;height:34px;border:2px solid transparent;border-top-color:var(--color-primary);border-radius:50%;animation:cloud-loading-spin .8s linear infinite}
+@media(max-width:650px){.cloud-bar.cloud-rail-account{width:46px}.cloud-bar .cloud-account-trigger{width:46px;height:44px}.cloud-account-panel{left:68px;width:calc(100vw - 80px);bottom:12px}}
+@media(prefers-reduced-motion:reduce){.cloud-reading .cloud-account-trigger::after{animation:none}}

@@ -34,7 +34,7 @@ window.Cloud=(()=>{
  function safeDailyRead(){return dataActive&&!applying&&mode==='ready'&&!inflight&&!!session&&$('cloudGate').hidden&&document.visibilityState!=='hidden'&&!$('dialog').open&&page!=='report'&&!document.activeElement?.matches('input,textarea,select,iframe,[contenteditable="true"]')&&snapshot()===baseline}
  async function checkDaily(){
   if(dailyReading||Date.now()<dailyRetryAt||sessionStorage.getItem(dailyKey())===taipeiDay()||!safeDailyRead())return;
-  dailyReading=true;status('讀取雲端資料…');
+  dailyReading=true;status('');
   // The response may arrive after another page, account, or local edit has changed.
   const user=identity(),expectedRevision=revision;
   try{
@@ -45,14 +45,14 @@ window.Cloud=(()=>{
    markDailyRead();status(role==='viewer'?'僅供檢視 · 今日雲端資料已更新':'今日雲端資料已更新');
   }catch(error){
    if(identity()===user&&dataActive){dailyRetryAt=Date.now()+5*60*1000;status('每日更新暫時失敗，稍後會重試；目前資料仍保留。'+friendly(error),true)}
-  }finally{dailyReading=false;if(mode==='ready'&&$('cloudStatus').textContent==='讀取雲端資料…')status('每日更新已延後，待操作結束後重試')}
+  }finally{dailyReading=false;if(mode==='ready'&&$('cloudStatus').textContent==='')status('每日更新已延後，待操作結束後重試')}
  }
  function validData(d){return object(d)&&Array.isArray(d.rows)&&Array.isArray(d.manual)&&object(d.events)&&object(d.settings)&&object(d.quotes)&&object(d.reports)&&Array.isArray(d.imports)&&d.rows.every(r=>object(r)&&typeof r.key==='string'&&typeof r.month==='string'&&Array.isArray(r.p))}
  function shared(d){const copy=structuredClone(d);for(const key of localSettingKeys)delete copy.settings[key];return copy}
  const snapshot=()=>JSON.stringify(shared(db));
  function storePreferences(d){const prefs={};for(const key of localSettingKeys)if(d.settings[key]!==undefined)prefs[key]=d.settings[key];localStorage.setItem(prefsKey(),JSON.stringify(prefs))}
- function status(text,error=false){const n=$('cloudStatus');n.textContent=text;n.classList.toggle('is-error',error);$('cloudRetry').hidden=mode!=='error';$('cloudReload').hidden=mode!=='conflict';$('cloudAccount').textContent=session?.user?.email||'';}
- function gate(title,body){if($('dialog').open)$('dialog').close();const n=$('cloudGate');n.hidden=false;n.innerHTML=`<section class="cloud-card"><h1>${esc(title)}</h1>${body}</section>`;document.querySelector('main').inert=true;document.querySelector('aside').inert=true;$('cloudBar').inert=true;requestAnimationFrame(()=>n.querySelector('input,button')?.focus())}
+ function status(text,error=false){const n=$('cloudStatus');n.textContent=text;n.classList.toggle('is-error',error);$('cloudRetry').hidden=mode!=='error';$('cloudReload').hidden=mode!=='conflict';$('cloudAccount').textContent=session?.user?.email||'';$('cloudAccountToggle').dataset.tooltip=session?.user?.email||'登入帳號';$('cloudAccountAlert').hidden=!error;}
+ function gate(title,body){toggleAccount(false);if($('dialog').open)$('dialog').close();const n=$('cloudGate');n.hidden=false;n.innerHTML=`<section class="cloud-card"><h1>${esc(title)}</h1>${body}</section>`;document.querySelector('main').inert=true;document.querySelector('aside').inert=true;$('cloudBar').inert=true;requestAnimationFrame(()=>n.querySelector('input,button')?.focus())}
  function openApp(){ $('cloudGate').hidden=true;document.querySelector('main').inert=false;document.querySelector('aside').inert=false;$('cloudBar').inert=false;}
  function loginGate(message=''){
   mode='login';status('尚未登入');
@@ -81,7 +81,7 @@ window.Cloud=(()=>{
  };
  function friendly(error){const text=error?.message||'';if(/REVISION_CONFLICT|40001/.test(text)||error.code==='40001')return '其他人已更新雲端資料。你的修改已保留，請先下載備份，再載入最新資料。';if(/WORKSPACE_ACCESS_DENIED|WRITE_ACCESS_DENIED/.test(text))return '這個帳號尚未取得工作區權限，請聯絡管理員。';if(/Email not confirmed/.test(text))return '這個帳號尚未驗證，請在 Supabase Authentication 確認帳號已啟用。';if(/Invalid login credentials|invalid_credentials/.test(text))return 'Email 或密碼不正確。';if(/LOGIN_REQUIRED|refresh_token|JWT|token.*expired/i.test(text))return '登入已過期，請重新登入；未同步修改仍保留在本機。';if(/PGRST202|Could not find the function/.test(text))return '找不到雲端資料表 API，請確認已執行資料庫建立腳本。';if(/INVALID_CALIBRATION_DATA/.test(text))return '資料格式不完整，尚未上傳。';if(/Abort|fetch|Network|HTTP_5/i.test(text)||error.name==='AbortError')return '無法連線雲端，修改已保留在本機。請檢查網路後重試。';return '連線失敗，請稍後重試。'+(text?'（'+text.slice(0,150)+'）':'')}
  async function connect(){
-  mode='loading';status('讀取雲端資料…');gate('正在連線', '<div class="cloud-loading" role="status"><span class="cloud-loading-spinner" aria-hidden="true"></span><p>正在讀取雲端資料…</p></div>');
+  mode='loading';status('');gate('正在連線', '<div class="cloud-loading" role="status" aria-label="雲端資料載入中"><span class="cloud-loading-spinner" aria-hidden="true"></span></div>');
   try{
    const record=await load();role=record.member_role;revision=Number(record.revision);cloudData=record.data;
    const cached=await readCache();
@@ -91,7 +91,7 @@ window.Cloud=(()=>{
    }
    if(!record.data){migrationGate();return}
    if(!validData(record.data))throw Error('INVALID_CALIBRATION_DATA');
-   applyData(record.data);mode='ready';baseline=snapshot();openApp();markDailyRead();status(role==='viewer'?'僅供檢視':'已儲存至雲端');
+   applyData(record.data);mode='ready';baseline=snapshot();openApp();markDailyRead();status(role==='viewer'?'僅供檢視':'');
   }catch(error){mode='error';status(friendly(error),true);gate('無法讀取雲端資料',`<p class="cloud-message">${esc(friendly(error))}</p><button class="primary" onclick="Cloud.connect()">重新連線</button><button onclick="Cloud.signOut()">重新登入</button>`)}
  }
  function applyData(data){
@@ -117,7 +117,7 @@ window.Cloud=(()=>{
  async function uploadInitial(data){
   if(role==='viewer')return;
   const button=$('cloudGate').querySelectorAll('button');button.forEach(n=>n.disabled=true);
-  try{const next=await request('/rest/v1/rpc/calibration_save',{p_slug:config.workspace,p_expected_revision:0,p_data:shared(data)});revision=Number(next);applyData(data);mode='ready';baseline=snapshot();openApp();markDailyRead();status('移轉完成，已儲存至雲端')}
+  try{const next=await request('/rest/v1/rpc/calibration_save',{p_slug:config.workspace,p_expected_revision:0,p_data:shared(data)});revision=Number(next);applyData(data);mode='ready';baseline=snapshot();openApp();markDailyRead();status('移轉完成')}
   catch(error){$('cloudMigrationError').textContent=friendly(error);button.forEach(n=>n.disabled=false)}
  }
  async function migrateLocal(){if(!$('cloudMigrationConfirm').checked){$('cloudMigrationError').textContent='請先確認資料來源';return}await uploadInitial(migrationSource(localSource))}
@@ -133,11 +133,11 @@ window.Cloud=(()=>{
  }
  async function flush(){
   clearTimeout(timer);if(!dataActive||inflight||!['ready','error'].includes(mode)||!session||role==='viewer')return inflight;
-  const text=snapshot();if(text===baseline){mode='ready';status('已儲存至雲端');return}
+  const text=snapshot();if(text===baseline){mode='ready';status('');return}
   mode='saving';status('儲存中…');
   inflight=(async()=>{try{
    const next=await request('/rest/v1/rpc/calibration_save',{p_slug:config.workspace,p_expected_revision:revision,p_data:JSON.parse(text)});
-   revision=Number(next);baseline=text;mode='ready';await writeCache({data:db,revision,pending:snapshot()!==baseline});status('已儲存至雲端');
+   revision=Number(next);baseline=text;mode='ready';await writeCache({data:db,revision,pending:snapshot()!==baseline});status('');
   }catch(error){mode=error.code==='40001'||/REVISION_CONFLICT/.test(error.message)?'conflict':'error';status(friendly(error),true)}})();
   try{await inflight}finally{inflight=null}
   if(mode==='ready'&&snapshot()!==baseline){clearTimeout(timer);timer=setTimeout(flush,150)}
@@ -162,9 +162,13 @@ window.Cloud=(()=>{
  function reportKey(key){return key+':cloud:'+config.workspace+':'+identity()}
  function persistData(data){if(workingKey===KEY)localStorage.setItem(KEY,JSON.stringify(data));changed(data)}
  function allowWrite(event){if(role!=='viewer'||$('cloudGate').hidden===false)return;const element=event.target.closest('button,input,select,textarea');if(!element)return;const handler=(element.getAttribute('onclick')||'')+' '+(element.getAttribute('onchange')||'');const edit=/editEquipment|deleteEquipment|importExcel|appendEquipment|editManual|deleteManual|toggleEvent|bulkProgress|window.step|schedule\(|changeMode|mode\(|saveMonthly|restore\(/.test(handler)||element.matches('textarea,#monthly-external-total');if(edit){event.preventDefault();event.stopImmediatePropagation();toast('此帳號僅供檢視')}}
+ function toggleAccount(open){const panel=$('cloudAccountPanel');if(!panel)return;const show=typeof open==='boolean'?open:panel.hidden;panel.hidden=!show;$('cloudAccountToggle').setAttribute('aria-expanded',String(show));hideNavigationTooltip()}
+ document.addEventListener('click',event=>{if(!event.target.closest('#cloudBar'))toggleAccount(false)});
+ document.addEventListener('keydown',event=>{if(event.key==='Escape')toggleAccount(false)});
  async function start(){
   document.body.classList.add('cloud-enabled');
-  document.body.insertAdjacentHTML('beforeend',`<div id="cloudBar" class="cloud-bar"><span id="cloudStatus" role="status">連線準備中</span><span id="cloudAccount"></span><button id="cloudRetry" hidden onclick="Cloud.flush()">重試儲存</button><button id="cloudReload" hidden onclick="Cloud.discardPending()">處理版本衝突</button><button onclick="Cloud.reload()">重新整理雲端</button><button onclick="Cloud.signOut()">登出</button></div><div id="cloudGate" class="cloud-gate"></div>`);
+  document.querySelector('aside').insertAdjacentHTML('beforeend',`<div id="cloudBar" class="cloud-bar cloud-rail-account"><button id="cloudAccountToggle" class="cloud-account-trigger" aria-label="帳號與雲端操作" aria-expanded="false" aria-controls="cloudAccountPanel" data-tooltip="登入帳號" onclick="Cloud.toggleAccount()"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/></svg><i id="cloudAccountAlert" class="cloud-account-alert" hidden></i></button><section id="cloudAccountPanel" class="cloud-account-panel" hidden aria-label="登入帳號與雲端操作"><strong id="cloudAccount"></strong><span id="cloudStatus" role="status"></span><button id="cloudRetry" hidden onclick="Cloud.flush()">重試儲存</button><button id="cloudReload" hidden onclick="Cloud.discardPending()">處理版本衝突</button><button onclick="Cloud.reload()">重新整理雲端</button><button onclick="Cloud.signOut()">登出</button></section></div>`);
+  document.body.insertAdjacentHTML('beforeend','<div id="cloudGate" class="cloud-gate"></div>');
   document.addEventListener('click',allowWrite,true);document.addEventListener('change',allowWrite,true);document.addEventListener('beforeinput',allowWrite,true);
   session=parse(SESSION,sessionStorage);if(session?.access_token)await connect();else loginGate();
  }
@@ -173,6 +177,6 @@ window.Cloud=(()=>{
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkDaily()});
  setInterval(()=>checkDaily(),60000);
  window.addEventListener('beforeunload',e=>{if(session&&role!=='viewer'&&cacheRecord?.pending){e.preventDefault();e.returnValue=''}});
- return{start,changed,persistData,reportKey,checkDaily,connect,flush,reload,signOut,migrateLocal,migrateBackup,exportPending,exportOriginal,discardPending,confirmReload,cancelReload,restoreBackup,isConnected:()=>!!session&&!!role,canWrite:()=>role==='admin'||role==='editor'};
+ return{start,toggleAccount,changed,persistData,reportKey,checkDaily,connect,flush,reload,signOut,migrateLocal,migrateBackup,exportPending,exportOriginal,discardPending,confirmReload,cancelReload,restoreBackup,isConnected:()=>!!session&&!!role,canWrite:()=>role==='admin'||role==='editor'};
 })();
 Cloud.start();
