@@ -163,7 +163,7 @@ function animateDashboardEntrance(){
  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
  document.querySelectorAll('.dashboard-grid>.dashboard-card').forEach((card,index)=>{
   card.dataset.entranceDelay=String(index*100);
-  card.animate([{transform:'translateY(32px)',clipPath:'inset(100% 0 0 0 round 16px)'},{transform:'translateY(0)',clipPath:'inset(0 0 0 0 round 16px)'}],{duration:800,delay:index*100,easing:'cubic-bezier(.2,.7,.2,1)',fill:'backwards'});
+  card.animate([{transform:'translateY(48px)',visibility:'hidden'},{transform:'translateY(48px)',visibility:'visible',offset:0.001},{transform:'translateY(0)',visibility:'visible'}],{duration:800,delay:index*100,easing:'cubic-bezier(.2,.7,.2,1)',fill:'backwards'});
  });
  animateDashboardCharts();
 }
