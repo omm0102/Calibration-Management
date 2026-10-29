@@ -514,3 +514,9 @@ body.app-shell[data-page="dashboard"] #content{flex:1;min-height:0}
 .dashboard-agenda-part .dashboard-event small{font-size:13px}
 .dashboard-bar-area i{transform-origin:center bottom}
 @media(min-width:801px) and (max-height:750px){.dashboard-agenda-part h2{font-size:18px}.dashboard-agenda-part .dashboard-event{font-size:15px;padding:4px 8px}.dashboard-agenda-part .dashboard-empty{font-size:15px;margin:7px 0}.dashboard-agenda-part .dashboard-more{font-size:13px}}
+
+:root{--color-tour:#4D9970}
+.calendar-workspace .event.tour:not(.done),.calendar-workspace .todo.tour:not(.done){background:var(--color-tour);color:white;border-left-color:var(--color-tour)}
+.dashboard-mini-calendar b.tour,.dashboard-legend i.tour{background:var(--color-tour)}
+.dashboard-event.tour{border-color:var(--color-tour)}
+.dashboard-calendar .dashboard-legend{flex-wrap:wrap;column-gap:8px;row-gap:2px}
