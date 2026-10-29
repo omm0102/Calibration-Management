@@ -115,6 +115,7 @@ function render(){
  const scroll=previousPage===page?capturePageScroll():null;
  if(previousPage&&previousPage!==page)holdPageTransition()
  renderPage();if(scroll)restorePageScroll(scroll);
+ if(page==='dashboard'&&previousPage!==page)animateDashboardCharts();
  if(previousPage&&previousPage!==page&&page!=='report')revealPageTransition();
 }
 let pageTransitionCover=null,pageSlideAnimation=null;
@@ -158,6 +159,15 @@ function dashboardCostChart(){
  return `<div class="dashboard-cost-chart" role="img" aria-label="${month.slice(0,4)}年每月外校費用長條圖"><div class="dashboard-cost-bars">${data.map((d,i)=>`<div class="dashboard-cost-column" title="${i+1}月：NT$ ${d.value.toLocaleString()}${d.estimated?'（平均分攤）':''}"><span class="dashboard-bar-value">${d.value.toLocaleString()}</span><div class="dashboard-bar-area"><i style="height:${d.value/max*100}%" class="${d.key===month?'selected-month':''}"></i></div><span class="dashboard-bar-month">${i+1}月</span></div>`).join('')}</div></div>${data.some(d=>d.estimated)?'<div class="dashboard-chart-note">1–9 月未分月費用採平均分攤</div>':''}`;
 }
 
+function animateDashboardCharts(){
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ document.querySelectorAll('.dashboard-ring-value').forEach(circle=>{
+  circle.animate([{strokeDasharray:'0 100'},{strokeDasharray:circle.getAttribute('stroke-dasharray')}],{duration:800,easing:'cubic-bezier(.2,.7,.2,1)'});
+ });
+ document.querySelectorAll('.dashboard-bar-area i').forEach((bar,index)=>{
+  bar.animate([{transform:'scaleY(0)'},{transform:'scaleY(1)'}],{duration:650,delay:index*12,easing:'cubic-bezier(.2,.7,.2,1)',fill:'backwards'});
+ });
+}
 function renderDashboard(){
  const active=rows().filter(r=>!inactiveEquipment(r)),inside=active.filter(r=>r.type==='內校'),insideProgress=inside.filter(r=>matchesInternalProgressScope(r)&&equipmentMatchesQuery(r,monthlyFilterMemory().internalSearch||'')&&internalProgressMatches(r)),outside=active.filter(r=>['外校','遊校'].includes(r.type));
  const events=allEvents(),tomorrow=add(today(),1);

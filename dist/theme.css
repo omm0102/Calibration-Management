@@ -505,3 +505,12 @@ body.app-shell[data-page="dashboard"] #content{flex:1;min-height:0}
 .dashboard-progress-rings{gap:12px}.dashboard-ring{max-width:210px}.dashboard-ring>strong{font-size:38px}.dashboard-ring>strong>small{font-size:18px}
 @media(min-width:801px) and (max-height:750px){.dashboard-ring{max-width:155px}.dashboard-ring>strong{font-size:30px}}
 @media(max-width:800px){.dashboard-ring{max-width:170px}.dashboard-ring>strong{font-size:32px}}
+
+/* Readable agenda details and chart entrance animations. */
+.dashboard-agenda-part h2{font-size:20px}
+.dashboard-agenda-part .dashboard-event{font-size:16px;padding:7px 10px}
+.dashboard-agenda-part .dashboard-empty{font-size:16px;margin:10px 0}
+.dashboard-agenda-part .dashboard-more{font-size:14px}
+.dashboard-agenda-part .dashboard-event small{font-size:13px}
+.dashboard-bar-area i{transform-origin:center bottom}
+@media(min-width:801px) and (max-height:750px){.dashboard-agenda-part h2{font-size:18px}.dashboard-agenda-part .dashboard-event{font-size:15px;padding:4px 8px}.dashboard-agenda-part .dashboard-empty{font-size:15px;margin:7px 0}.dashboard-agenda-part .dashboard-more{font-size:13px}}
