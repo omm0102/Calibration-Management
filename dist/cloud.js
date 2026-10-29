@@ -12,7 +12,7 @@ window.Cloud=(()=>{
  const cacheKey=()=>CACHE+config.workspace+':'+identity()+':'+tabId;
  const prefsKey=()=>PREFS+config.workspace+':'+identity();
  function parse(key,storage=localStorage){try{return JSON.parse(storage.getItem(key))}catch{return null}}
- let cacheDatabase=null,dailyReading=false,dailyRetryAt=0;
+ let cacheDatabase=null,dailyReading=false,dailyRetryAt=0,cloudReads=0;
  function cacheDB(){
   if(cacheDatabase)return cacheDatabase;
   cacheDatabase=new Promise((resolve,reject)=>{const open=indexedDB.open('calibration-cloud-offline-v1',1);open.onupgradeneeded=()=>open.result.createObjectStore('documents');open.onsuccess=()=>resolve(open.result);open.onerror=()=>reject(open.error)});
@@ -34,7 +34,7 @@ window.Cloud=(()=>{
  function safeDailyRead(){return dataActive&&!applying&&mode==='ready'&&!inflight&&!!session&&$('cloudGate').hidden&&document.visibilityState!=='hidden'&&!$('dialog').open&&page!=='report'&&!document.activeElement?.matches('input,textarea,select,iframe,[contenteditable="true"]')&&snapshot()===baseline}
  async function checkDaily(){
   if(dailyReading||Date.now()<dailyRetryAt||sessionStorage.getItem(dailyKey())===taipeiDay()||!safeDailyRead())return;
-  dailyReading=true;
+  dailyReading=true;status('讀取雲端資料…');
   // The response may arrive after another page, account, or local edit has changed.
   const user=identity(),expectedRevision=revision;
   try{
@@ -47,7 +47,7 @@ window.Cloud=(()=>{
    markDailyRead();status(role==='viewer'?'僅供檢視 · 今日雲端資料已更新':'今日雲端資料已更新');
   }catch(error){
    if(identity()===user&&dataActive){dailyRetryAt=Date.now()+5*60*1000;status('每日更新暫時失敗，稍後會重試；目前資料仍保留。'+friendly(error),true)}
-  }finally{dailyReading=false}
+  }finally{dailyReading=false;if(mode==='ready'&&$('cloudStatus').textContent==='讀取雲端資料…')status('每日更新已延後，待操作結束後重試')}
  }
  function validData(d){return object(d)&&Array.isArray(d.rows)&&Array.isArray(d.manual)&&object(d.events)&&object(d.settings)&&object(d.quotes)&&object(d.reports)&&Array.isArray(d.imports)&&d.rows.every(r=>object(r)&&typeof r.key==='string'&&typeof r.month==='string'&&Array.isArray(r.p))}
  function shared(d){const copy=structuredClone(d);for(const key of localSettingKeys)delete copy.settings[key];return copy}
@@ -76,10 +76,14 @@ window.Cloud=(()=>{
   refreshing=(async()=>{if(!session?.refresh_token)throw Error('LOGIN_REQUIRED');const next=await request('/auth/v1/token?grant_type=refresh_token',{refresh_token:session.refresh_token},false);session=next;saveSession()})();
   try{await refreshing}finally{refreshing=null}
  }
- const load=async()=>{const data=await request('/rest/v1/rpc/calibration_load',{p_slug:config.workspace});if(!Array.isArray(data)||!data[0])throw Error('WORKSPACE_ACCESS_DENIED');return data[0]};
+ const load=async()=>{
+  cloudReads++;document.body.classList.add('cloud-reading');$('cloudStatus')?.setAttribute('aria-busy','true');
+  try{const data=await request('/rest/v1/rpc/calibration_load',{p_slug:config.workspace});if(!Array.isArray(data)||!data[0])throw Error('WORKSPACE_ACCESS_DENIED');return data[0]}
+  finally{cloudReads--;if(!cloudReads){document.body.classList.remove('cloud-reading');$('cloudStatus')?.removeAttribute('aria-busy')}}
+ };
  function friendly(error){const text=error?.message||'';if(/REVISION_CONFLICT|40001/.test(text)||error.code==='40001')return '其他人已更新雲端資料。你的修改已保留，請先下載備份，再載入最新資料。';if(/WORKSPACE_ACCESS_DENIED|WRITE_ACCESS_DENIED/.test(text))return '這個帳號尚未取得工作區權限，請聯絡管理員。';if(/Email not confirmed/.test(text))return '這個帳號尚未驗證，請在 Supabase Authentication 確認帳號已啟用。';if(/Invalid login credentials|invalid_credentials/.test(text))return 'Email 或密碼不正確。';if(/LOGIN_REQUIRED|refresh_token|JWT|token.*expired/i.test(text))return '登入已過期，請重新登入；未同步修改仍保留在本機。';if(/PGRST202|Could not find the function/.test(text))return '找不到雲端資料表 API，請確認已執行資料庫建立腳本。';if(/INVALID_CALIBRATION_DATA/.test(text))return '資料格式不完整，尚未上傳。';if(/Abort|fetch|Network|HTTP_5/i.test(text)||error.name==='AbortError')return '無法連線雲端，修改已保留在本機。請檢查網路後重試。';return '連線失敗，請稍後重試。'+(text?'（'+text.slice(0,150)+'）':'')}
  async function connect(){
-  mode='loading';status('讀取雲端資料…');gate('正在連線', '<p>正在讀取雲端資料…</p>');
+  mode='loading';status('讀取雲端資料…');gate('正在連線', '<div class="cloud-loading" role="status"><span class="cloud-loading-spinner" aria-hidden="true"></span><p>正在讀取雲端資料…</p></div>');
   try{
    const record=await load();role=record.member_role;revision=Number(record.revision);cloudData=record.data;
    const cached=await readCache();
