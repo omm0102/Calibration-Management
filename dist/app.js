@@ -218,7 +218,7 @@ function fixedMonthlyEvents(){
  const events=[];
  for(let m=start;m<=end;){
   const [year,month]=m.split('-').map(Number);
-  const rules=[['monthly-report','校驗管理月報',monthWorkingDay(m)],['monthly-internal-upload','上傳本月內校清單',monthWorkingDay(m)],['monthly-external-upload','上傳下月外校清單',secondWeekLastWorkingDay(m)],['monthly-progress','確認本月校驗進度',monthWorkingDay(m,true)]];
+  const rules=[['monthly-report','校驗管理月報',monthWorkingDay(m)],['monthly-internal-upload','上傳本月內校清單',monthWorkingDay(m)],['monthly-external-upload','上傳下月外校清單',monthWorkingDay(m)],['monthly-progress','確認本月校驗進度',monthWorkingDay(m,true)]];
   for(const [rule,name,date]of rules){
    if(!date)continue;
    const id='fixed|'+m+'|'+rule,signature='fixed-v1',state=db.events[id];
