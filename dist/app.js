@@ -483,6 +483,7 @@ function equipmentVendorControl(r){
 }
 function toggleEquipmentVendorOther(){const input=$('f_vendorOther');input.hidden=$('f_vendor').value!=='__other__';if(!input.hidden)input.focus()}
 function externalReceiptDate(r){if(r.type==='遊校')return r.date||'';return (r.mode||'收件')==='收件'?r.date||'':r.receiptDate||''}
+function externalCalibrationReferenceDate(r){return [r.date||'',externalReceiptDate(r)].sort().at(-1)||''}
 function vendorCycleStats(v){
  const durations=db.rows.filter(r=>r.type==='外校'&&(r.vendorInfoId&&(db.externalVendors||[]).some(x=>x.id===r.vendorInfoId)?r.vendorInfoId===v.id:String(r.vendor||'').trim().toLocaleLowerCase()===v.name.trim().toLocaleLowerCase())).map(r=>{
   const start=externalReceiptDate(r),end=r.calibrationDate;
@@ -496,10 +497,10 @@ function setExternalCalibrationDate(key){const r=db.rows.find(r=>r.key===key&&['
 function externalCalibrationDateDialog(list){
  if(window.Cloud&&!Cloud.canWrite())return toast('此帳號僅供檢視');
  if(!list.length)return;
- if(list.some(r=>!externalReceiptDate(r)&&!r.calibrationDate))return toast('請先設定收件／遊校日期');
- const earliest=list.map(externalReceiptDate).filter(Boolean).sort().at(-1)||'',same=list.every(r=>r.calibrationDate===list[0].calibrationDate);
- modal('校驗日期',`<p>${list.length===1?esc(list[0].id)+' · '+esc(list[0].name):esc(list[0].vendor)+' · '+list.length+' 台設備'}</p><p>${list[0].type==='遊校'?'遊校日期':'收件日期'}：${list.length===1?esc(earliest)||'未設定':'依各設備的收件日期計算'}</p><label class="field">校驗日期<input id="externalCalibrationDate" type="date" min="${esc(earliest)}" max="${today()}" value="${esc(same&&list[0].calibrationDate||today())}"></label>`,()=>{
-  const date=$('externalCalibrationDate').value;if(date&&list.some(r=>!externalReceiptDate(r)))return toast('請先設定收件／遊校日期');if(date&&date<earliest)return toast('校驗日期不可早於收件日期');if(date&&date>today())return toast('校驗日期不可為未來日期');
+ if(list.some(r=>!externalCalibrationReferenceDate(r)&&!r.calibrationDate))return toast('請先設定寄出／收件／遊校日期');
+ const earliest=list.map(externalCalibrationReferenceDate).filter(Boolean).sort().at(-1)||'',same=list.every(r=>r.calibrationDate===list[0].calibrationDate);
+ modal('校驗日期',`<p>${list.length===1?esc(list[0].id)+' · '+esc(list[0].name):esc(list[0].vendor)+' · '+list.length+' 台設備'}</p><p>${list[0].type==='遊校'?'遊校日期':list[0].mode==='寄出'?'寄出／收件日期':'收件日期'}：${list.length===1?esc(earliest)||'未設定':'依各設備的收件日期計算'}</p><label class="field">校驗日期<input id="externalCalibrationDate" type="date" min="${esc(earliest)}" max="${today()}" value="${esc(same&&list[0].calibrationDate||today())}"></label>`,()=>{
+  const date=$('externalCalibrationDate').value;if(date&&list.some(r=>!externalCalibrationReferenceDate(r)))return toast('請先設定寄出／收件／遊校日期');if(date&&date<earliest)return toast('校驗日期不可早於寄出／收件／遊校日期');if(date&&date>today())return toast('校驗日期不可為未來日期');
   for(const r of list){r.receiptDate=externalReceiptDate(r);r.calibrationDate=date;r.p[stages(r).length-1]=!!date;r.completed=date}closeModal();save();
  });
 }
@@ -527,7 +528,7 @@ function renderInternalProgress(){
 const externalProgressOpen=new Set();
 function externalProgressTable(list){
  return `<div class="tablewrap progress-table" onscroll="syncVendorHorizontal(this)"><table class="external-equipment-table" data-equipment-keys="${esc(JSON.stringify(list.map(r=>r.key)))}"><colgroup><col class="progress-col-equipment"><col class="progress-col-asset"><col class="progress-col-due">${stages(list[0]).map((s,i)=>`${list[0].type==='遊校'&&i===2?'<col class="progress-col-step"><col class="progress-col-step">':''}<col class="${i===stages(list[0]).length-2?'progress-col-date':'progress-col-step'}">`).join('')}</colgroup><thead><tr><th>設備編號 / 名稱</th><th>資產編號</th><th class="progress-due-cell">有效日期</th>${stages(list[0]).map((s,i)=>`${list[0].type==='遊校'&&i===2?'<th aria-label="不適用外送單"></th><th aria-label="不適用設備確認"></th>':''}<th class="${i===stages(list[0]).length-2?'':'progress-checkbox-cell'}">${list[0].type==='遊校'&&i===stages(list[0]).length-2?`<span class="tour-date-heading">${s}</span>`:s}</th>`).join('')}</tr></thead><tbody>${list.map(r=>`<tr class="${complete(r)?'finished':''}"><td>${esc(r.id)}<div class="subtle">${esc(r.name)}</div></td><td class="muted">${esc(r.asset)}</td><td class="progress-due-cell">${esc(r.due)||'—'}</td>${stages(r).map((s,i)=>{
-  const dateStage=i===stages(r).length-2;if(i===stages(r).length-1)return `<td class="progress-calibration-cell"><button aria-label="${esc(r.id)}校驗日期" ${!r.calibrationDate&&(!externalReceiptDate(r)||!r.p[i-1])?'disabled':''} onclick="setExternalCalibrationDate('${r.key}')">${esc(r.calibrationDate)||'設定日期'}</button></td>`;
+  const dateStage=i===stages(r).length-2;if(i===stages(r).length-1)return `<td class="progress-calibration-cell"><button aria-label="${esc(r.id)}校驗日期" ${!r.calibrationDate&&(!externalCalibrationReferenceDate(r)||!r.p[i-1])?'disabled':''} onclick="setExternalCalibrationDate('${r.key}')">${esc(r.calibrationDate)||'設定日期'}</button></td>`;
   return `${r.type==='遊校'&&i===2?'<td></td><td></td>':''}<td class="${dateStage?'':'progress-checkbox-cell'}">${dateStage?`<div class="progress-date-controls ${r.type==='遊校'?'tour-date-controls':''}">${r.type==='外校'?`<select class="smallselect" aria-label="${esc(r.id)}收件寄出方式" onchange="changeMode('${r.key}',this.value)"><option ${r.mode==='收件'?'selected':''}>收件</option><option ${r.mode==='寄出'?'selected':''}>寄出</option></select> `:''}<button ${i&&!r.p[i-1]?'disabled':''} onclick="schedule('${r.key}',${i})">${r.date||'設定日期'}</button></div>`:`<label class="step"><input aria-label="${esc(r.id)} ${esc(s)}" type="checkbox" ${r.p[i]?'checked':''} ${i&&!r.p[i-1]?'disabled':''} onchange="window.step('${r.key}',${i},this.checked)"></label>`}</td>`;
  }).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
