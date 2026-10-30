@@ -35,6 +35,7 @@ Authentication → Users → Add user 建立 Email/Password 使用者。這是�
 - 清冊廠商欄位使用依廠商資訊表格排序的完整下拉選單（不受搜尋條件影響），最後為「其他」；新輸入廠商會加入資訊清單。設備以 vendorInfoId 連結廠商，改名時同步關聯設備名稱但保留進度。
 - 外校表格的寄出／收件選擇放在日期表頭，切換僅改變檢視、不清除設備資料。編輯日期時分別保存 shippedDate 與 receiptDate，避免切換造成日期遺失。日期與文字置中，外校與遊校表格列均為白色。
 - 外校／遊校以 calibrationDate 代替「已完成」操作，填入校驗日期即為完成，清除即取消。舊完成紀錄會帶入原 completed 日期。已移除所有廠商整批控制；清冊顯示廠商校驗時間。receiptDate 保存外校收件日期，寄出日期不會拿來計算週期。廠商平均校驗週期以所有月份外校設備的有效「校驗日期－收件日期」平均計算，缺日期或負天數不納入；尚無資料時保留手填天數。有自動平均值時編輯框天數為唯讀，可修改或清除設備日期來更新。
+- 廠商可保存名稱下方副標註 vendorNote、一般備註 notes 及多位 contacts（name/method 成對），並保留舊 contact/contactMethod 作第一位聯絡人的相容欄位。週期可點擊查看依校驗日期年月分組的設備明細，缺收件日期或日期順序錯誤顯示「—」且不納入平均；只有手動週期時不會產生虛構設備紀錄。
 - 外校廠商資訊存於共用資料的 externalVendors，跨月份共用，包含名稱、平均校驗天數、聯絡人、聯絡方式與 E-mail。舊資料沒有這個欄位時視為空清單，不需要額外執行 SQL；新增後會跟隨雲端同步及完整備份。
 - 完整備份只包含系統資料與月報儲存，不會包含登入 token。
 - 「從備份還原」在登入後會顯示取代共用資料的確認，不會清除登入憑證。
@@ -51,6 +52,7 @@ Authentication → Users → Add user 建立 Email/Password 使用者。這是�
 APP_TEST_URL=http://127.0.0.1:8008 node tests/cloud-sync.cjs
 APP_TEST_URL=http://127.0.0.1:8008 node tests/cloud-daily-sync.cjs
 APP_TEST_URL=http://127.0.0.1:8008 node tests/vendor-info.cjs
+APP_TEST_URL=http://127.0.0.1:8008 node tests/vendor-details-history.cjs
 ```
 
 `cloud-daily-sync.cjs` 另驗證台灣日期標記、每日去重、成功讀取進入儀表板、編輯延後、過期回應不覆蓋與失敗重試。
