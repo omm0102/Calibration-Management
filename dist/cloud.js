@@ -56,7 +56,7 @@ window.Cloud=(()=>{
  function openApp(){ $('cloudGate').hidden=true;document.querySelector('main').inert=false;document.querySelector('aside').inert=false;$('cloudBar').inert=false;}
  function loginGate(message=''){
   mode='login';status('尚未登入');
-  gate('登入儀校管理',`<p>使用管理員建立的系統帳號登入</p><form id="cloudLoginForm"><label>Email<input id="cloudEmail" type="email" autocomplete="username" required></label><label>密碼<input id="cloudPassword" type="password" autocomplete="current-password" required></label><p id="cloudLoginError" class="cloud-message" role="alert">${esc(message)}</p><button class="primary" type="submit">登入</button></form><p class="cloud-help">原本瀏覽器裡的資料仍會保留，首次登入後可選擇移轉。</p>`);
+  gate('登入儀校管理',`<form id="cloudLoginForm"><label>Email<input id="cloudEmail" type="email" autocomplete="username" required></label><label>密碼<input id="cloudPassword" type="password" autocomplete="current-password" required></label><p id="cloudLoginError" class="cloud-message" role="alert">${esc(message)}</p><button class="primary" type="submit">登入</button></form>`);
   $('cloudLoginForm').onsubmit=async e=>{e.preventDefault();const button=e.currentTarget.querySelector('button');button.disabled=true;$('cloudLoginError').textContent='登入中…';try{session=await request('/auth/v1/token?grant_type=password',{email:$('cloudEmail').value.trim(),password:$('cloudPassword').value},false);saveSession();await connect()}catch(error){$('cloudLoginError').textContent=friendly(error);button.disabled=false}};
  }
  function saveSession(){session.expires_at=session.expires_at||Math.floor(Date.now()/1000)+(session.expires_in||3600);sessionStorage.setItem(SESSION,JSON.stringify(session))}
