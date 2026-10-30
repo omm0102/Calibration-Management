@@ -610,3 +610,13 @@ dialog.vendor-edit-dialog{width:min(920px,94vw);max-width:94vw}
 #vendorInfoForm .vendor-contact-pair label{min-width:0}#vendorInfoForm .vendor-contact-pair input{width:100%;min-width:0}
 @media(max-width:750px){#vendorInfoForm .vendor-contact-pair{grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding:12px 0;border-bottom:1px solid var(--color-border)}#vendorInfoForm .vendor-contact-pair label:nth-child(3){grid-column:1/-1}#vendorInfoForm .vendor-contact-remove{grid-column:1/-1}}
 @media(max-width:450px){#vendorInfoForm .vendor-contact-pair{grid-template-columns:minmax(0,1fr)}#vendorInfoForm .vendor-contact-pair label{grid-column:1/-1}}
+
+/* Separate equipment identity columns and share internal/external table colors. */
+.external-progress-workspace .external-equipment-table{min-width:1400px}.internal-equipment-table{min-width:1250px}
+.external-equipment-table .progress-col-equipment-id{width:10%}.external-equipment-table .progress-col-equipment-name{width:16%}.external-equipment-table .progress-col-asset{width:10%}.external-equipment-table .progress-col-due{width:10%}.external-equipment-table .progress-col-step{width:6%}.external-equipment-table .progress-col-date{width:18%}.external-equipment-table col:last-child{width:12%}
+body.app-shell .external-progress-workspace .external-equipment-table th{background:var(--color-soft);color:var(--color-muted)}
+body.app-shell .external-progress-workspace .vendor-progress-body .external-equipment-table tbody tr:hover td{background:var(--color-soft)}
+body.app-shell .internal-equipment-table tbody tr td{background:var(--color-surface)}
+body.app-shell .internal-equipment-table tbody tr:hover td{background:var(--color-soft)}
+body.app-shell :is(.internal-equipment-table,.external-equipment-table) .progress-equipment-name{white-space:normal;overflow-wrap:anywhere;color:var(--color-text);font-variant-numeric:normal}
+body.app-shell .internal-equipment-table td:nth-child(5){white-space:normal;overflow-wrap:anywhere}
