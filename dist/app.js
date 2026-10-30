@@ -606,7 +606,7 @@ function renderReport(){
  const reportDatabase=db;
  const previous=$('reportframe')?.contentWindow;
  if(previous&&typeof previous.appSaveDraftNow==='function')previous.appSaveDraftNow();
- $('content').innerHTML=`<iframe id="reportframe" class="report-workspace report-initializing" title="量測設備校驗管理月報" src="report.html?v=20261029-138"></iframe>`;
+ $('content').innerHTML=`<iframe id="reportframe" class="report-workspace report-initializing" title="量測設備校驗管理月報" src="report.html?v=20261030-145"></iframe>`;
  $('reportframe').onload=()=>{
   const w=$('reportframe').contentWindow;
   try{
