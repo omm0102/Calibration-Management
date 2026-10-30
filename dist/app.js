@@ -341,7 +341,7 @@ function renderCalendar(){
   calendarFrameObserver=new ResizeObserver(place);calendarFrameObserver.observe(calendar);
  }
 }
-function modal(title,body,onsave,label='儲存',showFooter=true){ $('dialog').classList.remove('registry-columns-dialog','vendor-history-dialog');$('modal').innerHTML=`<div class="modal-head"><h2>${esc(title)}</h2><button class="link" onclick="closeModal()">✕</button></div>${body}${showFooter?`<div class="modal-actions"><button onclick="closeModal()">關閉</button>${onsave?`<button id="modalSave" class="primary">${label}</button>`:''}</div>`:''}`;if(onsave)$('modalSave').onclick=onsave;if(!$('dialog').open){$('dialog').showModal();if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)$('dialog').animate([{opacity:0,transform:'translateY(12px) scale(.97)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:200,easing:'ease'})}}
+function modal(title,body,onsave,label='儲存',showFooter=true){ $('dialog').classList.remove('registry-columns-dialog','vendor-history-dialog','vendor-edit-dialog');$('modal').innerHTML=`<div class="modal-head"><h2>${esc(title)}</h2><button class="link" onclick="closeModal()">✕</button></div>${body}${showFooter?`<div class="modal-actions"><button onclick="closeModal()">關閉</button>${onsave?`<button id="modalSave" class="primary">${label}</button>`:''}</div>`:''}`;if(onsave)$('modalSave').onclick=onsave;if(!$('dialog').open){$('dialog').showModal();if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)$('dialog').animate([{opacity:0,transform:'translateY(12px) scale(.97)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:200,easing:'ease'})}}
 function closeModal(){$('dialog').close()}
 function showDay(date){
  const ev=date?eventsForDay(allEvents(),date):allEvents().filter(e=>!e.start&&(!e.done||e.actionDate===today()));
@@ -606,20 +606,20 @@ let costYear='',costEntryMonth='';
 let vendorSearch='',vendorSortKey='name',vendorSortDir=1;
 const vendorInfoFields=[['name','廠商名稱'],['cycleDays','校驗週期（天）'],['contact','聯絡人'],['contactMethod','聯絡方式'],['email','E-mail'],['notes','備註']];
 function vendorContacts(v){
- if(Array.isArray(v.contacts))return v.contacts.map(c=>({name:String(c.name||''),method:String(c.method||'')})).filter(c=>c.name||c.method);
- return v.contact||v.contactMethod?[{name:v.contact||'',method:v.contactMethod||''}]:[];
+ if(Array.isArray(v.contacts)&&v.contacts.length)return v.contacts.map((c,i)=>({name:String(c.name||''),method:String(c.method||''),email:String(c.email===undefined&&i===0?v.email||'':c.email||'')})).filter(c=>c.name||c.method||c.email);
+ return v.contact||v.contactMethod||v.email?[{name:v.contact||'',method:v.contactMethod||'',email:v.email||''}]:[];
 }
-function vendorInfoValue(v,key){if(key==='contact'||key==='contactMethod')return vendorContacts(v).map(c=>key==='contact'?c.name:c.method).join('\n');return key==='cycleDays'?vendorCycleStats(v).days??'':v[key]??''}
+function vendorInfoValue(v,key){if(['contact','contactMethod','email'].includes(key))return vendorContacts(v).map(c=>key==='contact'?c.name:key==='email'?c.email:c.method).join('\n');return key==='cycleDays'?vendorCycleStats(v).days??'':v[key]??''}
 function vendorInfoCell(v,key){
  if(key==='name')return `<strong class="vendor-name-main">${esc(v.name)}</strong>${v.vendorNote?`<span class="vendor-name-note">${esc(v.vendorNote)}</span>`:''}`;
  if(key==='cycleDays'){const stats=vendorCycleStats(v);return `<button class="vendor-cycle-history" aria-label="查看 ${esc(v.name)} 校驗週期紀錄" title="${stats.count?'依 '+stats.count+' 台設備平均計算':'查看校驗週期紀錄'}" onclick="showVendorCycleHistory('${esc(v.id)}')">${stats.days==null?'—':esc(stats.days)+' 天'}</button>`}
- if(key==='contact'||key==='contactMethod'){const contacts=vendorContacts(v);return contacts.length?contacts.map((c,i)=>`<div class="vendor-contact-line">${contacts.length>1?`<small>${i+1}.</small> `:''}${esc(key==='contact'?c.name:c.method)||'—'}</div>`).join(''):'—'}
+ if(['contact','contactMethod','email'].includes(key)){const contacts=vendorContacts(v);return contacts.length?contacts.map((c,i)=>`<div class="vendor-contact-line">${contacts.length>1?`<small>${i+1}.</small> `:''}${esc(key==='contact'?c.name:key==='email'?c.email:c.method)||'—'}</div>`).join(''):'—'}
  return esc(v[key])||'—';
 }
 let vendorContactSequence=0;
 function vendorContactRow(contact){
  const index=vendorContactSequence++,suffix=index?'_'+index:'';
- return `<div class="vendor-contact-pair"><label>聯絡人<input id="vendor_contact${suffix}" data-vendor-contact-name value="${esc(contact.name||'')}" autocomplete="off"></label><label>聯絡方式<input id="vendor_contactMethod${suffix}" data-vendor-contact-method value="${esc(contact.method||'')}" autocomplete="tel"></label>${index?'<button type="button" class="vendor-contact-remove danger" aria-label="移除這位聯絡人" onclick="removeVendorContact(this)">移除</button>':'<span></span>'}</div>`;
+ return `<div class="vendor-contact-pair"><label>聯絡人<input id="vendor_contact${suffix}" data-vendor-contact-name value="${esc(contact.name||'')}" autocomplete="off"></label><label>聯絡方式<input id="vendor_contactMethod${suffix}" data-vendor-contact-method value="${esc(contact.method||'')}" autocomplete="tel"></label><label>E-mail<input id="vendor_email${suffix}" type="email" data-vendor-contact-email value="${esc(contact.email||'')}" autocomplete="email"></label>${index?'<button type="button" class="vendor-contact-remove danger" aria-label="移除這位聯絡人" onclick="removeVendorContact(this)">移除</button>':'<span></span>'}</div>`;
 }
 function addVendorContact(){const container=$('vendorContactRows');if(!container)return;container.insertAdjacentHTML('beforeend',vendorContactRow({}));container.lastElementChild.querySelector('input').focus()}
 function removeVendorContact(button){button.closest('.vendor-contact-pair').remove()}
@@ -653,9 +653,9 @@ function editVendorInfo(id){
  const vendor=(db.externalVendors||[]).find(v=>v.id===id);if(id&&!vendor)return;
  const current=vendor||{};const cycleStats=vendor?vendorCycleStats(vendor):{count:0,days:null};
  vendorContactSequence=0;const contacts=vendorContacts(current);if(!contacts.length)contacts.push({});
- modal(id?'編輯外校廠商':'新增外校廠商',`<form id="vendorInfoForm"><div class="formgrid"><label class="field">廠商名稱<input id="vendor_name" required maxlength="200" value="${esc(current.name||'')}"></label><label class="field">廠商備註<input id="vendor_vendorNote" value="${esc(current.vendorNote||'')}" placeholder="顯示於廠商名稱下方"></label><label class="field">校驗週期（天）<input id="vendor_cycleDays" type="number" min="0" step="any" ${cycleStats.count?'disabled title="依設備日期自動計算"':''} value="${esc(cycleStats.count?cycleStats.days:current.cycleDays??'')}"></label><label class="field">E-mail<input id="vendor_email" type="email" value="${esc(current.email||'')}" autocomplete="email"></label><section class="vendor-contact-editor full"><div class="vendor-contact-heading"><h3>聯絡人與聯絡方式</h3><button type="button" onclick="addVendorContact()">＋ 新增聯絡人</button></div><div id="vendorContactRows">${contacts.map(vendorContactRow).join('')}</div></section><label class="field full">備註<textarea id="vendor_notes" rows="3">${esc(current.notes||'')}</textarea></label></div></form>`,()=>{
+ modal(id?'編輯外校廠商':'新增外校廠商',`<form id="vendorInfoForm"><div class="formgrid"><label class="field">廠商名稱<input id="vendor_name" required maxlength="200" value="${esc(current.name||'')}"></label><label class="field">廠商備註<input id="vendor_vendorNote" value="${esc(current.vendorNote||'')}" placeholder="顯示於廠商名稱下方"></label><label class="field">校驗週期（天）<input id="vendor_cycleDays" type="number" min="0" step="any" ${cycleStats.count?'disabled title="依設備日期自動計算"':''} value="${esc(cycleStats.count?cycleStats.days:current.cycleDays??'')}"></label><section class="vendor-contact-editor full"><div class="vendor-contact-heading"><h3>聯絡資料</h3><button type="button" onclick="addVendorContact()">＋ 新增聯絡人</button></div><div id="vendorContactRows">${contacts.map(vendorContactRow).join('')}</div></section><label class="field full">備註<textarea id="vendor_notes" rows="3">${esc(current.notes||'')}</textarea></label></div></form>`,()=>{
   const form=$('vendorInfoForm');if(!form.reportValidity())return;
-  const next=Object.fromEntries(['name','vendorNote','cycleDays','email','notes'].map(key=>[key,$('vendor_'+key).value.trim()]));next.contacts=[...$('vendorContactRows').querySelectorAll('.vendor-contact-pair')].map(row=>({name:row.querySelector('[data-vendor-contact-name]').value.trim(),method:row.querySelector('[data-vendor-contact-method]').value.trim()})).filter(c=>c.name||c.method);next.contact=next.contacts[0]?.name||'';next.contactMethod=next.contacts[0]?.method||'';
+  const next=Object.fromEntries(['name','vendorNote','cycleDays','notes'].map(key=>[key,$('vendor_'+key).value.trim()]));next.contacts=[...$('vendorContactRows').querySelectorAll('.vendor-contact-pair')].map(row=>({name:row.querySelector('[data-vendor-contact-name]').value.trim(),method:row.querySelector('[data-vendor-contact-method]').value.trim(),email:row.querySelector('[data-vendor-contact-email]').value.trim()})).filter(c=>c.name||c.method||c.email);next.contact=next.contacts[0]?.name||'';next.contactMethod=next.contacts[0]?.method||'';next.email=next.contacts[0]?.email||'';
   if(!next.name)return toast('請填寫廠商名稱');
   if((db.externalVendors||[]).some(v=>v.id!==id&&v.name.trim().toLocaleLowerCase()===next.name.toLocaleLowerCase()))return toast('廠商名稱已存在');
   next.cycleDays=cycleStats.count?current.cycleDays??null:next.cycleDays===''?null:Number(next.cycleDays);
@@ -664,6 +664,7 @@ function editVendorInfo(id){
   if(vendor){if(vendor.name!==next.name)renameVendorReferences(vendor,next.name);Object.assign(vendor,next)}else db.externalVendors.push({id:uid(),...next});
   closeModal();save();toast(id?'廠商資訊已更新':'廠商已新增');
  });
+ $('dialog').classList.add('vendor-edit-dialog');
  $('vendorInfoForm').onsubmit=event=>{event.preventDefault();$('modalSave').click()};
 }
 function deleteVendorInfo(id){
