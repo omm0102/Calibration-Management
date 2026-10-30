@@ -566,3 +566,10 @@ body.app-shell[data-page="vendors"] #content{flex:1;min-height:0}
 .vendor-info-table td{overflow-wrap:anywhere;white-space:pre-wrap;vertical-align:middle}.vendor-info-table .vendor-info-empty{text-align:center;padding:40px 16px}
 .vendor-info-search{width:min(440px,100%);min-width:220px}
 @media(max-width:650px){.vendor-info-search{width:100%;min-width:0}.vendor-info-workspace .toolbar{gap:10px}.vendor-info-workspace .toolbar .spacer{display:none}.vendor-info-workspace .toolbar button{margin-left:auto}}
+
+#f_vendorOther{margin-top:8px}#f_vendorOther[hidden]{display:none}
+.external-progress-workspace .external-equipment-table,.vendor-bulk-controls{min-width:1400px}
+.external-equipment-table .progress-col-equipment{width:18%}.external-equipment-table .progress-col-asset{width:9%}.external-equipment-table .progress-col-due{width:10%}.external-equipment-table .progress-col-step{width:6%}.external-equipment-table .progress-col-date{width:20%}.external-equipment-table .progress-col-calibration{width:13%}
+.vendor-bulk-type{grid-template-columns:18% 9% 10% 6% 6% 6% 6% 20% 6% 13%}
+.external-equipment-table .progress-calibration-cell{text-align:center}.progress-calibration-cell button{width:116px;height:36px;padding:4px 8px;font-size:15px}
+.vendor-bulk-cell[style="grid-column:10"]>button{width:116px;height:36px;padding:4px 8px;font-size:15px;margin-inline:auto}
