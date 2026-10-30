@@ -4,7 +4,7 @@ window.Cloud=(()=>{
  const config={url:'https://rftimvbmgydomkbnfalt.supabase.co',key:'sb_publishable_6yd4txzSeRLgsJUHy0qYQw_0QIpCYBC',workspace:'calibration-management'};
  const DAILY='calibration-cloud-daily-v1:';
  const SESSION='calibration-cloud-session-v1',CACHE='calibration-cloud-cache-v1:',PREFS='calibration-cloud-preferences-v1:';
- const localSettingKeys=['monthFilterMemory','registryFilters','registrySearches','internalProgressFilters','internalSortKey','internalSortDir','registryColumnsV3','registryTab'];
+ const localSettingKeys=['monthFilterMemory','registryFilters','registrySearches','internalProgressFilters','internalSortKey','internalSortDir','registryColumnsV3','registryTab','registryVendorCycleAdded'];
  let session=null,role='',revision=0,mode='login',baseline='',timer=null,inflight=null,refreshing=null,applying=false,cloudData=null,localSource=structuredClone(db),backupCandidate=null,workingKey=KEY,dataActive=false,cacheRecord=null;
  const object=v=>v&&typeof v==='object'&&!Array.isArray(v);
  const identity=()=>session?.user?.id||'';

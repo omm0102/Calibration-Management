@@ -573,3 +573,12 @@ body.app-shell[data-page="vendors"] #content{flex:1;min-height:0}
 .vendor-bulk-type{grid-template-columns:18% 9% 10% 6% 6% 6% 6% 20% 6% 13%}
 .external-equipment-table .progress-calibration-cell{text-align:center}.progress-calibration-cell button{width:116px;height:36px;padding:4px 8px;font-size:15px}
 .vendor-bulk-cell[style="grid-column:10"]>button{width:116px;height:36px;padding:4px 8px;font-size:15px;margin-inline:auto}
+
+/* Calibration date is the final completion column; vendor headers have no bulk controls. */
+.external-progress-workspace .external-equipment-table{min-width:1300px}
+.external-equipment-table .progress-col-equipment{width:20%}.external-equipment-table .progress-col-asset{width:11%}.external-equipment-table .progress-col-due{width:11%}.external-equipment-table .progress-col-step{width:7%}.external-equipment-table .progress-col-date{width:20%}.external-equipment-table col:last-child{width:10%}
+.vendor-progress-title{min-height:48px}.vendor-progress-title .vendor-name{width:auto}
+.external-equipment-table .progress-col-step{width:6.5%}.external-equipment-table col:last-child{width:12%}
+.external-progress-workspace .vendor-progress-title{display:flex;align-items:center;overflow:visible;gap:10px}
+.external-progress-workspace .vendor-progress-title::before{position:static}
+.external-progress-workspace .vendor-progress-title>.vendor-name{position:static;margin:0;width:auto;white-space:normal;overflow-wrap:anywhere}
