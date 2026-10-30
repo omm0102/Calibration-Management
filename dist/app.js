@@ -36,6 +36,7 @@ let db;try{db=JSON.parse(localStorage.getItem(KEY))||seed()}catch{db=seed()};if(
 migrateSampleData();
 normalizeExternalStages();
 function normalizeExternalStages(){
+ for(const r of db.rows)if(r.type==='外校'&&r.mode==='寄出'&&r.date)r.shippedDate=r.date;
  for(const r of db.rows)if(r.type==='外校'&&(r.mode||'收件')==='收件'){r.receiptDate=r.date||''}
  for(const r of db.rows)if(r.type==='外校'&&r.externalStageVersion!==2){
   if(r.p.length<6){const old=r.p;r.p=[!!old[0],!!old[1],!!old[2],false,!!old[3],!!old[4]]}
@@ -526,10 +527,32 @@ function renderInternalProgress(){
  $('content').innerHTML=`<div class="internal-progress-workspace"><div class="toolbar">${registrySearch('內校進度')}<span class="spacer"></span><button onclick="tab='內校';go('registry')">查看清冊 →</button></div><section class="panel internal-total"><div class="rowtitle"><h2>校驗總進度</h2><span>${pct}%</span></div><div class="progress"><i class="${pct===100?'complete':''}" style="width:${pct}%"></i></div></section><div class="tablewrap"><table class="internal-equipment-table"><colgroup><col style="width:22%"><col style="width:13%"><col style="width:14%"><col style="width:11%"><col style="width:12%"><col style="width:14%"><col style="width:7%"><col style="width:7%"></colgroup><thead><tr><th>設備編號 / 名稱</th><th>資產編號</th>${internalProgressHeader('unit','保管單位')}${internalProgressHeader('owner','保管人')}<th>有效日期</th><th>預計校驗日</th><th>收件確認</th><th>已完成</th></tr></thead><tbody>${list.map(r=>`<tr class="${complete(r)?'finished':''}"><td>${esc(r.id)}<div class="subtle">${esc(r.name)}</div></td><td>${esc(r.asset)||'—'}</td><td>${esc(r.unit)||'—'}</td><td>${esc(r.owner)||'—'}</td><td>${esc(r.due)||'—'}</td><td><button onclick="schedule('${r.key}',0)">${esc(r.date)||'設定日期'}</button></td>${[1,2].map(i=>`<td><label class="step"><input type="checkbox" aria-label="${esc(r.id)} ${stages(r)[i]}" ${r.p[i]?'checked':''} ${!r.p[i-1]?'disabled':''} onchange="window.step('${r.key}',${i},this.checked)"></label></td>`).join('')}</tr>`).join('')||'<tr><td colspan="8" class="empty">沒有符合條件的設備</td></tr>'}</tbody></table></div></div>`;
 }
 const externalProgressOpen=new Set();
+const externalDateViews=new Map();
+function externalDateView(list){return externalDateViews.get(String(list[0].vendor||'').trim())||(list.every(r=>(r.mode||'收件')===(list[0].mode||'收件'))?list[0].mode||'收件':'收件')}
+function externalDateForMode(r,mode){return (r.mode||'收件')===mode?r.date||'':mode==='收件'?r.receiptDate||'':r.shippedDate||''}
+function changeExternalDateView(control){if(!['收件','寄出'].includes(control.value))return;const keys=new Set(JSON.parse(control.closest('table').dataset.equipmentKeys)),row=db.rows.find(r=>keys.has(r.key));if(!row)return;externalDateViews.set(String(row.vendor||'').trim(),control.value);render()}
+function scheduleExternalDate(key,mode){
+ if(window.Cloud&&!Cloud.canWrite())return toast('此帳號僅供檢視');
+ const r=db.rows.find(r=>r.key===key&&r.type==='外校');if(!r||!['收件','寄出'].includes(mode))return;
+ const current=externalDateForMode(r,mode);
+ modal('設定'+mode+'日期',`<p>${esc(r.id)} · ${esc(r.name)}</p><label class="field">${mode}日期<input type="date" id="externalModeDate" value="${esc(current||today())}"></label>`,()=>{
+  const date=$('externalModeDate').value;if(date&&r.calibrationDate&&date>r.calibrationDate)return toast(mode+'日期不可晚於校驗日期');
+  if(current!==date){
+   if((r.mode||'收件')==='收件')r.receiptDate=r.date||'';else r.shippedDate=r.date||'';
+   r[mode==='收件'?'receiptDate':'shippedDate']=date;
+   const other=mode==='收件'?'寄出':'收件',otherDate=externalDateForMode(r,other);
+   r.mode=date||!otherDate?mode:other;r.date=date||otherDate||'';
+   r.p[stages(r).length-2]=!!r.date;r.calibrationDate='';r.completed='';r.p[stages(r).length-1]=false;
+  }
+  closeModal();save();
+ });
+}
+
 function externalProgressTable(list){
- return `<div class="tablewrap progress-table" onscroll="syncVendorHorizontal(this)"><table class="external-equipment-table" data-equipment-keys="${esc(JSON.stringify(list.map(r=>r.key)))}"><colgroup><col class="progress-col-equipment"><col class="progress-col-asset"><col class="progress-col-due">${stages(list[0]).map((s,i)=>`${list[0].type==='遊校'&&i===2?'<col class="progress-col-step"><col class="progress-col-step">':''}<col class="${i===stages(list[0]).length-2?'progress-col-date':'progress-col-step'}">`).join('')}</colgroup><thead><tr><th>設備編號 / 名稱</th><th>資產編號</th><th class="progress-due-cell">有效日期</th>${stages(list[0]).map((s,i)=>`${list[0].type==='遊校'&&i===2?'<th aria-label="不適用外送單"></th><th aria-label="不適用設備確認"></th>':''}<th class="${i===stages(list[0]).length-2?'':'progress-checkbox-cell'}">${list[0].type==='遊校'&&i===stages(list[0]).length-2?`<span class="tour-date-heading">${s}</span>`:s}</th>`).join('')}</tr></thead><tbody>${list.map(r=>`<tr class="${complete(r)?'finished':''}"><td>${esc(r.id)}<div class="subtle">${esc(r.name)}</div></td><td class="muted">${esc(r.asset)}</td><td class="progress-due-cell">${esc(r.due)||'—'}</td>${stages(r).map((s,i)=>{
+ const displayMode=externalDateView(list);
+ return `<div class="tablewrap progress-table" onscroll="syncVendorHorizontal(this)"><table class="external-equipment-table" data-equipment-keys="${esc(JSON.stringify(list.map(r=>r.key)))}"><colgroup><col class="progress-col-equipment"><col class="progress-col-asset"><col class="progress-col-due">${stages(list[0]).map((s,i)=>`${list[0].type==='遊校'&&i===2?'<col class="progress-col-step"><col class="progress-col-step">':''}<col class="${i===stages(list[0]).length-2?'progress-col-date':'progress-col-step'}">`).join('')}</colgroup><thead><tr><th>設備編號 / 名稱</th><th>資產編號</th><th class="progress-due-cell">有效日期</th>${stages(list[0]).map((s,i)=>`${list[0].type==='遊校'&&i===2?'<th aria-label="不適用外送單"></th><th aria-label="不適用設備確認"></th>':''}<th class="${i===stages(list[0]).length-2?'':'progress-checkbox-cell'}">${i===stages(list[0]).length-2?(list[0].type==='外校'?`<select class="external-date-heading" aria-label="${esc(list[0].vendor)}寄出收件時間" onchange="changeExternalDateView(this)">${['寄出','收件'].map(mode=>`<option value="${mode}" ${displayMode===mode?'selected':''}>${mode}時間</option>`).join('')}</select>`:`<span class="tour-date-heading">${s}</span>`):s}</th>`).join('')}</tr></thead><tbody>${list.map(r=>`<tr class="${complete(r)?'finished':''}"><td>${esc(r.id)}<div class="subtle">${esc(r.name)}</div></td><td class="muted">${esc(r.asset)}</td><td class="progress-due-cell">${esc(r.due)||'—'}</td>${stages(r).map((s,i)=>{
   const dateStage=i===stages(r).length-2;if(i===stages(r).length-1)return `<td class="progress-calibration-cell"><button aria-label="${esc(r.id)}校驗日期" ${!r.calibrationDate&&(!externalCalibrationReferenceDate(r)||!r.p[i-1])?'disabled':''} onclick="setExternalCalibrationDate('${r.key}')">${esc(r.calibrationDate)||'設定日期'}</button></td>`;
-  return `${r.type==='遊校'&&i===2?'<td></td><td></td>':''}<td class="${dateStage?'':'progress-checkbox-cell'}">${dateStage?`<div class="progress-date-controls ${r.type==='遊校'?'tour-date-controls':''}">${r.type==='外校'?`<select class="smallselect" aria-label="${esc(r.id)}收件寄出方式" onchange="changeMode('${r.key}',this.value)"><option ${r.mode==='收件'?'selected':''}>收件</option><option ${r.mode==='寄出'?'selected':''}>寄出</option></select> `:''}<button ${i&&!r.p[i-1]?'disabled':''} onclick="schedule('${r.key}',${i})">${r.date||'設定日期'}</button></div>`:`<label class="step"><input aria-label="${esc(r.id)} ${esc(s)}" type="checkbox" ${r.p[i]?'checked':''} ${i&&!r.p[i-1]?'disabled':''} onchange="window.step('${r.key}',${i},this.checked)"></label>`}</td>`;
+  return `${r.type==='遊校'&&i===2?'<td></td><td></td>':''}<td class="${dateStage?'':'progress-checkbox-cell'}">${dateStage?`<div class="progress-date-controls ${r.type==='遊校'?'tour-date-controls':''}"><button ${i&&!r.p[i-1]?'disabled':''} aria-label="${esc(r.id)}${r.type==='外校'?displayMode:'遊校'}日期" onclick="${r.type==='外校'?`scheduleExternalDate('${r.key}','${displayMode}')`:`schedule('${r.key}',${i})`}">${(r.type==='外校'?externalDateForMode(r,displayMode):r.date)||'設定日期'}</button></div>`:`<label class="step"><input aria-label="${esc(r.id)} ${esc(s)}" type="checkbox" ${r.p[i]?'checked':''} ${i&&!r.p[i-1]?'disabled':''} onchange="window.step('${r.key}',${i},this.checked)"></label>`}</td>`;
  }).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 function syncVendorHorizontal(source){

@@ -582,3 +582,14 @@ body.app-shell[data-page="vendors"] #content{flex:1;min-height:0}
 .external-progress-workspace .vendor-progress-title{display:flex;align-items:center;overflow:visible;gap:10px}
 .external-progress-workspace .vendor-progress-title::before{position:static}
 .external-progress-workspace .vendor-progress-title>.vendor-name{position:static;margin:0;width:auto;white-space:normal;overflow-wrap:anywhere}
+
+/* Neutral external tables, centered headings and date controls. */
+body.app-shell .external-progress-workspace .external-equipment-table :is(th,td){text-align:center;vertical-align:middle;background:var(--color-surface)}
+body.app-shell .external-progress-workspace .vendor-progress-body tbody tr:hover td{background:var(--color-surface)}
+body.app-shell .external-progress-workspace .progress-date-controls{justify-content:center;gap:0}
+body.app-shell .external-progress-workspace .progress-date-controls.tour-date-controls::before{display:none}
+.external-progress-workspace .tour-date-heading{margin:0;width:auto;text-align:center}
+.external-progress-workspace .external-date-heading{width:116px;height:36px;padding:4px 6px;text-align:center;text-align-last:center;font-size:15px;color:var(--color-muted);background:var(--color-surface)}
+body.app-shell .external-progress-workspace .progress-calibration-cell button,body.app-shell .external-progress-workspace .progress-date-controls button{display:inline-flex;align-items:center;justify-content:center;width:116px;height:36px;min-height:36px;padding:4px 8px;text-align:center;font-size:15px}
+body.app-shell .external-progress-workspace .vendor-progress-body .external-equipment-table tbody tr td,
+body.app-shell .external-progress-workspace .vendor-progress-body .external-equipment-table tbody tr:hover td{background:var(--color-surface)}
