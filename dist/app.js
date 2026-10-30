@@ -78,7 +78,7 @@ let internalRegistryQuery=monthlyFilterMemory().registrySearches['內校']||'';
 function go(p){if(page==='registry'&&tab==='內校')internalRegistryQuery=query;page=p;hideNavigationTooltip();query=p==='registry'?(monthlyFilterMemory().registrySearches[tab]||''):p==='internal'?(monthlyFilterMemory().internalSearch||''):'';status='all';render()}window.go=go;
 function missingExternalVendorMonths(){return [...new Set(db.rows.filter(r=>['外校','遊校'].includes(r.type)&&!String(r.vendor??'').trim()).map(r=>String(r.month||'')))].sort()}
 function hasMissingExternalVendor(){return missingExternalVendorMonths().length>0}
-function missingExternalVendorNotice(){return missingExternalVendorMonths().map(m=>/^\d{4}-(0[1-9]|1[0-2])$/.test(m)?m.slice(0,4)+'年'+Number(m.slice(5))+'月':m||'未指定月份').join('、')+'外校設備未填寫廠商'}
+function missingExternalVendorNotice(){return missingExternalVendorMonths().map(m=>/^\d{4}-(0[1-9]|1[0-2])$/.test(m)?m.slice(0,4)+' / '+m.slice(5):m||'未指定月份').join('、')+' 外校設備未填寫廠商'}
 function sidebarIcon(id){
  const shapes={
   dashboard:'<rect x="3" y="3" width="11" height="11" rx="2"/><rect x="18" y="3" width="11" height="17" rx="2"/><rect x="3" y="18" width="11" height="11" rx="2"/><path d="M18 25h11v4H18z"/>',
