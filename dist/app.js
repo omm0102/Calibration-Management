@@ -2,7 +2,7 @@
 const $=id=>document.getElementById(id), esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10), today=()=>iso(new Date()), add=(s,n)=>{let d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)}, uid=()=>Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,'0')).join('');
 const KEY='aming-calibration-demo-v1';let page='dashboard',month=today().slice(0,7),tab='內校',query='',status='all',offset=0,calendarMonth='',selectedWeek=false;
-const nav=[['量測設備校驗管理',[['dashboard','總覽儀表板','▦'],['calendar','行事曆','▦'],['registry','設備管理清冊','▤'],['report','設備管理月報','▧']]],['外校管理',[['external','外校進度','◷'],['cost','外校金額','＄'],['vendors','外校廠商資訊','▤']]],['內校管理',[['internal','內校進度','◴']]],['其他功能',[['import','資料匯入管理','↥'],['backup','備份與還原','⧉']]]];
+const nav=[['量測設備校驗管理',[['dashboard','總覽儀表板','▦'],['calendar','行事曆','▦'],['registry','設備管理清冊','▤'],['report','設備管理月報','▧']]],['外校管理',[['external','外校進度','◷'],['vendors','外校廠商資訊','▤'],['cost','外校金額','＄']]],['內校管理',[['internal','內校進度','◴']]],['其他功能',[['import','資料匯入管理','↥'],['backup','備份與還原','⧉']]]];
 const SAMPLE_VERSION='real-20261022';
 function seed(){
  const rows=structuredClone(CALIBRATION_SAMPLE).map(r=>({...r,key:uid()}));
@@ -484,13 +484,15 @@ function equipmentVendorControl(r){
 }
 function toggleEquipmentVendorOther(){const input=$('f_vendorOther');input.hidden=$('f_vendor').value!=='__other__';if(!input.hidden)input.focus()}
 function externalReceiptDate(r){if(r.type==='遊校')return r.date||'';return (r.mode||'收件')==='收件'?r.date||'':r.receiptDate||''}
-function externalCalibrationReferenceDate(r){return [r.date||'',externalReceiptDate(r)].sort().at(-1)||''}
+function externalCalibrationReferenceDate(r){return r.date||(r.mode==='寄出'?r.shippedDate:r.receiptDate)||''}
+function vendorEquipmentRows(v){return db.rows.filter(r=>['外校','遊校'].includes(r.type)&&(r.vendorInfoId&&(db.externalVendors||[]).some(x=>x.id===r.vendorInfoId)?r.vendorInfoId===v.id:String(r.vendor||'').trim().toLocaleLowerCase()===v.name.trim().toLocaleLowerCase()))}
+function vendorCalibrationItemCount(v){return vendorEquipmentRows(v).filter(r=>!inactiveEquipment(r)).length}
 function vendorCalibrationHistory(v){
- return db.rows.filter(r=>r.type==='外校'&&(r.vendorInfoId&&(db.externalVendors||[]).some(x=>x.id===r.vendorInfoId)?r.vendorInfoId===v.id:String(r.vendor||'').trim().toLocaleLowerCase()===v.name.trim().toLocaleLowerCase())).map(r=>{
-  const start=externalReceiptDate(r),end=r.calibrationDate;
+ return vendorEquipmentRows(v).filter(r=>r.type==='外校').map(r=>{
+  const dateType=r.mode==='寄出'?'寄出':'收件',start=externalCalibrationReferenceDate(r),end=r.calibrationDate;
   if(!/^\d{4}-\d{2}-\d{2}$/.test(end)||!Number.isFinite(Date.parse(end+'T00:00:00Z')))return null;
   const duration=(Date.parse(end+'T00:00:00Z')-Date.parse(start+'T00:00:00Z'))/86400000;const days=Number.isFinite(duration)&&duration>=0?duration:null;
-  return{key:r.key,id:r.id,name:r.name,days,month:end.slice(0,7),receipt:start,date:end};
+  return{key:r.key,id:r.id,name:r.name,days,month:end.slice(0,7),start,dateType,receipt:externalReceiptDate(r),date:end};
  }).filter(Boolean).sort((a,b)=>b.date.localeCompare(a.date)||String(a.id).localeCompare(String(b.id),'zh-Hant',{numeric:true}));
 }
 function vendorCycleStats(v){const entries=vendorCalibrationHistory(v).filter(e=>e.days!==null);return{count:entries.length,days:entries.length?Math.round(entries.reduce((sum,e)=>sum+e.days,0)/entries.length*10)/10:v.cycleDays??null}}
@@ -501,7 +503,7 @@ function externalCalibrationDateDialog(list){
  if(!list.length)return;
  if(list.some(r=>!externalCalibrationReferenceDate(r)&&!r.calibrationDate))return toast('請先設定寄出／收件／遊校日期');
  const earliest=list.map(externalCalibrationReferenceDate).filter(Boolean).sort().at(-1)||'',same=list.every(r=>r.calibrationDate===list[0].calibrationDate);
- modal('校驗日期',`<p>${list.length===1?esc(list[0].id)+' · '+esc(list[0].name):esc(list[0].vendor)+' · '+list.length+' 台設備'}</p><p>${list[0].type==='遊校'?'遊校日期':list[0].mode==='寄出'?'寄出／收件日期':'收件日期'}：${list.length===1?esc(earliest)||'未設定':'依各設備的收件日期計算'}</p><label class="field">校驗日期<input id="externalCalibrationDate" type="date" min="${esc(earliest)}" max="${today()}" value="${esc(same&&list[0].calibrationDate||today())}"></label>`,()=>{
+ modal('校驗日期',`<p>${list.length===1?esc(list[0].id)+' · '+esc(list[0].name):esc(list[0].vendor)+' · '+list.length+' 台設備'}</p><p>${list[0].type==='遊校'?'遊校日期':list[0].mode==='寄出'?'寄出日期':'收件日期'}：${list.length===1?esc(earliest)||'未設定':'依各設備的收件日期計算'}</p><label class="field">校驗日期<input id="externalCalibrationDate" type="date" min="${esc(earliest)}" max="${today()}" value="${esc(same&&list[0].calibrationDate||today())}"></label>`,()=>{
   const date=$('externalCalibrationDate').value;if(date&&list.some(r=>!externalCalibrationReferenceDate(r)))return toast('請先設定寄出／收件／遊校日期');if(date&&date<earliest)return toast('校驗日期不可早於寄出／收件／遊校日期');if(date&&date>today())return toast('校驗日期不可為未來日期');
   for(const r of list){r.receiptDate=externalReceiptDate(r);r.calibrationDate=date;r.p[stages(r).length-1]=!!date;r.completed=date}closeModal();save();
  });
@@ -603,7 +605,7 @@ function annualExternalCost(key){
  return opening+[...keys].filter(m=>m<=key&&m.slice(0,4)===year).reduce((sum,m)=>sum+sumCost(m),0);
 }
 let costYear='',costEntryMonth='';
-let vendorSearch='',vendorSortKey='name',vendorSortDir=1;
+let vendorSearch='',vendorSortKey='frequency',vendorSortDir=-1;
 const vendorInfoFields=[['name','廠商名稱'],['cycleDays','校驗週期（天）'],['contact','聯絡人'],['contactMethod','聯絡方式'],['email','E-mail'],['notes','備註']];
 function vendorContacts(v){
  if(Array.isArray(v.contacts)&&v.contacts.length)return v.contacts.map((c,i)=>({name:String(c.name||''),method:String(c.method||''),email:String(c.email===undefined&&i===0?v.email||'':c.email||'')})).filter(c=>c.name||c.method||c.email);
@@ -626,13 +628,14 @@ function removeVendorContact(button){button.closest('.vendor-contact-pair').remo
 function showVendorCycleHistory(id){
  const vendor=(db.externalVendors||[]).find(v=>v.id===id);if(!vendor)return;
  const entries=vendorCalibrationHistory(vendor),stats=vendorCycleStats(vendor),years=[...new Set(entries.map(e=>e.month.slice(0,4)))].sort().reverse();
- modal(vendor.name+'｜校驗週期紀錄',`<div class="vendor-history-overview">${stats.days==null?'尚無校驗週期':(stats.count?'平均校驗週期：':'手動校驗週期：')+esc(stats.days)+' 天'}${entries.length?' · '+entries.length+' 筆紀錄'+(stats.count<entries.length?'，'+stats.count+' 台可計算':''):''}</div><div class="vendor-history-groups">${years.map(year=>`<details class="vendor-history-year" open><summary>${esc(year)}年</summary>${[...new Set(entries.filter(e=>e.month.startsWith(year+'-')).map(e=>e.month))].sort().reverse().map(month=>`<section class="vendor-history-month"><h3>${Number(month.slice(5))}月</h3><table><thead><tr><th>設備編號</th><th>設備名稱</th><th>校驗週期</th></tr></thead><tbody>${entries.filter(e=>e.month===month).map(e=>`<tr title="收件：${esc(e.receipt)||'未設定'}；校驗：${esc(e.date)}${e.days==null?'；缺少有效收件日期或日期先後不正確':''}"><td>${esc(e.id)}</td><td>${esc(e.name)}</td><td>${e.days==null?'—':esc(e.days)+' 天'}</td></tr>`).join('')}</tbody></table></section>`).join('')}</details>`).join('')||'<p class="empty">尚無設備校驗紀錄；填入設備的校驗日期後會顯示於此。</p>'}</div>`,null,'',false);
+ modal(vendor.name+'｜校驗週期紀錄',`<div class="vendor-history-overview">${stats.days==null?'尚無校驗週期':(stats.count?'平均校驗週期：':'手動校驗週期：')+esc(stats.days)+' 天'}${entries.length?' · '+entries.length+' 筆紀錄'+(stats.count<entries.length?'，'+stats.count+' 台可計算':''):''}</div><div class="vendor-history-groups">${years.map(year=>`<details class="vendor-history-year" open><summary>${esc(year)}年</summary>${[...new Set(entries.filter(e=>e.month.startsWith(year+'-')).map(e=>e.month))].sort().reverse().map(month=>`<section class="vendor-history-month"><h3>${Number(month.slice(5))}月</h3><table><thead><tr><th>設備編號</th><th>設備名稱</th><th>校驗週期</th></tr></thead><tbody>${entries.filter(e=>e.month===month).map(e=>`<tr title="${e.dateType}：${esc(e.start)||'未設定'}；校驗：${esc(e.date)}${e.days==null?'；缺少有效寄出／收件日期或日期先後不正確':''}"><td>${esc(e.id)}</td><td>${esc(e.name)}</td><td>${e.days==null?'—':esc(e.days)+' 天'}</td></tr>`).join('')}</tbody></table></section>`).join('')}</details>`).join('')||''}</div>`,null,'',false);
  $('dialog').classList.add('vendor-history-dialog');
 }
 
 function vendorInfoList(search=vendorSearch){
  const needle=search.trim().toLocaleLowerCase();
  return (db.externalVendors||[]).filter(v=>!needle||[...vendorInfoFields,['vendorNote','廠商備註']].some(([key])=>String(vendorInfoValue(v,key)).toLocaleLowerCase().includes(needle))).sort((a,b)=>{
+  if(vendorSortKey==='frequency')return (vendorCalibrationItemCount(a)-vendorCalibrationItemCount(b))*vendorSortDir||String(a.name).localeCompare(String(b.name),'zh-Hant',{numeric:true});
   if(vendorSortKey==='cycleDays'){const left=vendorCycleStats(a).days==null?Infinity:Number(vendorCycleStats(a).days),right=vendorCycleStats(b).days==null?Infinity:Number(vendorCycleStats(b).days);return (left-right||String(a.name).localeCompare(String(b.name),'zh-Hant'))*vendorSortDir}
   return String(vendorInfoValue(a,vendorSortKey)).localeCompare(String(vendorInfoValue(b,vendorSortKey)),'zh-Hant',{numeric:true})*vendorSortDir;
  });
