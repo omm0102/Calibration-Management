@@ -2,7 +2,7 @@
 const $=id=>document.getElementById(id), esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10), today=()=>iso(new Date()), add=(s,n)=>{let d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)}, uid=()=>Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,'0')).join('');
 const KEY='aming-calibration-demo-v1';let page='dashboard',month=today().slice(0,7),tab='內校',query='',status='all',offset=0,calendarMonth='',selectedWeek=false;
-const nav=[['量測設備校驗管理',[['dashboard','總覽儀表板','▦'],['calendar','行事曆','▦'],['registry','設備管理清冊','▤'],['report','設備管理月報','▧']]],['外校管理',[['external','外校進度','◷'],['cost','外校金額','＄']]],['內校管理',[['internal','內校進度','◴']]],['其他功能',[['import','資料匯入管理','↥'],['backup','備份與還原','⧉']]]];
+const nav=[['量測設備校驗管理',[['dashboard','總覽儀表板','▦'],['calendar','行事曆','▦'],['registry','設備管理清冊','▤'],['report','設備管理月報','▧']]],['外校管理',[['external','外校進度','◷'],['cost','外校金額','＄'],['vendors','外校廠商資訊','▤']]],['內校管理',[['internal','內校進度','◴']]],['其他功能',[['import','資料匯入管理','↥'],['backup','備份與還原','⧉']]]];
 const SAMPLE_VERSION='real-20261022';
 function seed(){
  const rows=structuredClone(CALIBRATION_SAMPLE).map(r=>({...r,key:uid()}));
@@ -79,6 +79,7 @@ function sidebarIcon(id){
   registry:'<rect x="6" y="6" width="20" height="24" rx="2"/><path d="M11 6V4h3a2 2 0 0 1 4 0h3v4H11zM11 14h10M11 20h10M11 26h10"/>',
   report:'<path d="M3 28h27M6 28v-7h4v7m4 0V16h4v12m4 0V10h4v18M4 17l8-8 7 4L28 3M22 3h6v6"/>',
   internal:'<path d="M6 2h15l6 6v22H6zM21 2v7h6M10 13l2 2 3-4m3 3h5M10 20l2 2 3-4m3 3h5M10 27l2 2 3-4m3 3h5"/>',
+  vendors:'<path d="M3 30h26M7 30V9h18v21M11 9V3h10v6M11 14h2m6 0h2m-10 5h2m6 0h2M13 30v-6h6v6"/>',
   cost:'<ellipse cx="10" cy="11" rx="7" ry="3"/><path d="M3 11v13c0 2 3 3 7 3M3 17c1 1 3 2 5 2M19 5v5m10-5v13c0 2-3 3-6 3"/><ellipse cx="23" cy="5" rx="6" ry="3"/><path d="M23 11c3 0 5-1 6-2M25 16l4-1"/><circle cx="17" cy="22" r="8"/><path d="M20 18h-4a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4h-4m3-10v12"/>',
   import:'<path d="M16 20V4M9 11l7-7 7 7M4 21v8h24v-8"/>',
   backup:'<path d="M27 13A12 12 0 0 0 14 4V1L7 6l7 5V7M5 19a12 12 0 0 0 13 9v3l7-5-7-5v4M5 11l-1 2m0 3v1m24 3-1 2m-1 3-1 1"/>'
@@ -197,7 +198,7 @@ function renderDashboard(){
  </div>`;
 }
 
-function renderPage(){const previousNavRect=$('nav').querySelector('button.active')?.getBoundingClientRect();document.body.dataset.page=page;closeRegistryFilter();let ms=months();if(!['report','dashboard'].includes(page)&&!ms.includes(month))month=ms.includes(today().slice(0,7))?today().slice(0,7):ms.at(-1)||'';if(filterMemoryMonth!==month){saveMonthlyFilters();loadMonthlyFilters()}$('nav').innerHTML=nav.map(([g,items])=>`<div class="navgroup"><label>${g}</label>${items.map(([id,t,ic])=>`<button class="${page===id?'active':''} ${id==='registry'?'registry-nav-button':''}" aria-label="${esc(t)}" data-tooltip="${esc(t)}" ${page===id?'aria-current="page"':''} onclick="go('${id}')">${sidebarIcon(id)}<span class="sidebar-label">${t}</span>${id==='registry'&&hasMissingExternalVendor()?`<span class="registry-warning-badge" role="img" aria-label="${esc(missingExternalVendorNotice())}" title="${esc(missingExternalVendorNotice())}">!!!</span>`:''}</button>`).join('')}</div>`).join('');updateSidebarIndicator(previousNavRect);$('title').textContent=nav.flatMap(n=>n[1]).find(n=>n[0]===page)[1];if(page==='registry'&&hasMissingRegistryData())$('title').insertAdjacentHTML('beforeend',titleWarning('本月外校設備未填寫廠商'));$('monthbox').innerHTML=page==='dashboard'?`<div class="dashboard-month-navigation"><button class="arrow-icon-button" aria-label="上一個月" onclick="moveDashboardMonth(-1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button><span aria-live="polite">${month.slice(0,4)}年${Number(month.slice(5))}月</span><button class="arrow-icon-button" aria-label="下一個月" onclick="moveDashboardMonth(1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button></div>`:!['calendar','import','backup','registry','report','external','cost','internal'].includes(page)?`<select onchange="month=this.value;render()" ${ms.length?'':'disabled'}>${[...new Set([...ms,month])].filter(Boolean).sort().map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select>`:'';({dashboard:renderDashboard,calendar:renderCalendar,registry:renderRegistry,external:renderProgress,internal:renderProgress,cost:renderCost,report:renderReport,import:renderImport,backup:renderBackup}[page])()}
+function renderPage(){const previousNavRect=$('nav').querySelector('button.active')?.getBoundingClientRect();document.body.dataset.page=page;closeRegistryFilter();let ms=months();if(!['report','dashboard','vendors'].includes(page)&&!ms.includes(month))month=ms.includes(today().slice(0,7))?today().slice(0,7):ms.at(-1)||'';if(filterMemoryMonth!==month){saveMonthlyFilters();loadMonthlyFilters()}$('nav').innerHTML=nav.map(([g,items])=>`<div class="navgroup"><label>${g}</label>${items.map(([id,t,ic])=>`<button class="${page===id?'active':''} ${id==='registry'?'registry-nav-button':''}" aria-label="${esc(t)}" data-tooltip="${esc(t)}" ${page===id?'aria-current="page"':''} onclick="go('${id}')">${sidebarIcon(id)}<span class="sidebar-label">${t}</span>${id==='registry'&&hasMissingExternalVendor()?`<span class="registry-warning-badge" role="img" aria-label="${esc(missingExternalVendorNotice())}" title="${esc(missingExternalVendorNotice())}">!!!</span>`:''}</button>`).join('')}</div>`).join('');updateSidebarIndicator(previousNavRect);$('title').textContent=nav.flatMap(n=>n[1]).find(n=>n[0]===page)[1];if(page==='registry'&&hasMissingRegistryData())$('title').insertAdjacentHTML('beforeend',titleWarning('本月外校設備未填寫廠商'));$('monthbox').innerHTML=page==='dashboard'?`<div class="dashboard-month-navigation"><button class="arrow-icon-button" aria-label="上一個月" onclick="moveDashboardMonth(-1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button><span aria-live="polite">${month.slice(0,4)}年${Number(month.slice(5))}月</span><button class="arrow-icon-button" aria-label="下一個月" onclick="moveDashboardMonth(1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button></div>`:!['calendar','import','backup','registry','report','external','cost','internal','vendors'].includes(page)?`<select onchange="month=this.value;render()" ${ms.length?'':'disabled'}>${[...new Set([...ms,month])].filter(Boolean).sort().map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select>`:'';({dashboard:renderDashboard,calendar:renderCalendar,registry:renderRegistry,external:renderProgress,internal:renderProgress,cost:renderCost,vendors:renderVendorInfo,report:renderReport,import:renderImport,backup:renderBackup}[page])()}
 // Fixed monthly tasks start in the month this feature is first enabled.
 function taiwanCalendarDay(date){
  const calendar=window.TAIWAN_OFFICE_CALENDAR,covered=!!calendar?.years.includes(Number(date.slice(0,4))),record=calendar?.days[date],weekday=new Date(date+'T12:00:00').getDay();
@@ -579,6 +580,44 @@ function annualExternalCost(key){
  return opening+[...keys].filter(m=>m<=key&&m.slice(0,4)===year).reduce((sum,m)=>sum+sumCost(m),0);
 }
 let costYear='',costEntryMonth='';
+let vendorSearch='',vendorSortKey='name',vendorSortDir=1;
+const vendorInfoFields=[['name','廠商名稱'],['cycleDays','校驗週期（天）'],['contact','聯絡人'],['contactMethod','聯絡方式'],['email','E-mail']];
+function vendorInfoList(){
+ const needle=vendorSearch.trim().toLocaleLowerCase();
+ return (db.externalVendors||[]).filter(v=>!needle||vendorInfoFields.some(([key])=>String(v[key]??'').toLocaleLowerCase().includes(needle))).sort((a,b)=>{
+  if(vendorSortKey==='cycleDays'){const left=a.cycleDays==null?Infinity:Number(a.cycleDays),right=b.cycleDays==null?Infinity:Number(b.cycleDays);return (left-right||String(a.name).localeCompare(String(b.name),'zh-Hant'))*vendorSortDir}
+  return String(a[vendorSortKey]??'').localeCompare(String(b[vendorSortKey]??''),'zh-Hant',{numeric:true})*vendorSortDir;
+ });
+}
+function vendorInfoRows(){return vendorInfoList().map(v=>`<tr>${vendorInfoFields.map(([key])=>`<td>${key==='cycleDays'?(v.cycleDays==null?'—':esc(v.cycleDays)+' 天'):esc(v[key])||'—'}</td>`).join('')}<td><div class="registry-actions"><button class="registry-edit" aria-label="編輯廠商 ${esc(v.name)}" title="編輯" onclick="editVendorInfo('${esc(v.id)}')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 5 5M3 21l5-1 13-13a2.1 2.1 0 0 0-5-5L3 15z"/><path d="m3 15 5 5"/></svg></button><button class="registry-delete" aria-label="刪除廠商 ${esc(v.name)}" title="刪除" onclick="deleteVendorInfo('${esc(v.id)}')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button></div></td></tr>`).join('')||'<tr><td colspan="6" class="empty vendor-info-empty">'+((db.externalVendors||[]).length?'沒有符合條件的廠商':'尚未新增廠商')+'</td></tr>'}
+function searchVendorInfo(value){vendorSearch=value;$('vendorInfoRows').innerHTML=vendorInfoRows()}
+function sortVendorInfo(key){vendorSortDir=vendorSortKey===key?-vendorSortDir:1;vendorSortKey=key;renderVendorInfo()}
+function renderVendorInfo(){
+ $('content').innerHTML=`<div class="vendor-info-workspace"><div class="toolbar"><input class="search vendor-info-search" aria-label="搜尋外校廠商資訊" placeholder="搜尋廠商、聯絡人或聯絡方式" value="${esc(vendorSearch)}" oninput="searchVendorInfo(this.value)"><span class="spacer"></span><button class="primary" onclick="editVendorInfo()">＋ 新增廠商</button></div><div class="tablewrap"><table class="vendor-info-table"><thead><tr>${vendorInfoFields.map(([key,label])=>`<th><button class="registry-column-sort" onclick="sortVendorInfo('${key}')">${label} <span aria-hidden="true">${vendorSortKey===key?(vendorSortDir===1?'↑':'↓'):'↕'}</span></button></th>`).join('')}<th aria-label="操作"></th></tr></thead><tbody id="vendorInfoRows">${vendorInfoRows()}</tbody></table></div></div>`;
+}
+function editVendorInfo(id){
+ if(window.Cloud&&!Cloud.canWrite())return toast('此帳號僅供檢視');
+ const vendor=(db.externalVendors||[]).find(v=>v.id===id);if(id&&!vendor)return;
+ const current=vendor||{};
+ modal(id?'編輯外校廠商':'新增外校廠商',`<form id="vendorInfoForm"><div class="formgrid">${vendorInfoFields.map(([key,label])=>`<label class="field">${label}<input id="vendor_${key}" name="${key}" type="${key==='email'?'email':key==='cycleDays'?'number':'text'}" ${key==='name'?'required maxlength="200"':''} ${key==='cycleDays'?'min="0" step="any" placeholder="平均校驗所需天數，例如 14"':''} value="${esc(current[key]??'')}" autocomplete="${key==='email'?'email':key==='contactMethod'?'tel':'off'}"></label>`).join('')}</div></form>`,()=>{
+  const form=$('vendorInfoForm');if(!form.reportValidity())return;
+  const next=Object.fromEntries(vendorInfoFields.map(([key])=>[key,$('vendor_'+key).value.trim()]));
+  if(!next.name)return toast('請填寫廠商名稱');
+  if((db.externalVendors||[]).some(v=>v.id!==id&&v.name.trim().toLocaleLowerCase()===next.name.toLocaleLowerCase()))return toast('廠商名稱已存在');
+  next.cycleDays=next.cycleDays===''?null:Number(next.cycleDays);
+  if(next.cycleDays!==null&&(!Number.isFinite(next.cycleDays)||next.cycleDays<0))return toast('請填寫有效的校驗天數');
+  db.externalVendors??=[];
+  if(vendor)Object.assign(vendor,next);else db.externalVendors.push({id:uid(),...next});
+  closeModal();save();toast(id?'廠商資訊已更新':'廠商已新增');
+ });
+ $('vendorInfoForm').onsubmit=event=>{event.preventDefault();$('modalSave').click()};
+}
+function deleteVendorInfo(id){
+ if(window.Cloud&&!Cloud.canWrite())return toast('此帳號僅供檢視');
+ const vendor=(db.externalVendors||[]).find(v=>v.id===id);if(!vendor)return;
+ modal('刪除外校廠商',`<p>確定刪除「${esc(vendor.name)}」的廠商資訊？</p><p class="muted">設備清冊、校驗進度與費用紀錄會保留。</p>`,()=>{db.externalVendors=db.externalVendors.filter(v=>v.id!==id);closeModal();save();toast('廠商資訊已刪除')},'確認刪除');
+}
+
 function renderCost(){
  const current=today().slice(0,7),currentYear=current.slice(0,4);
  costYear=costYear||currentYear;costEntryMonth=costEntryMonth||current.slice(5);

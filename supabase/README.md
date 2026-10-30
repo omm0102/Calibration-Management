@@ -32,7 +32,8 @@ Authentication → Users → Add user 建立 Email/Password 使用者。這是�
 - 斷線修改保留於本機 IndexedDB，登入憑證只保存在該分頁的 sessionStorage。不要在尚未同步前清除網站資料或使用會自動清除儲存的無痕模式。
 - 月份篩選與欄位顯示偏好保留在各瀏覽器/使用者，不會覆蓋其他使用者的設定。
 - 月報草稿按雲端使用者隔離，已同步的月報以雲端紀錄為準。
-- 完整備份只包含設備資料與月報儲存，不會包含登入 token。
+- 外校廠商資訊存於共用資料的 externalVendors，跨月份共用，包含名稱、平均校驗天數、聯絡人、聯絡方式與 E-mail。舊資料沒有這個欄位時視為空清單，不需要額外執行 SQL；新增後會跟隨雲端同步及完整備份。
+- 完整備份只包含系統資料與月報儲存，不會包含登入 token。
 - 「從備份還原」在登入後會顯示取代共用資料的確認，不會清除登入憑證。
 
 年度 Excel 封存、容量監控與雲端排程尚未製作。
@@ -46,6 +47,7 @@ Authentication → Users → Add user 建立 Email/Password 使用者。這是�
 ```sh
 APP_TEST_URL=http://127.0.0.1:8008 node tests/cloud-sync.cjs
 APP_TEST_URL=http://127.0.0.1:8008 node tests/cloud-daily-sync.cjs
+APP_TEST_URL=http://127.0.0.1:8008 node tests/vendor-info.cjs
 ```
 
 `cloud-daily-sync.cjs` 另驗證台灣日期標記、每日去重、成功讀取進入儀表板、編輯延後、過期回應不覆蓋與失敗重試。

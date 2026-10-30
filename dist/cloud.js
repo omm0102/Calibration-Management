@@ -47,7 +47,7 @@ window.Cloud=(()=>{
    if(identity()===user&&dataActive){dailyRetryAt=Date.now()+5*60*1000;status('每日更新暫時失敗，稍後會重試；目前資料仍保留。'+friendly(error),true)}
   }finally{dailyReading=false;if(mode==='ready'&&$('cloudStatus').textContent==='')status('每日更新已延後，待操作結束後重試')}
  }
- function validData(d){return object(d)&&Array.isArray(d.rows)&&Array.isArray(d.manual)&&object(d.events)&&object(d.settings)&&object(d.quotes)&&object(d.reports)&&Array.isArray(d.imports)&&d.rows.every(r=>object(r)&&typeof r.key==='string'&&typeof r.month==='string'&&Array.isArray(r.p))}
+ function validData(d){return object(d)&&Array.isArray(d.rows)&&Array.isArray(d.manual)&&object(d.events)&&object(d.settings)&&object(d.quotes)&&object(d.reports)&&Array.isArray(d.imports)&&(d.externalVendors===undefined||(Array.isArray(d.externalVendors)&&d.externalVendors.every(v=>object(v)&&typeof v.id==='string'&&typeof v.name==='string'&&(v.cycleDays==null||(typeof v.cycleDays==='number'&&Number.isFinite(v.cycleDays)&&v.cycleDays>=0))&&['contact','contactMethod','email'].every(key=>typeof v[key]==='string'))))&&d.rows.every(r=>object(r)&&typeof r.key==='string'&&typeof r.month==='string'&&Array.isArray(r.p))}
  function shared(d){const copy=structuredClone(d);for(const key of localSettingKeys)delete copy.settings[key];return copy}
  const snapshot=()=>JSON.stringify(shared(db));
  function storePreferences(d){const prefs={};for(const key of localSettingKeys)if(d.settings[key]!==undefined)prefs[key]=d.settings[key];localStorage.setItem(prefsKey(),JSON.stringify(prefs))}
@@ -161,7 +161,7 @@ window.Cloud=(()=>{
  }
  function reportKey(key){return key+':cloud:'+config.workspace+':'+identity()}
  function persistData(data){if(workingKey===KEY)localStorage.setItem(KEY,JSON.stringify(data));changed(data)}
- function allowWrite(event){if(role!=='viewer'||$('cloudGate').hidden===false)return;const element=event.target.closest('button,input,select,textarea');if(!element)return;const handler=(element.getAttribute('onclick')||'')+' '+(element.getAttribute('onchange')||'');const edit=/editEquipment|deleteEquipment|importExcel|appendEquipment|editManual|deleteManual|toggleEvent|bulkProgress|window.step|schedule\(|changeMode|mode\(|saveMonthly|restore\(/.test(handler)||element.matches('textarea,#monthly-external-total');if(edit){event.preventDefault();event.stopImmediatePropagation();toast('此帳號僅供檢視')}}
+ function allowWrite(event){if(role!=='viewer'||$('cloudGate').hidden===false)return;const element=event.target.closest('button,input,select,textarea');if(!element)return;const handler=(element.getAttribute('onclick')||'')+' '+(element.getAttribute('onchange')||'');const edit=/editEquipment|deleteEquipment|editVendorInfo|deleteVendorInfo|importExcel|appendEquipment|editManual|deleteManual|toggleEvent|bulkProgress|window.step|schedule\(|changeMode|mode\(|saveMonthly|restore\(/.test(handler)||element.matches('textarea,#monthly-external-total');if(edit){event.preventDefault();event.stopImmediatePropagation();toast('此帳號僅供檢視')}}
  function toggleAccount(open){const panel=$('cloudAccountPanel');if(!panel)return;const show=typeof open==='boolean'?open:panel.hidden;panel.hidden=!show;$('cloudAccountToggle').setAttribute('aria-expanded',String(show));hideNavigationTooltip()}
  document.addEventListener('click',event=>{if(!event.target.closest('#cloudBar'))toggleAccount(false)});
  document.addEventListener('keydown',event=>{if(event.key==='Escape')toggleAccount(false)});
