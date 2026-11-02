@@ -839,13 +839,14 @@ function download(data,name,type='application/json'){let url=URL.createObjectURL
 async function exportExcel(){
  try{
   const columns=registryColumns().map(([key,label])=>({key,label}));
-  const sheets=['內校','外校／遊校'].map(type=>{
+  const exportType=tab==='內校'?'內校':'外校';
+  const sheets=[tab].map(type=>{
    const list=rows().filter(r=>type==='內校'?r.type==='內校':r.type!=='內校').sort((a,b)=>Number(inactiveEquipment(a))-Number(inactiveEquipment(b))||String(equipmentValue(a,sortKey)||'').localeCompare(String(equipmentValue(b,sortKey)||''),'zh-Hant')*sortDir);
    return{name:type==='內校'?'內校':'外校及遊校',visibleKeys:columns.filter(c=>columnVisible(c.key,type)).map(c=>c.key),filters:Object.entries(registryFilters[type]||{}).map(([key,values])=>({key,values})),rows:list.map(r=>({values:columns.map(c=>equipmentValue(r,c.key)),inactive:inactiveEquipment(r),hidden:!equipmentMatchesQuery(r)||!registryMatches(r,null,type)}))};
   });
   const workbook=await RegistryWorkbook.build({columns,sheets,month});
-  download(workbook,'量測監控設備清冊_'+month.slice(2).replace('-','')+'.xlsx');
-  toast('已匯出內外校清冊，保留目前篩選狀態');
+  download(workbook,'量測監控設備清冊_'+month.slice(2).replace('-','')+'_'+exportType+'.xlsx');
+  toast('已匯出'+exportType+'清冊，保留目前篩選狀態');
  }catch(error){toast('匯出失敗：'+error.message)}
 }
 function renderBackup(){
