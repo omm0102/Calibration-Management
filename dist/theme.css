@@ -620,3 +620,20 @@ body.app-shell .internal-equipment-table tbody tr td{background:var(--color-surf
 body.app-shell .internal-equipment-table tbody tr:hover td{background:var(--color-soft)}
 body.app-shell :is(.internal-equipment-table,.external-equipment-table) .progress-equipment-name{white-space:normal;overflow-wrap:anywhere;color:var(--color-text);font-variant-numeric:normal}
 body.app-shell .internal-equipment-table td:nth-child(5){white-space:normal;overflow-wrap:anywhere}
+
+/* Each vendor advances only when every applicable device finishes a stage. */
+.external-progress-workspace .vendor-progress-title{flex-wrap:wrap;gap:14px}
+.external-progress-workspace .vendor-progress-title>.vendor-name{flex:0 0 155px}
+.vendor-stage-progress{position:relative;display:flex;flex:1;min-width:440px;padding:2px 0;color:var(--color-primary);font-weight:400;font-size:13px}
+.vendor-stage-track{position:absolute;left:8.333%;right:8.333%;top:15px;height:3px;background:var(--color-border)}
+.vendor-stage-track i{display:block;height:100%;background:var(--color-warning);transition:width .4s}
+.vendor-stage-node{position:relative;flex:1;min-width:0;display:flex;align-items:center;flex-direction:column;gap:7px;text-align:center}
+.vendor-stage-dot{box-sizing:border-box;display:grid;place-items:center;width:28px;height:28px;border:2px solid var(--color-border);border-radius:50%;background:var(--color-surface);color:var(--color-muted);font-size:12px}
+.vendor-stage-label{line-height:1.4;padding:0 3px;color:var(--color-muted)}
+.vendor-stage-node.is-done .vendor-stage-dot{background:var(--color-warning);border-color:var(--color-warning);color:var(--color-primary)}
+.vendor-stage-node.is-current .vendor-stage-dot{border-color:var(--color-warning);color:var(--color-primary)}
+.vendor-stage-node:is(.is-done,.is-current) .vendor-stage-label{color:var(--color-primary)}
+.vendor-stage-progress.is-complete .vendor-stage-dot{background:var(--color-success);border-color:var(--color-success);color:white}
+.vendor-stage-progress.is-complete .vendor-stage-track i{background:var(--color-success)}
+.vendor-stage-progress:has(.vendor-stage-node:nth-child(5):last-child) .vendor-stage-track{left:12.5%;right:12.5%}
+@media(max-width:800px){.vendor-stage-progress{flex-basis:100%;min-width:0;font-size:11px}.external-progress-workspace .vendor-progress-title>.vendor-name{flex-basis:auto}.vendor-stage-label{overflow-wrap:anywhere}.vendor-stage-dot{width:24px;height:24px}.vendor-stage-track{top:13px}}

@@ -575,11 +575,29 @@ function toggleVendorProgress(event,summary){
  const animation=body.animate([{height:start+'px',paddingTop:(expand?0:16)+'px',opacity:expand?0:1},{height:(expand?body.scrollHeight:0)+'px',paddingTop:(expand?16:0)+'px',opacity:expand?1:0}],{duration:200,easing:'ease-in-out'});
  details._progressAnimation=animation;animation.onfinish=finish;
 }
+function vendorProgressStages(equipment){
+ const external=equipment.some(r=>r.type==='外校'),tour=equipment.some(r=>r.type==='遊校');
+ const definitions=external?
+  [['已提供報價單',0],['請購單',1],['外送單',2],['設備確認',3],[tour?'寄出／收件／遊校日期':'寄出／收件時間','date'],['校驗日期','calibration']]:
+  [['已提供報價單',0],['請購單',1],['遊校日期','date'],['校驗日期','calibration']];
+ let advancing=true;
+ return definitions.map(([label,key])=>{
+  const applicable=equipment.filter(r=>!(r.type==='遊校'&&(key===2||key===3)));
+  const all=applicable.length>0&&applicable.every(r=>key==='date'?!!r.date:key==='calibration'?!!r.calibrationDate:!!r.p[key]);
+  const done=advancing&&all;advancing=done;
+  return{label,done};
+ });
+}
+function vendorProgressBar(equipment){
+ const nodes=vendorProgressStages(equipment),completed=nodes.filter(node=>node.done).length;
+ const progress=completed===nodes.length?100:Math.max(0,(completed-1)/(nodes.length-1)*100);
+ return `<div class="vendor-stage-progress ${completed===nodes.length?'is-complete':''}" role="group" aria-label="廠商進度：已完成 ${completed}／${nodes.length} 階段"><div class="vendor-stage-track"><i style="width:${progress}%"></i></div>${nodes.map((node,index)=>`<div class="vendor-stage-node ${node.done?'is-done':index===completed?'is-current':''}" ${index===completed?'aria-current="step"':''}><span class="vendor-stage-dot" aria-hidden="true">${node.done?'✓':index+1}</span><span class="vendor-stage-label">${node.label}</span></div>`).join('')}</div>`;
+}
 function renderExternalProgress(){
  const list=filtered('外校／遊校').filter(r=>!inactiveEquipment(r)),total=rows().filter(r=>!inactiveEquipment(r)&&(r.type==='外校'||r.type==='遊校')),pct=percent(total),vendors=new Map();
  for(const row of list){const vendor=String(row.vendor??'').trim();if(!vendor)continue;if(!vendors.has(vendor))vendors.set(vendor,[]);vendors.get(vendor).push(row)}
  const groups=[...vendors].sort(([a],[b])=>a.localeCompare(b,'zh-Hant'));
- $('content').innerHTML=`<div class="external-progress-workspace"><div class="toolbar">${registrySearch('外校進度')}<span class="spacer"></span><button onclick="tab='外校／遊校';go('registry')">查看清冊 →</button></div><section class="panel external-total"><div class="rowtitle"><h2>校驗總進度</h2><span>${pct}%</span></div><div class="progress"><i class="${pct===100?'complete':''}" style="width:${pct}%"></i></div></section>${groups.map(([vendor,equipment])=>`<details class="panel vendor-progress" data-progress-group="${esc(vendor)}" ontoggle="this.open?externalProgressOpen.add(this.dataset.progressGroup):externalProgressOpen.delete(this.dataset.progressGroup)" ${externalProgressOpen.has(vendor)?'open':''}><summary class="vendor-progress-title" onscroll="syncVendorHorizontal(this)" onclick="toggleVendorProgress(event,this)"><span class="vendor-name">${esc(vendor)}</span></summary><div class="vendor-progress-body">${['外校','遊校'].map(type=>{
+ $('content').innerHTML=`<div class="external-progress-workspace"><div class="toolbar">${registrySearch('外校進度')}<span class="spacer"></span><button onclick="tab='外校／遊校';go('registry')">查看清冊 →</button></div><section class="panel external-total"><div class="rowtitle"><h2>校驗總進度</h2><span>${pct}%</span></div><div class="progress"><i class="${pct===100?'complete':''}" style="width:${pct}%"></i></div></section>${groups.map(([vendor,equipment])=>`<details class="panel vendor-progress" data-progress-group="${esc(vendor)}" ontoggle="this.open?externalProgressOpen.add(this.dataset.progressGroup):externalProgressOpen.delete(this.dataset.progressGroup)" ${externalProgressOpen.has(vendor)?'open':''}><summary class="vendor-progress-title" onscroll="syncVendorHorizontal(this)" onclick="toggleVendorProgress(event,this)"><span class="vendor-name">${esc(vendor)}</span>${vendorProgressBar(equipment)}</summary><div class="vendor-progress-body">${['外校','遊校'].map(type=>{
   const items=equipment.filter(r=>r.type===type);if(!items.length)return '';
   return `<section class="group progress-type-${type==='外校'?'external':'tour'}">${externalProgressTable(items)}</section>`;
  }).join('')}</div></details>`).join('')||'<div class="empty">沒有符合條件的設備</div>'}</div>`;
