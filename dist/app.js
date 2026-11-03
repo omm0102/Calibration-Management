@@ -591,7 +591,7 @@ function vendorProgressStages(equipment){
 function vendorProgressBar(equipment){
  const nodes=vendorProgressStages(equipment),completed=nodes.filter(node=>node.done).length;
  const progress=completed===nodes.length?100:Math.max(0,(completed-1)/(nodes.length-1)*100);
- return `<div class="vendor-stage-progress ${completed===nodes.length?'is-complete':''}" role="group" aria-label="廠商進度：已完成 ${completed}／${nodes.length} 階段"><div class="vendor-stage-track"><i style="width:${progress}%"></i></div>${nodes.map((node,index)=>`<div class="vendor-stage-node ${node.done?'is-done':index===completed?'is-current':''}" ${index===completed?'aria-current="step"':''}><span class="vendor-stage-dot" aria-hidden="true">${node.done?'✓':index+1}</span><span class="vendor-stage-label">${node.label}</span></div>`).join('')}</div>`;
+ return `<div class="vendor-stage-progress ${completed===nodes.length?'is-complete':''}" role="group" aria-label="廠商進度：已完成 ${completed}／${nodes.length} 階段"><div class="vendor-stage-track"><i style="width:${progress}%"></i></div>${nodes.map((node,index)=>`<div class="vendor-stage-node ${node.done?'is-done':index===completed?'is-current':''}" ${index===completed?'aria-current="step"':''}><span class="vendor-stage-dot" aria-hidden="true"></span><span class="vendor-stage-label">${node.label}</span></div>`).join('')}</div>`;
 }
 function renderExternalProgress(){
  const list=filtered('外校／遊校').filter(r=>!inactiveEquipment(r)),total=rows().filter(r=>!inactiveEquipment(r)&&(r.type==='外校'||r.type==='遊校')),pct=percent(total),vendors=new Map();
