@@ -722,12 +722,20 @@ function finishMonthlyExternalCost(input){
 function renderReport(){
  const reportDatabase=db;
  const previous=$('reportframe')?.contentWindow;
- if(previous&&typeof previous.appSaveDraftNow==='function')previous.appSaveDraftNow();
- $('content').innerHTML=`<iframe id="reportframe" class="report-workspace report-initializing" title="量測設備校驗管理月報" src="report.html?v=20261103-160"></iframe>`;
- $('reportframe').onload=()=>{
-  const w=$('reportframe').contentWindow;
+ try{if(previous&&typeof previous.appSaveDraftNow==='function')previous.appSaveDraftNow()}catch(error){if(error.name!=='SecurityError')throw error}
+ $('content').innerHTML=`<iframe id="reportframe" class="report-workspace report-initializing" title="量測設備校驗管理月報" src="report.html?v=20261105-163"></iframe>`;
+ const frame=$('reportframe');let retried=false;
+ const failed=error=>{
+  if(!frame.isConnected)return;
+  if(error.name==='SecurityError'&&!retried){retried=true;const url=new URL('report.html',location.href);url.searchParams.set('v','20261105-163');url.searchParams.set('retry',Date.now());frame.src=url.href;return}
+  clearPageTransition();frame.classList.remove('report-initializing');
+  $('content').innerHTML='<section class="panel"><h2>月報暫時無法載入</h2><p>請重新載入月報；若持續發生，請重新整理網頁後再試。</p><button class="primary" onclick="renderReport()">重新載入月報</button></section>';
+  toast(error.name==='SecurityError'?'月報頁面存取遭瀏覽器阻擋，請重試':'月報載入失敗：'+error.message);
+ };
+ frame.onload=()=>{
+  if(!frame.isConnected)return;
+  const w=frame.contentWindow;
   try{
-   const frame=$('reportframe');
    w.document.body.classList.add('report-embedded');
    const fit=()=>{if(frame.isConnected&&typeof w.fitPreview==='function')w.fitPreview()};
    const observer=new ResizeObserver(fit);observer.observe(frame);
@@ -743,9 +751,9 @@ function renderReport(){
    if(window.Cloud&&!Cloud.canWrite()){w.document.querySelectorAll('input,textarea,select,button').forEach(el=>{if(!['monthInput','exportPdfBtn'].includes(el.id))el.disabled=true})}
    Promise.resolve(w.document.fonts.ready).then(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{
     if(!frame.isConnected)return;
-    w.fitSingleReport();fit();frame.classList.remove('report-initializing');revealPageTransition();
-   })));
-  }catch(error){clearPageTransition();$('reportframe')?.classList.remove('report-initializing');toast('月報載入失敗：'+error.message)}
+    try{w.fitSingleReport();fit();frame.classList.remove('report-initializing');revealPageTransition()}catch(error){failed(error)}
+   }))).catch(failed);
+  }catch(error){failed(error)}
  };
 }
 function ensureImportLinks(){
