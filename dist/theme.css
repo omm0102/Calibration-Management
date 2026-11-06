@@ -682,3 +682,5 @@ body.app-shell dialog.vendor-cost-dialog{height:min(760px,90dvh);max-height:90dv
 .vendor-cost-dialog .vendor-cost-list{flex:1;min-height:0;max-height:none;overflow:auto;scrollbar-gutter:stable}
 .vendor-cost-dialog .vendor-cost-input{appearance:textfield;-moz-appearance:textfield}
 .vendor-cost-dialog .vendor-cost-input::-webkit-inner-spin-button,.vendor-cost-dialog .vendor-cost-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+
+.dashboard-fees .dashboard-annual{border-top:0;margin-top:0;padding-top:0}
