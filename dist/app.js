@@ -695,29 +695,34 @@ function deleteVendorInfo(id){
 }
 
 function renderCost(){
- const current=today().slice(0,7),currentYear=current.slice(0,4);
- costYear=costYear||currentYear;costEntryMonth=costEntryMonth||current.slice(5);
- const entryKey=costYear+'-'+costEntryMonth;
+ const current=today().slice(0,7),currentYear=current.slice(0,4);costYear=costYear||currentYear;
  const years=[...new Set([currentYear,String(Number(currentYear)-1),String(Number(currentYear)+1),costYear,...db.rows.map(r=>r.month.slice(0,4)),...Object.keys(db.quotes).map(m=>m.slice(0,4)),...Object.keys(db.monthlyExternalCosts||{}).map(m=>m.slice(0,4))])].filter(y=>/^\d{4}$/.test(y)).sort();
- $('content').innerHTML=`<div class="cost-workspace yearly-cost-workspace"><div class="annual-cost-summary"><label>年度外校總金額</label><strong id="cost-year-total">NT$ ${annualExternalCost(costYear+'-12').toLocaleString()}</strong></div><div class="annual-cost-controls"><label class="cost-year-control">年份<select aria-label="外校金額年份" onchange="costYear=this.value;render()">${years.map(year=>`<option ${year===costYear?'selected':''}>${year}</option>`).join('')}</select></label><label class="monthly-total-control">${Number(costEntryMonth)} 月外校總金額<input id="monthly-external-total" class="money" type="number" min="0" step="1" aria-label="所選月份外校總金額" data-month="${entryKey}" value="${sumCost(entryKey)}" oninput="saveMonthlyExternalCost(this)" onchange="finishMonthlyExternalCost(this)"></label></div><div class="tablewrap annual-cost-table"><table><thead><tr><th>月份</th><th>外校金額</th></tr></thead><tbody>${costYear==='2026'?`<tr class="opening-cost-row" ${unallocatedHistoricalCost()===0?'hidden':''}><td>1–9 月歷史累計（尚未分月）</td><td>NT$ ${unallocatedHistoricalCost().toLocaleString()}</td></tr>`:''}${Array.from({length:12},(_,i)=>{const key=costYear+'-'+String(i+1).padStart(2,'0'),legacy=costYear==='2026'&&i<9;return `<tr data-cost-month="${key}" tabindex="0" role="button" aria-label="編輯 ${i+1} 月外校金額" onclick="selectCostEntryMonth(this.dataset.costMonth)" onkeydown="if(['Enter',' '].includes(event.key)){event.preventDefault();selectCostEntryMonth(this.dataset.costMonth)}" class="${key===current?'current-cost-month':''} ${key===entryKey?'selected-cost-month':''}"><td>${i+1} 月${key===current?' <span class="current-month-tag">本月</span>':''}</td><td>${legacy&&!hasMonthlyCost(key)?'—':'NT$ '+sumCost(key).toLocaleString()}</td></tr>`}).join('')}</tbody></table></div></div>`;
+ $('content').innerHTML=`<div class="cost-workspace yearly-cost-workspace cost-card-workspace"><div class="annual-cost-summary"><label>年度外校總金額</label><strong id="cost-year-total">NT$ ${annualExternalCost(costYear+'-12').toLocaleString()}</strong></div><div class="annual-cost-controls"><label class="cost-year-control">年份<select aria-label="外校金額年份" onchange="costYear=this.value;render()">${years.map(year=>`<option ${year===costYear?'selected':''}>${year}</option>`).join('')}</select></label>${costYear==='2026'&&unallocatedHistoricalCost()>0?`<span class="cost-history-total">1–9 月歷史累計：NT$ ${unallocatedHistoricalCost().toLocaleString()}</span>`:''}</div><div class="monthly-cost-cards">${Array.from({length:12},(_,i)=>{
+  const key=costYear+'-'+String(i+1).padStart(2,'0'),locked=key<'2026-11',unallocated=costYear==='2026'&&i<9&&!hasMonthlyCost(key);
+  return `<button type="button" class="monthly-cost-card ${key===current?'is-current':''}" ${locked?'disabled':`onclick="editVendorCosts('${key}')"`} aria-label="${costYear} 年 ${i+1} 月外校金額${locked?'（歷史金額）':''}"><span class="cost-card-month">${i+1} 月</span><strong>${unallocated?'—':'NT$ '+sumCost(key).toLocaleString()}</strong>${locked?'<span class="cost-card-note">歷史金額</span>':''}</button>`;
+ }).join('')}</div></div>`;
 }
-function selectCostEntryMonth(key){
- if(!/^\d{4}-\d{2}$/.test(key))return;
- costYear=key.slice(0,4);costEntryMonth=key.slice(5);render();
- const input=$('monthly-external-total');input.focus({preventScroll:true});input.select();
+function editVendorCosts(key){
+ if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(key)||key<'2026-11')return;
+ if(window.Cloud&&!Cloud.canWrite())return toast('此帳號僅供檢視');
+ const recorded=db.quotes[key]||{};
+ const names=[...new Set([...db.rows.filter(r=>r.month===key&&(r.type==='外校'||r.type==='遊校')&&!inactiveEquipment(r)).map(r=>String(r.vendor||'').trim()).filter(Boolean),...Object.keys(recorded)])].sort((a,b)=>a.localeCompare(b,'zh-Hant'));
+ const quoted=Object.values(recorded).reduce((sum,value)=>sum+(Number(value)||0),0),remainder=Math.max(0,sumCost(key)-quoted);
+ modal(key.replace('-',' / ')+' 外校金額',`<div class="vendor-cost-summary">當月總金額 <strong id="vendorCostTotal">NT$ ${sumCost(key).toLocaleString()}</strong></div><div class="vendor-cost-list">${names.map((name,index)=>`<label class="vendor-cost-row"><span>${esc(name)}</span><input type="number" min="0" step="1" id="vendorCost_${index}" class="vendor-cost-input" aria-label="${esc(name)}金額" value="${Math.max(0,Number(recorded[name])||0)}" oninput="updateVendorCostTotal()"></label>`).join('')||'<div class="empty">本月尚無外校廠商，請先在清冊設定廠商。</div>'}${remainder>0?`<label class="vendor-cost-row"><span>既有未分配金額</span><input type="number" min="0" step="1" id="vendorCostRemainder" class="vendor-cost-input" aria-label="既有未分配金額" value="${remainder}" oninput="updateVendorCostTotal()"></label><p class="muted">原有總金額先保留；分配給廠商時，請同步減少未分配金額。</p>`:''}</div>`,()=>{
+  if(window.Cloud&&!Cloud.canWrite())return toast('此帳號僅供檢視');
+  const inputs=[...$('modal').querySelectorAll('.vendor-cost-input')];
+  const invalid=inputs.find(input=>!input.validity.valid||!Number.isSafeInteger(Number(input.value))||Number(input.value)<0);
+  if(invalid){invalid.focus();return toast('金額請輸入零或正整數')}
+  const total=inputs.reduce((sum,input)=>sum+Number(input.value),0);
+  if(!Number.isSafeInteger(total))return toast('總金額超出可儲存範圍');
+  db.quotes[key]=Object.fromEntries(names.map((name,index)=>[name,Number($('vendorCost_'+index).value)]));
+  db.monthlyExternalCosts??={};db.monthlyExternalCosts[key]=total;
+  closeModal();save();toast('已儲存當月廠商金額');
+ });
 }
-function saveMonthlyExternalCost(input){
- const value=input.value===''?0:Number(input.value);
- if(!input.validity.valid||!Number.isInteger(value)||value<0){input.setAttribute('aria-invalid','true');return}
- input.removeAttribute('aria-invalid');db.monthlyExternalCosts??={};db.monthlyExternalCosts[input.dataset.month]=value;persist();
- $('cost-year-total').textContent='NT$ '+annualExternalCost(costYear+'-12').toLocaleString();
- const cell=document.querySelector(`[data-cost-month="${input.dataset.month}"] td:last-child`);if(cell)cell.textContent='NT$ '+value.toLocaleString();
- const opening=document.querySelector('.opening-cost-row');if(opening){const remaining=unallocatedHistoricalCost();opening.hidden=remaining===0;opening.lastElementChild.textContent='NT$ '+remaining.toLocaleString()}
-}
-function finishMonthlyExternalCost(input){
- if(input.getAttribute('aria-invalid')){toast('金額需為非負整數');input.value=sumCost(input.dataset.month);input.removeAttribute('aria-invalid')}
- if(input.value==='')input.value=0;
- saveMonthlyExternalCost(input);
+function updateVendorCostTotal(){
+ const inputs=[...$('modal').querySelectorAll('.vendor-cost-input')];
+ $('vendorCostTotal').textContent='NT$ '+inputs.reduce((sum,input)=>sum+Math.max(0,Number(input.value)||0),0).toLocaleString();
 }
 function renderReport(){
  const reportDatabase=db;
