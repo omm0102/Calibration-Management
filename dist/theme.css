@@ -674,3 +674,11 @@ body.app-shell .monthly-cost-card:not(:disabled):hover{border-color:var(--color-
 .vendor-cost-row input{width:170px;text-align:right;flex-shrink:0}
 @media(max-width:800px){.monthly-cost-cards{gap:8px}.cost-card-month{font-size:18px}.cost-history-total{font-size:12px}.cost-card-workspace .annual-cost-summary>strong{font-size:30px}body.app-shell .monthly-cost-card{padding:10px 4px;gap:10px}.cost-card-note{font-size:11px}}
 @media(max-width:650px){.monthly-cost-cards{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr))}.vendor-cost-row input{width:120px}.cost-card-workspace .annual-cost-controls{flex-wrap:wrap}.vendor-cost-summary strong{font-size:21px}}
+
+/* A single scroll region inside the vendor cost editor. */
+body.app-shell dialog.vendor-cost-dialog{height:min(760px,90dvh);max-height:90dvh;overflow:hidden}
+.vendor-cost-dialog #modal{height:100%;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.vendor-cost-dialog .modal-head,.vendor-cost-dialog .vendor-cost-summary,.vendor-cost-dialog .modal-actions{flex:none}
+.vendor-cost-dialog .vendor-cost-list{flex:1;min-height:0;max-height:none;overflow:auto;scrollbar-gutter:stable}
+.vendor-cost-dialog .vendor-cost-input{appearance:textfield;-moz-appearance:textfield}
+.vendor-cost-dialog .vendor-cost-input::-webkit-inner-spin-button,.vendor-cost-dialog .vendor-cost-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}

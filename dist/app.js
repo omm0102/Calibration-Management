@@ -341,7 +341,7 @@ function renderCalendar(){
   calendarFrameObserver=new ResizeObserver(place);calendarFrameObserver.observe(calendar);
  }
 }
-function modal(title,body,onsave,label='儲存',showFooter=true){ $('dialog').classList.remove('registry-columns-dialog','vendor-history-dialog','vendor-edit-dialog');$('modal').innerHTML=`<div class="modal-head"><h2>${esc(title)}</h2><button class="link" onclick="closeModal()">✕</button></div>${body}${showFooter?`<div class="modal-actions"><button onclick="closeModal()">關閉</button>${onsave?`<button id="modalSave" class="primary">${label}</button>`:''}</div>`:''}`;if(onsave)$('modalSave').onclick=onsave;if(!$('dialog').open){$('dialog').showModal();if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)$('dialog').animate([{opacity:0,transform:'translateY(12px) scale(.97)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:200,easing:'ease'})}}
+function modal(title,body,onsave,label='儲存',showFooter=true){ $('dialog').classList.remove('registry-columns-dialog','vendor-history-dialog','vendor-edit-dialog','vendor-cost-dialog');$('modal').innerHTML=`<div class="modal-head"><h2>${esc(title)}</h2><button class="link" onclick="closeModal()">✕</button></div>${body}${showFooter?`<div class="modal-actions"><button onclick="closeModal()">關閉</button>${onsave?`<button id="modalSave" class="primary">${label}</button>`:''}</div>`:''}`;if(onsave)$('modalSave').onclick=onsave;if(!$('dialog').open){$('dialog').showModal();if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)$('dialog').animate([{opacity:0,transform:'translateY(12px) scale(.97)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:200,easing:'ease'})}}
 function closeModal(){$('dialog').close()}
 function showDay(date){
  const ev=date?eventsForDay(allEvents(),date):allEvents().filter(e=>!e.start&&(!e.done||e.actionDate===today()));
@@ -719,6 +719,7 @@ function editVendorCosts(key){
   db.monthlyExternalCosts??={};db.monthlyExternalCosts[key]=total;
   closeModal();save();toast('已儲存當月廠商金額');
  });
+ $('dialog').classList.add('vendor-cost-dialog');
 }
 function updateVendorCostTotal(){
  const inputs=[...$('modal').querySelectorAll('.vendor-cost-input')];
