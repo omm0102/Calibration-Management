@@ -637,3 +637,8 @@ body.app-shell .internal-equipment-table td:nth-child(5){white-space:normal;over
 .vendor-stage-progress.is-complete .vendor-stage-track i{background:var(--color-success)}
 .vendor-stage-progress:has(.vendor-stage-node:nth-child(5):last-child) .vendor-stage-track{left:12.5%;right:12.5%}
 @media(max-width:800px){.vendor-stage-progress{flex-basis:100%;min-width:0;font-size:11px}.external-progress-workspace .vendor-progress-title>.vendor-name{flex-basis:auto}.vendor-stage-label{overflow-wrap:anywhere}.vendor-stage-dot{width:24px;height:24px}.vendor-stage-track{top:13px}}
+
+.todo-edit-actions{display:flex;flex-shrink:0;gap:3px;margin-left:auto}
+body.app-shell .todo-edit-actions button{display:grid;place-items:center;padding:5px;width:30px;height:30px;background:transparent;border:1px solid transparent;color:inherit}
+body.app-shell .todo-edit-actions button:hover{border-color:currentColor;background:transparent}
+body.app-shell .todo-edit-actions button:focus-visible{outline:2px solid currentColor;outline-offset:1px}
