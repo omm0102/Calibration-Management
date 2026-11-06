@@ -642,3 +642,5 @@ body.app-shell .internal-equipment-table td:nth-child(5){white-space:normal;over
 body.app-shell .todo-edit-actions button{display:grid;place-items:center;padding:5px;width:30px;height:30px;background:transparent;border:1px solid transparent;color:inherit}
 body.app-shell .todo-edit-actions button:hover{border-color:currentColor;background:transparent}
 body.app-shell .todo-edit-actions button:focus-visible{outline:2px solid currentColor;outline-offset:1px}
+
+body.app-shell .internal-equipment-table :is(th,td):nth-child(2){text-align:left}
