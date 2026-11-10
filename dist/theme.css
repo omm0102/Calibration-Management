@@ -684,3 +684,7 @@ body.app-shell dialog.vendor-cost-dialog{height:min(760px,90dvh);max-height:90dv
 .vendor-cost-dialog .vendor-cost-input::-webkit-inner-spin-button,.vendor-cost-dialog .vendor-cost-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 
 .dashboard-fees .dashboard-annual{border-top:0;margin-top:0;padding-top:0}
+
+/* Dashboard fills the space after removing cost statistics. */
+@media(min-width:801px){.dashboard-grid{grid-template-columns:1fr 1.25fr}.dashboard-overview{grid-area:1 / 1 / 8 / 2}.dashboard-agenda{grid-area:8 / 1 / 21 / 2}.dashboard-calibration{grid-area:1 / 2 / 11 / 3}.dashboard-calendar{grid-area:11 / 2 / 21 / 3;align-self:stretch}}
+@media(max-width:800px){.dashboard-grid{grid-template-areas:"overview" "progress" "calendar" "agenda"}}

@@ -2,7 +2,7 @@
 const $=id=>document.getElementById(id), esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const iso=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10), today=()=>iso(new Date()), add=(s,n)=>{let d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)}, uid=()=>Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,'0')).join('');
 const KEY='aming-calibration-demo-v1';let page='dashboard',month=today().slice(0,7),tab='內校',query='',status='all',offset=0,calendarMonth='',selectedWeek=false;
-const nav=[['量測設備校驗管理',[['dashboard','總覽儀表板','▦'],['calendar','行事曆','▦'],['registry','設備管理清冊','▤'],['report','設備管理月報','▧']]],['外校管理',[['external','外校進度','◷'],['vendors','外校廠商資訊','▤'],['cost','外校金額','＄']]],['內校管理',[['internal','內校進度','◴']]],['其他功能',[['import','資料匯入管理','↥'],['backup','備份與還原','⧉']]]];
+const nav=[['量測設備校驗管理',[['dashboard','總覽儀表板','▦'],['calendar','行事曆','▦'],['registry','設備管理清冊','▤'],['report','設備管理月報','▧']]],['外校管理',[['external','外校進度','◷'],['vendors','外校廠商資訊','▤']]],['內校管理',[['internal','內校進度','◴']]],['其他功能',[['import','資料匯入管理','↥'],['backup','備份與還原','⧉']]]];
 const SAMPLE_VERSION='real-20261022';
 function seed(){
  const rows=structuredClone(CALIBRATION_SAMPLE).map(r=>({...r,key:uid()}));
@@ -87,7 +87,6 @@ function sidebarIcon(id){
   report:'<path d="M3 28h27M6 28v-7h4v7m4 0V16h4v12m4 0V10h4v18M4 17l8-8 7 4L28 3M22 3h6v6"/>',
   internal:'<path d="M6 2h15l6 6v22H6zM21 2v7h6M10 13l2 2 3-4m3 3h5M10 20l2 2 3-4m3 3h5M10 27l2 2 3-4m3 3h5"/>',
   vendors:'<path d="M3 30h26M7 30V9h18v21M11 9V3h10v6M11 14h2m6 0h2m-10 5h2m6 0h2M13 30v-6h6v6"/>',
-  cost:'<ellipse cx="10" cy="11" rx="7" ry="3"/><path d="M3 11v13c0 2 3 3 7 3M3 17c1 1 3 2 5 2M19 5v5m10-5v13c0 2-3 3-6 3"/><ellipse cx="23" cy="5" rx="6" ry="3"/><path d="M23 11c3 0 5-1 6-2M25 16l4-1"/><circle cx="17" cy="22" r="8"/><path d="M20 18h-4a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4h-4m3-10v12"/>',
   import:'<path d="M16 20V4M9 11l7-7 7 7M4 21v8h24v-8"/>',
   backup:'<path d="M27 13A12 12 0 0 0 14 4V1L7 6l7 5V7M5 19a12 12 0 0 0 13 9v3l7-5-7-5v4M5 11l-1 2m0 3v1m24 3-1 2m-1 3-1 1"/>'
  };
@@ -156,19 +155,8 @@ function dashboardCardClick(event,target){if(!event.target.closest('button,input
 function dashboardCardKey(event,target){if(event.target===event.currentTarget&&['Enter',' '].includes(event.key)){event.preventDefault();go(target)}}
 function dashboardDate(date){calendarMonth=date.slice(0,7);go('calendar');showDay(date)}
 function moveDashboardMonth(delta){const date=new Date(month+'-01T12:00:00');date.setMonth(date.getMonth()+delta);month=iso(date).slice(0,7);render()}
-function dashboardCost(){costYear=month.slice(0,4);costEntryMonth=month.slice(5);go('cost')}
 function hasMissingRegistryData(){return rows().some(r=>r.type==='外校'&&!String(r.vendor??'').trim())}
 function titleWarning(message){return `<span class="title-warning" role="img" aria-label="${esc(message)}" title="${esc(message)}">!!!</span>`}
-function dashboardMonthlyCosts(year){
- const missing=year==='2026'?Array.from({length:9},(_,i)=>year+'-'+String(i+1).padStart(2,'0')).filter(key=>!hasMonthlyCost(key)):[];
- const remaining=missing.length?unallocatedHistoricalCost():0,base=Math.floor(remaining/(missing.length||1)),remainder=remaining-base*missing.length;
- return Array.from({length:12},(_,i)=>{const key=year+'-'+String(i+1).padStart(2,'0'),index=missing.indexOf(key);return{key,value:index>=0?base+(index<remainder?1:0):sumCost(key),estimated:index>=0}});
-}
-function dashboardCostChart(){
- const data=dashboardMonthlyCosts(month.slice(0,4)),max=Math.max(1,...data.map(d=>d.value));
- return `<div class="dashboard-cost-chart" role="img" aria-label="${month.slice(0,4)}年每月外校費用長條圖"><div class="dashboard-cost-bars">${data.map((d,i)=>`<div class="dashboard-cost-column" title="${i+1}月：NT$ ${d.value.toLocaleString()}${d.estimated?'（平均分攤）':''}"><span class="dashboard-bar-value">${d.value.toLocaleString()}</span><div class="dashboard-bar-area"><i style="height:${d.value/max*100}%" class="${d.key===month?'selected-month':''}"></i></div><span class="dashboard-bar-month">${i+1}月</span></div>`).join('')}</div></div>${data.some(d=>d.estimated)?'<div class="dashboard-chart-note">1–9 月未分月費用採平均分攤</div>':''}`;
-}
-
 function animateDashboardEntrance(){
  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
  document.querySelectorAll('.dashboard-grid>.dashboard-card').forEach((card,index)=>{
@@ -182,9 +170,7 @@ function animateDashboardCharts(){
  document.querySelectorAll('.dashboard-ring-value').forEach(circle=>{
   circle.animate([{strokeDasharray:'0 100'},{strokeDasharray:circle.getAttribute('stroke-dasharray')}],{duration:800,delay:Number(circle.closest('.dashboard-card')?.dataset.entranceDelay||0)+180,easing:'cubic-bezier(.2,.7,.2,1)',fill:'backwards'});
  });
- document.querySelectorAll('.dashboard-bar-area i').forEach((bar,index)=>{
-  bar.animate([{transform:'scaleY(0)'},{transform:'scaleY(1)'}],{duration:650,delay:Number(bar.closest('.dashboard-card')?.dataset.entranceDelay||0)+180+index*12,easing:'cubic-bezier(.2,.7,.2,1)',fill:'backwards'});
- });
+
 }
 function renderDashboard(){
  const active=rows().filter(r=>!inactiveEquipment(r)),inside=active.filter(r=>r.type==='內校'),insideProgress=inside.filter(r=>matchesInternalProgressScope(r)&&equipmentMatchesQuery(r,monthlyFilterMemory().internalSearch||'')&&internalProgressMatches(r)),outside=active.filter(r=>['外校','遊校'].includes(r.type));
@@ -200,12 +186,11 @@ function renderDashboard(){
  <section class="dashboard-card dashboard-calibration" tabindex="0" role="link" onclick="dashboardCardClick(event,'internal')" onkeydown="dashboardCardKey(event,'internal')"><div class="dashboard-card-heading"><h2>校驗進度</h2></div><div class="dashboard-progress-rings">${progress('內校',insideProgress,'internal')}${progress('外校／遊校',outside,'external')}</div></section>
  <section class="dashboard-card dashboard-calendar" tabindex="0" role="link" onclick="dashboardCardClick(event,'calendar')" onkeydown="dashboardCardKey(event,'calendar')"><div class="dashboard-card-heading"><h2>${Number(month.slice(5))}月 <small>${month.slice(0,4)}</small></h2></div><div class="dashboard-mini-calendar">${['日','一','二','三','四','五','六'].map(x=>`<span class="mini-weekday">${x}</span>`).join('')}${'<span></span>'.repeat(weekday)}${Array.from({length:count},(_,i)=>{const date=month+'-'+String(i+1).padStart(2,'0'),ev=eventsForDay(events,date),types=[...new Set(ev.map(e=>e.done?'completed':eventVisualType(e)))],holiday=taiwanCalendarDay(date);return `<button class="mini-day ${types.length?'has-events':''} ${date===today()?'is-today':''} ${holiday.holiday?'is-holiday':''}" style="--event-ring:var(--color-${({external:'warning',tour:'tour',internal:'accent',manual:'manual',completed:'complete-border'})[types[0]]||'border'})" data-date="${date}" title="${esc(date+(holiday.label?' '+shortHolidayLabel(holiday.label):'')+' · '+(ev.length?ev.map(e=>e.name).join('、'):'沒有行程'))}" onclick="dashboardDate('${date}')"><span>${i+1}</span><i>${types.map(t=>`<b class="${t}"></b>`).join('')}</i></button>`}).join('')}</div><div class="dashboard-legend"><span><i class="external"></i>外校</span><span><i class="tour"></i>遊校</span><span><i class="internal"></i>內校</span><span><i class="manual"></i>其他</span><span><i class="completed"></i>已完成</span></div></section>
  <section class="dashboard-card dashboard-agenda" tabindex="0" role="link" onclick="dashboardCardClick(event,'calendar')" onkeydown="dashboardCardKey(event,'calendar')"><div class="dashboard-agenda-part"><div class="dashboard-card-heading"><h2>今日待辦</h2></div>${list(at(today()),'今日沒有待辦事項')}</div><div class="dashboard-agenda-part"><div class="dashboard-card-heading"><h2>明日預計行程</h2></div>${list(at(tomorrow),'明日尚無預計行程')}</div><div class="dashboard-agenda-part"><div class="dashboard-card-heading"><h2>逾期提醒${late.length?titleWarning('有逾期未完成事項'):''}</h2></div>${list(late,'目前沒有逾期事項',true)}</div></section>
- <button class="dashboard-card dashboard-fees" onclick="dashboardCost()"><div class="dashboard-card-heading"><h2>外校費用${!hasMonthlyCost(month)?titleWarning('本月外校費用尚未輸入'):''}</h2></div><div class="dashboard-annual"><span>外校年度費用</span><b>NT$ ${annualExternalCost(month.slice(0,4)+'-12').toLocaleString()}</b></div>${dashboardCostChart()}</button>
 
  </div>`;
 }
 
-function renderPage(){const previousNavRect=$('nav').querySelector('button.active')?.getBoundingClientRect();document.body.dataset.page=page;closeRegistryFilter();let ms=months();if(!['report','dashboard','vendors'].includes(page)&&!ms.includes(month))month=ms.includes(today().slice(0,7))?today().slice(0,7):ms.at(-1)||'';if(filterMemoryMonth!==month){saveMonthlyFilters();loadMonthlyFilters()}$('nav').innerHTML=nav.map(([g,items])=>`<div class="navgroup"><label>${g}</label>${items.map(([id,t,ic])=>`<button class="${page===id?'active':''} ${id==='registry'?'registry-nav-button':''}" aria-label="${esc(t)}" data-tooltip="${esc(t)}" ${page===id?'aria-current="page"':''} onclick="go('${id}')">${sidebarIcon(id)}<span class="sidebar-label">${t}</span>${id==='registry'&&hasMissingExternalVendor()?`<span class="registry-warning-badge" role="img" aria-label="${esc(missingExternalVendorNotice())}" title="${esc(missingExternalVendorNotice())}">!!!</span>`:''}</button>`).join('')}</div>`).join('');updateSidebarIndicator(previousNavRect);$('title').textContent=nav.flatMap(n=>n[1]).find(n=>n[0]===page)[1];if(page==='registry'&&hasMissingRegistryData())$('title').insertAdjacentHTML('beforeend',titleWarning('本月外校設備未填寫廠商'));$('monthbox').innerHTML=page==='dashboard'?`<div class="dashboard-month-navigation"><button class="arrow-icon-button" aria-label="上一個月" onclick="moveDashboardMonth(-1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button><span aria-live="polite">${month.slice(0,4)}年${Number(month.slice(5))}月</span><button class="arrow-icon-button" aria-label="下一個月" onclick="moveDashboardMonth(1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button></div>`:!['calendar','import','backup','registry','report','external','cost','internal','vendors'].includes(page)?`<select onchange="month=this.value;render()" ${ms.length?'':'disabled'}>${[...new Set([...ms,month])].filter(Boolean).sort().map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select>`:'';({dashboard:renderDashboard,calendar:renderCalendar,registry:renderRegistry,external:renderProgress,internal:renderProgress,cost:renderCost,vendors:renderVendorInfo,report:renderReport,import:renderImport,backup:renderBackup}[page])()}
+function renderPage(){const previousNavRect=$('nav').querySelector('button.active')?.getBoundingClientRect();document.body.dataset.page=page;closeRegistryFilter();let ms=months();if(!['report','dashboard','vendors'].includes(page)&&!ms.includes(month))month=ms.includes(today().slice(0,7))?today().slice(0,7):ms.at(-1)||'';if(filterMemoryMonth!==month){saveMonthlyFilters();loadMonthlyFilters()}$('nav').innerHTML=nav.map(([g,items])=>`<div class="navgroup"><label>${g}</label>${items.map(([id,t,ic])=>`<button class="${page===id?'active':''} ${id==='registry'?'registry-nav-button':''}" aria-label="${esc(t)}" data-tooltip="${esc(t)}" ${page===id?'aria-current="page"':''} onclick="go('${id}')">${sidebarIcon(id)}<span class="sidebar-label">${t}</span>${id==='registry'&&hasMissingExternalVendor()?`<span class="registry-warning-badge" role="img" aria-label="${esc(missingExternalVendorNotice())}" title="${esc(missingExternalVendorNotice())}">!!!</span>`:''}</button>`).join('')}</div>`).join('');updateSidebarIndicator(previousNavRect);$('title').textContent=nav.flatMap(n=>n[1]).find(n=>n[0]===page)[1];if(page==='registry'&&hasMissingRegistryData())$('title').insertAdjacentHTML('beforeend',titleWarning('本月外校設備未填寫廠商'));$('monthbox').innerHTML=page==='dashboard'?`<div class="dashboard-month-navigation"><button class="arrow-icon-button" aria-label="上一個月" onclick="moveDashboardMonth(-1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button><span aria-live="polite">${month.slice(0,4)}年${Number(month.slice(5))}月</span><button class="arrow-icon-button" aria-label="下一個月" onclick="moveDashboardMonth(1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button></div>`:!['calendar','import','backup','registry','report','external','internal','vendors'].includes(page)?`<select onchange="month=this.value;render()" ${ms.length?'':'disabled'}>${[...new Set([...ms,month])].filter(Boolean).sort().map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select>`:'';({dashboard:renderDashboard,calendar:renderCalendar,registry:renderRegistry,external:renderProgress,internal:renderProgress,vendors:renderVendorInfo,report:renderReport,import:renderImport,backup:renderBackup}[page])()}
 // Fixed monthly tasks start in the month this feature is first enabled.
 function taiwanCalendarDay(date){
  const calendar=window.TAIWAN_OFFICE_CALENDAR,covered=!!calendar?.years.includes(Number(date.slice(0,4))),record=calendar?.days[date],weekday=new Date(date+'T12:00:00').getDay();
@@ -341,7 +326,7 @@ function renderCalendar(){
   calendarFrameObserver=new ResizeObserver(place);calendarFrameObserver.observe(calendar);
  }
 }
-function modal(title,body,onsave,label='儲存',showFooter=true){ $('dialog').classList.remove('registry-columns-dialog','vendor-history-dialog','vendor-edit-dialog','vendor-cost-dialog');$('modal').innerHTML=`<div class="modal-head"><h2>${esc(title)}</h2><button class="link" onclick="closeModal()">✕</button></div>${body}${showFooter?`<div class="modal-actions"><button onclick="closeModal()">關閉</button>${onsave?`<button id="modalSave" class="primary">${label}</button>`:''}</div>`:''}`;if(onsave)$('modalSave').onclick=onsave;if(!$('dialog').open){$('dialog').showModal();if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)$('dialog').animate([{opacity:0,transform:'translateY(12px) scale(.97)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:200,easing:'ease'})}}
+function modal(title,body,onsave,label='儲存',showFooter=true){ $('dialog').classList.remove('registry-columns-dialog','vendor-history-dialog','vendor-edit-dialog');$('modal').innerHTML=`<div class="modal-head"><h2>${esc(title)}</h2><button class="link" onclick="closeModal()">✕</button></div>${body}${showFooter?`<div class="modal-actions"><button onclick="closeModal()">關閉</button>${onsave?`<button id="modalSave" class="primary">${label}</button>`:''}</div>`:''}`;if(onsave)$('modalSave').onclick=onsave;if(!$('dialog').open){$('dialog').showModal();if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)$('dialog').animate([{opacity:0,transform:'translateY(12px) scale(.97)'},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:200,easing:'ease'})}}
 function closeModal(){$('dialog').close()}
 function showDay(date){
  const ev=date?eventsForDay(allEvents(),date):allEvents().filter(e=>!e.start&&(!e.done||e.actionDate===today()));
@@ -606,23 +591,6 @@ function changeMode(key,mode){let r=db.rows.find(x=>x.key===key);if(r.date&&!con
 function step(key,i,checked){let r=db.rows.find(x=>x.key===key);if(checked&&i&&!r.p[i-1])return;if(!checked){for(let j=i;j<stages(r).length;j++)r.p[j]=false;let di=r.type==='內校'?0:stages(r).length-2;if(i<=di)r.date='';if(r.type!=='內校')r.calibrationDate='';r.completed='';save();return}if(i===stages(r).length-1){modal('校驗完成',`<p>${esc(r.id)} · ${esc(r.name)}</p><label class="field">完成日期<input type="date" id="finish" value="${today()}" max="${today()}"></label>`,()=>{let d=$('finish').value;if(!d||d>today())return toast('完成日期不可為未來');r.p[i]=true;r.completed=d;closeModal();save()});render()}else{r.p[i]=true;save()}}
 function schedule(key,i){let r=db.rows.find(x=>x.key===key);modal('設定日期',`<p>${esc(r.id)} · ${esc(r.name)}</p><label class="field">${r.type==='內校'?'預計校驗日':r.type==='遊校'?'遊校日期':r.mode+'日期'}<input type="date" id="schedule" value="${r.date||r.due||today()}"></label>`,()=>{let d=$('schedule').value;if(d&&r.type==='外校'&&(r.mode||'收件')==='收件'&&r.calibrationDate&&d>r.calibrationDate)return toast('收件日期不可晚於校驗日期');if(d&&r.type==='內校'){if(r.due&&r.due>=today()&&d>r.due)return toast('不得晚於有效日期');if(r.due&&r.due<today()&&d<today())return toast('已過期設備請安排今天或之後');if(!r.due&&d.slice(0,7)!==r.month)return toast('有效日期空白時請選所屬月份')}if(!d&&!confirm('清除日期及後續進度？'))return;if(r.date!==d){if(r.type!=='內校')r.calibrationDate='';r.date=d;r.p[i]=!!d;r.p[stages(r).length-1]=false;r.completed='';if(!d)for(let j=i;j<stages(r).length;j++)r.p[j]=false}closeModal();save()})}
 function vendors(){return [...new Set(rows().filter(r=>r.type!=='內校').map(r=>r.vendor||'未指定廠商'))]}
-function sumCost(key){
- const recorded=db.monthlyExternalCosts?.[key];
- if(recorded!==undefined)return Math.max(0,Number(recorded)||0);
- return Object.values(db.quotes[key]||{}).reduce((sum,value)=>sum+(Number(value)||0),0);
-}
-function hasMonthlyCost(key){return db.monthlyExternalCosts?.[key]!==undefined||Object.values(db.quotes[key]||{}).some(value=>value!==''&&value!==null&&value!==undefined)}
-function unallocatedHistoricalCost(){
- const keys=Array.from({length:9},(_,i)=>'2026-'+String(i+1).padStart(2,'0'));
- if(keys.every(hasMonthlyCost))return 0;
- return Math.max(0,446100-keys.reduce((sum,key)=>sum+sumCost(key),0));
-}
-function annualExternalCost(key){
- const year=key.slice(0,4),opening=year==='2026'&&key>='2026-10'?unallocatedHistoricalCost():0;
- const keys=new Set([...Object.keys(db.quotes),...Object.keys(db.monthlyExternalCosts||{})]);
- return opening+[...keys].filter(m=>m<=key&&m.slice(0,4)===year).reduce((sum,m)=>sum+sumCost(m),0);
-}
-let costYear='',costEntryMonth='';
 let vendorSearch='',vendorSortKey='frequency',vendorSortDir=-1;
 const vendorInfoFields=[['name','廠商名稱'],['cycleDays','校驗週期（天）'],['contact','聯絡人'],['contactMethod','聯絡方式'],['email','E-mail'],['notes','備註']];
 function vendorContacts(v){
@@ -691,49 +659,18 @@ function editVendorInfo(id){
 function deleteVendorInfo(id){
  if(window.Cloud&&!Cloud.canWrite())return toast('此帳號僅供檢視');
  const vendor=(db.externalVendors||[]).find(v=>v.id===id);if(!vendor)return;
- modal('刪除外校廠商',`<p>確定刪除「${esc(vendor.name)}」的廠商資訊？</p><p class="muted">設備清冊、校驗進度與費用紀錄會保留。</p>`,()=>{db.externalVendors=db.externalVendors.filter(v=>v.id!==id);closeModal();save();toast('廠商資訊已刪除')},'確認刪除');
+ modal('刪除外校廠商',`<p>確定刪除「${esc(vendor.name)}」的廠商資訊？</p><p class="muted">設備清冊與校驗進度會保留。</p>`,()=>{db.externalVendors=db.externalVendors.filter(v=>v.id!==id);closeModal();save();toast('廠商資訊已刪除')},'確認刪除');
 }
 
-function renderCost(){
- const current=today().slice(0,7),currentYear=current.slice(0,4);costYear=costYear||currentYear;
- const years=[...new Set([currentYear,String(Number(currentYear)-1),String(Number(currentYear)+1),costYear,...db.rows.map(r=>r.month.slice(0,4)),...Object.keys(db.quotes).map(m=>m.slice(0,4)),...Object.keys(db.monthlyExternalCosts||{}).map(m=>m.slice(0,4))])].filter(y=>/^\d{4}$/.test(y)).sort();
- $('content').innerHTML=`<div class="cost-workspace yearly-cost-workspace cost-card-workspace"><div class="annual-cost-summary"><label>年度外校總金額</label><strong id="cost-year-total">NT$ ${annualExternalCost(costYear+'-12').toLocaleString()}</strong></div><div class="annual-cost-controls"><label class="cost-year-control">年份<select aria-label="外校金額年份" onchange="costYear=this.value;render()">${years.map(year=>`<option ${year===costYear?'selected':''}>${year}</option>`).join('')}</select></label>${costYear==='2026'&&unallocatedHistoricalCost()>0?`<span class="cost-history-total">1–9 月歷史累計：NT$ ${unallocatedHistoricalCost().toLocaleString()}</span>`:''}</div><div class="monthly-cost-cards">${Array.from({length:12},(_,i)=>{
-  const key=costYear+'-'+String(i+1).padStart(2,'0'),locked=key<'2026-11',unallocated=costYear==='2026'&&i<9&&!hasMonthlyCost(key);
-  return `<button type="button" class="monthly-cost-card ${key===current?'is-current':''}" ${locked?'disabled':`onclick="editVendorCosts('${key}')"`} aria-label="${costYear} 年 ${i+1} 月外校金額${locked?'（歷史金額）':''}"><span class="cost-card-month">${i+1} 月</span><strong>${unallocated?'—':'NT$ '+sumCost(key).toLocaleString()}</strong>${locked?'<span class="cost-card-note">歷史金額</span>':''}</button>`;
- }).join('')}</div></div>`;
-}
-function editVendorCosts(key){
- if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(key)||key<'2026-11')return;
- if(window.Cloud&&!Cloud.canWrite())return toast('此帳號僅供檢視');
- const recorded=db.quotes[key]||{};
- const names=[...new Set([...db.rows.filter(r=>r.month===key&&(r.type==='外校'||r.type==='遊校')&&!inactiveEquipment(r)).map(r=>String(r.vendor||'').trim()).filter(Boolean),...Object.keys(recorded)])].sort((a,b)=>a.localeCompare(b,'zh-Hant'));
- const quoted=Object.values(recorded).reduce((sum,value)=>sum+(Number(value)||0),0),remainder=Math.max(0,sumCost(key)-quoted);
- modal(key.replace('-',' / ')+' 外校金額',`<div class="vendor-cost-summary">當月總金額 <strong id="vendorCostTotal">NT$ ${sumCost(key).toLocaleString()}</strong></div><div class="vendor-cost-list">${names.map((name,index)=>`<label class="vendor-cost-row"><span>${esc(name)}</span><input type="number" min="0" step="1" id="vendorCost_${index}" class="vendor-cost-input" aria-label="${esc(name)}金額" value="${Math.max(0,Number(recorded[name])||0)}" oninput="updateVendorCostTotal()"></label>`).join('')||'<div class="empty">本月尚無外校廠商，請先在清冊設定廠商。</div>'}${remainder>0?`<label class="vendor-cost-row"><span>既有未分配金額</span><input type="number" min="0" step="1" id="vendorCostRemainder" class="vendor-cost-input" aria-label="既有未分配金額" value="${remainder}" oninput="updateVendorCostTotal()"></label><p class="muted">原有總金額先保留；分配給廠商時，請同步減少未分配金額。</p>`:''}</div>`,()=>{
-  if(window.Cloud&&!Cloud.canWrite())return toast('此帳號僅供檢視');
-  const inputs=[...$('modal').querySelectorAll('.vendor-cost-input')];
-  const invalid=inputs.find(input=>!input.validity.valid||!Number.isSafeInteger(Number(input.value))||Number(input.value)<0);
-  if(invalid){invalid.focus();return toast('金額請輸入零或正整數')}
-  const total=inputs.reduce((sum,input)=>sum+Number(input.value),0);
-  if(!Number.isSafeInteger(total))return toast('總金額超出可儲存範圍');
-  db.quotes[key]=Object.fromEntries(names.map((name,index)=>[name,Number($('vendorCost_'+index).value)]));
-  db.monthlyExternalCosts??={};db.monthlyExternalCosts[key]=total;
-  closeModal();save();toast('已儲存當月廠商金額');
- });
- $('dialog').classList.add('vendor-cost-dialog');
-}
-function updateVendorCostTotal(){
- const inputs=[...$('modal').querySelectorAll('.vendor-cost-input')];
- $('vendorCostTotal').textContent='NT$ '+inputs.reduce((sum,input)=>sum+Math.max(0,Number(input.value)||0),0).toLocaleString();
-}
 function renderReport(){
  const reportDatabase=db;
  const previous=$('reportframe')?.contentWindow;
  try{if(previous&&typeof previous.appSaveDraftNow==='function')previous.appSaveDraftNow()}catch(error){if(error.name!=='SecurityError')throw error}
- $('content').innerHTML=`<iframe id="reportframe" class="report-workspace report-initializing" title="量測設備校驗管理月報" src="report.html?v=20261109-183"></iframe>`;
+ $('content').innerHTML=`<iframe id="reportframe" class="report-workspace report-initializing" title="量測設備校驗管理月報" src="report.html?v=20261110-184"></iframe>`;
  const frame=$('reportframe');let retried=false;
  const failed=error=>{
   if(!frame.isConnected)return;
-  if(error.name==='SecurityError'&&!retried){retried=true;const url=new URL('report.html',location.href);url.searchParams.set('v','20261109-183');url.searchParams.set('retry',Date.now());frame.src=url.href;return}
+  if(error.name==='SecurityError'&&!retried){retried=true;const url=new URL('report.html',location.href);url.searchParams.set('v','20261110-184');url.searchParams.set('retry',Date.now());frame.src=url.href;return}
   clearPageTransition();frame.classList.remove('report-initializing');
   $('content').innerHTML='<section class="panel"><h2>月報暫時無法載入</h2><p>請重新載入月報；若持續發生，請重新整理網頁後再試。</p><button class="primary" onclick="renderReport()">重新載入月報</button></section>';
   toast(error.name==='SecurityError'?'月報頁面存取遭瀏覽器阻擋，請重試':'月報載入失敗：'+error.message);
@@ -746,12 +683,11 @@ function renderReport(){
    const fit=()=>{if(frame.isConnected&&typeof w.fitPreview==='function')w.fitPreview()};
    const observer=new ResizeObserver(fit);observer.observe(frame);
    w.addEventListener('pagehide',()=>observer.disconnect(),{once:true});fit();
-   w.reportDataSource=key=>{const equipment=db.rows.filter(r=>r.month===key&&!inactiveEquipment(r));return{total:equipment.length,internal:equipment.filter(r=>r.type==='內校').length,external:equipment.filter(r=>r.type==='外校'||r.type==='遊校').length,cost:sumCost(key)}};
+   w.reportDataSource=key=>{const equipment=db.rows.filter(r=>r.month===key&&!inactiveEquipment(r));return{total:equipment.length,internal:equipment.filter(r=>r.type==='內校').length,external:equipment.filter(r=>r.type==='外校'||r.type==='遊校').length}};
    w.reportEquipmentSource=(key,code)=>{const row=db.rows.find(r=>r.month===key&&r.id.trim().toLowerCase()===String(code).trim().toLowerCase());return row?structuredClone(row):null};
    w.reportRecordSource=key=>db.reports[key]?structuredClone(db.reports[key]):null;
    w.reportPersistRecord=(key,record)=>{if(db!==reportDatabase||window.Cloud&&!Cloud.canWrite())return;db.reports[key]=structuredClone(record);persist()};
    w.reportMonthChanged=key=>{month=key;$('monthbox').innerHTML=''};
-   w.appAnnualTotal=()=>annualExternalCost(w.document.getElementById('monthInput').value);
    w.document.getElementById('monthInput').disabled=false;
    w.appLoadMonth(month,{animate:false});
    if(window.Cloud&&!Cloud.canWrite()){w.document.querySelectorAll('input,textarea,select,button').forEach(el=>{if(!['monthInput','exportPdfBtn'].includes(el.id))el.disabled=true})}
